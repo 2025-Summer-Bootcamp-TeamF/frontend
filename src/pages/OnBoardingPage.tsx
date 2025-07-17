@@ -1,25 +1,25 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "tailwindcss";
 
 const SECTIONS = [
   {
-    title: "업무 흐름을 설계하고,\n자동으로 운영하세요.",
+    title: "더 많은 조회수,\n더 빠른 성장",
     description:
-      "댓글 분석, 업로드 알림, 콘텐츠 힌트 추출까지\n자동화된 워크플로우로 채널 운영을 가볍게",
+      "유튜버의 성장을 위해\n영상 운영을 더 쉽고 효과적으로 만들어드립니다.",
     align: "left",
   },
   {
     title: "매일 반복하던 3시간짜리\n작업이 단 5분으로.",
     description:
-      "댓글 분석, 콘텐츠 정리, 일정 관리까지 자동으로 처리해요.\n이제 진짜 중요한 일에만 집중하세요.",
+      "경쟁 채널 분석과 댓글 관리 등 운영 업무를 자동으로 처리합니다.\n당신은 컨텐츠에만 집중하세요.",
     align: "right",
   },
   {
-    title: "수고는 줄이고, 일은 그대로.",
+    title: "운영을 똑똑하게, 성장을 빠르게",
     description:
-      "귀찮고 지루했던 작업, 이제는 버튼 한 번이면 끝.\n진짜 필요한 일에 에너지를 써보세요.",
+      "반복적인 운영은 자동으로, 중요한 전략은 한눈에.\n유튜버를 위한 똑똑한 성장 도구를 지금 만나보세요.",
     align: "center",
+    hasImage: true,
   },
   {
     title: "모든 준비가 끝났어요.\n이제 직접 시작해보세요.",
@@ -28,7 +28,7 @@ const SECTIONS = [
   },
 ];
 
-const OnBoardingPage = () => {
+const OnBoardingPage: React.FC = () => {
   const navigate = useNavigate();
   const sectionsRef = useRef<(HTMLElement | null)[]>([]);
   const [currentSection, setCurrentSection] = useState(0);
@@ -66,21 +66,28 @@ const OnBoardingPage = () => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-black text-white">
-      {/* 도트 */}
+      {/* 🔥 고정된 전체 배경 이미지 */}
+      <img
+        src="/gradi.png"
+        alt="배경 이미지"
+        className="fixed top-0 left-0 w-full h-full object-cover z-0 pointer-events-none"
+      />
+
+      {/* 도트 네비게이션 */}
       <div className="fixed right-5 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-50">
         {SECTIONS.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentSection(index)}
             className={`w-2.5 h-2.5 rounded-full transition ${
-              currentSection === index ? "bg-white" : "bg-gray-600"
+              currentSection === index ? "bg-red-600" : "bg-gray-500"
             }`}
           />
         ))}
       </div>
 
       {/* 섹션들 */}
-      <div className="h-screen w-full snap-y snap-mandatory overflow-hidden">
+      <div className="h-screen w-full snap-y snap-mandatory overflow-hidden relative z-10">
         {SECTIONS.map((section, index) => {
           const alignment =
             section.align === "left"
@@ -89,36 +96,94 @@ const OnBoardingPage = () => {
               ? "items-end text-right"
               : "items-center text-center";
 
+          const isFirst = index === 0;
+          const isSecond = index === 1;
+          const isThird = index === 2;
+
           return (
             <section
               key={index}
               ref={(el) => {
                 if (el) sectionsRef.current[index] = el;
               }}
-              className={`snap-start w-full h-screen flex justify-center items-center px-6 bg-black text-white`}
+              className="snap-start w-full h-screen flex justify-center items-center px-6 text-white"
             >
-              <div
-                className={`flex flex-col max-w-[960px] w-full ${alignment}`}
-              >
-                <h1 className="text-[28px] md:text-[48px] font-bold whitespace-pre-line leading-snug mb-4">
-                  {section.title}
-                </h1>
-
-                {section.description && (
-                  <p className="text-[16px] md:text-[18px] font-light whitespace-pre-line leading-relaxed">
-                    {section.description}
-                  </p>
-                )}
-
-                {section.isFinal && (
-                  <button
-                    onClick={() => navigate("/main")}
-                    className="mt-10 px-6 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shadow-md transition"
+              {/* 두 번째만 예외 처리 */}
+              {isSecond ? (
+                <div className="flex flex-row justify-between items-center max-w-[1280px] w-full gap-10">
+                  <div className="flex-[1] flex justify-start items-center">
+                    <img
+                      src="/time.png"
+                      alt="시간 이미지"
+                      className="max-w-[550px] w-full object-contain"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-center flex-[1] items-end text-right">
+                    <h1 className="text-[28px] md:text-[48px] font-bold whitespace-pre-line leading-snug mb-4">
+                      {section.title}
+                    </h1>
+                    <p className="text-[16px] md:text-[18px] font-light whitespace-pre-line leading-relaxed">
+                      {section.description}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className={`flex ${
+                    isFirst
+                      ? "flex-row justify-between items-center"
+                      : "flex-col justify-center"
+                  } max-w-[1280px] w-full gap-10 ${!isFirst ? alignment : ""}`}
+                >
+                  {/* 텍스트 */}
+                  <div
+                    className={`flex flex-col justify-center ${
+                      isFirst ? "flex-1" : ""
+                    }`}
                   >
-                    🔥 나만의 워크플로우 생성하러 가기
-                  </button>
-                )}
-              </div>
+                    <h1 className="text-[28px] md:text-[48px] font-bold whitespace-pre-line leading-snug mb-4">
+                      {section.title}
+                    </h1>
+
+                    {section.description && (
+                      <p className="text-[16px] md:text-[18px] font-light whitespace-pre-line leading-relaxed">
+                        {section.description}
+                      </p>
+                    )}
+
+                    {section.isFinal && (
+                      <button
+                        onClick={() => navigate("/main")}
+                        className="mt-10 px-10 py-4 rounded-full bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shadow-md transition"
+                      >
+                        🔥 당신의 계정을 관리해보세요
+                      </button>
+                    )}
+                  </div>
+
+                  {/* 첫 번째 섹션 이미지 */}
+                  {isFirst && (
+                    <div className="flex-[1.3] flex justify-end items-center">
+                      <img
+                        src="/fire.png"
+                        alt="온보딩 이미지"
+                        className="max-w-[800px] w-full object-contain"
+                      />
+                    </div>
+                  )}
+
+                  {/* 세 번째 섹션 이미지 */}
+                  {isThird && (
+                    <div className="w-full flex justify-center items-center mt-10">
+                      <img
+                        src="/desktop.png"
+                        alt="데스크탑 이미지"
+                        className="max-w-[720px] w-full object-contain"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </section>
           );
         })}
