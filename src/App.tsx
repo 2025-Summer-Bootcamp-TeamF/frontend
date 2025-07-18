@@ -1,12 +1,16 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import MainPage from "./pages/MainPage";
 import OnBoardingPage from "./pages/OnBoardingPage";
+<<<<<<< HEAD
 //import Analysis from "./pages/ChannelAnalysisPage";
 import LoginPage from "./pages/LoginPage";
 import MainPage_Login from "./pages/MainPage_Login";
 import Reply_Positive from "./pages/Reply_Positive";
 import Reply_Negative from "./pages/Reply_Negative";
 import Reply_Analysis from "./pages/Reply_Analysis";
+=======
+import MyPage from "./pages/MyPage";
+>>>>>>> develop
 
 function App() {
   return (
@@ -14,6 +18,7 @@ function App() {
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/on" element={<OnBoardingPage />} />
+<<<<<<< HEAD
         <Route path="/login" element={<LoginPage />} />
         <Route path="/mainpage_login" element={<MainPage_Login />} />
         <Route path="/reply_positive" element={<Reply_Positive />} />
@@ -21,6 +26,9 @@ function App() {
         <Route path="/reply_analysis" element={<Reply_Analysis />} />
         <Route path="/mainpage" element={<MainPage />} />
         {/* <Route path="/analysis" element={<Analysis />} /> */}
+=======
+        <Route path="/my" element={<MyPage />} />
+>>>>>>> develop
       </Routes>
     </BrowserRouter>
   );
