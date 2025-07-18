@@ -254,9 +254,8 @@ export default function MainPage() {
           <img src={youtubeLogo} alt="YouTube Logo" />
           <span className="logo-text">YouTube</span>
         </div>
-        <button className="logout-button" onClick={() => navigate("/mainpage")}>
-          Logout &rarr;
-        </button>
+        <button className="logout-button" onClick={() => navigate("/reply_analysis")}>Logout &rarr;</button>
+        {/* <button className="logout-button" onClick={() => navigate("/mainpage")}>Logout &rarr;</button> */}
       </div>
       <div className="main-section">
         <div className="main-cards">
