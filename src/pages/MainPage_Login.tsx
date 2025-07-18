@@ -18,6 +18,8 @@ const cardData = [
         다른 채널의 분석을 통해<br />내 채널 성장의 발판을 마련해보세요.
       </>
     ),
+    btn: "바로 비교하기",
+    onClick: (navigate: (path: string) => void) => navigate('/analysis'),
   },
   {
     img: categoryIcon,
@@ -31,6 +33,8 @@ const cardData = [
         영상을 분석하여 시청자의 눈길을<br />사로잡을 수 있도록 도와줍니다.
       </>
     ),
+    btn: "인사이트 확인하기",
+    onClick: (navigate: (path: string) => void) => navigate('/category'),
   },
   {
     img: replyIcon,
@@ -44,6 +48,8 @@ const cardData = [
         편리한 댓글 관리를 통해<br />구독자들과 더 쉽게 소통하세요.
       </>
     ),
+    btn: "댓글 분석하기",
+    onClick: (navigate: (path: string) => void) => navigate('/reply_positive'),
   },
 ];
 
@@ -88,17 +94,24 @@ export default function MainPage() {
           font-weight: 700;
           letter-spacing: -1px;
         }
-        .main-header .login {
+        .logout-button {
           font-size: 1.7rem;
           font-weight: 700;
           color: #fff;
           text-decoration: none;
           transition: color 0.2s;
           cursor: pointer;
+          background: transparent;
+          border: none;
+          padding: 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
-        .main-header .login:hover {
+        .logout-button:hover {
           color: #e52d27;
         }
+
         .main-section {
           min-height: calc(100vh - 60px); /* 기존보다 30px 정도 상하로 더 늘림 */
           width: 100vw;
@@ -241,7 +254,9 @@ export default function MainPage() {
           <img src={youtubeLogo} alt="YouTube Logo" />
           <span className="logo-text">YouTube</span>
         </div>
-        <span className="login" onClick={() => navigate("/login")}>Login &rarr;</span>
+        <button className="logout-button" onClick={() => navigate("/mainpage")}>
+          Logout &rarr;
+        </button>
       </div>
       <div className="main-section">
         <div className="main-cards">
@@ -252,7 +267,22 @@ export default function MainPage() {
               <div className="main-card-desc">
                 {card.desc}
               </div>
-              <button className="main-card-btn" onClick={() => navigate('/login')}>로그인 후 이용가능</button>
+              <button
+                className="main-card-btn"
+                onClick={() => {
+                  if (idx === 0) {
+                    navigate('/channelanalysispage');
+                  } else if (idx === 1) {
+                    // 인사이트 확인하기 버튼 클릭 시 동작 (필요시 수정)
+                  } else if (idx === 2) {
+                    navigate('/reply_positive');
+                  }
+                }}
+              >
+                {idx === 0 && '바로 비교하기'}
+                {idx === 1 && '인사이트 확인하기'}
+                {idx === 2 && '댓글 분석하기'}
+              </button>
             </div>
           ))}
         </div>

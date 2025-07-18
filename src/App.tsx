@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import MainPage from "./pages/MainPage";
 import OnBoardingPage from "./pages/OnBoardingPage";
-// import ChatPage from "./pages/ChatPage";
-// import AccountPage from "./pages/AccountPage";
-// import InsightsPage from "./pages/InsightsPage";
-// import LoginPage from "./pages/LoginPage";
+//import Analysis from "./pages/ChannelAnalysisPage";
+import LoginPage from "./pages/LoginPage";
+import MainPage_Login from "./pages/MainPage_Login";
+import Reply_Positive from "./pages/Reply_Positive";
+import Reply_Negative from "./pages/Reply_Negative";
 
 function App() {
   return (
@@ -12,10 +13,12 @@ function App() {
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/on" element={<OnBoardingPage />} />
-        {/* <Route path="/chat" element={<ChatPage />} />
-        <Route path="/account" element={<AccountPage />} />
-        <Route path="/insights" element={<InsightsPage />} />
-        <Route path="/login" element={<LoginPage />} /> */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/mainpage_login" element={<MainPage_Login />} />
+        <Route path="/reply_positive" element={<Reply_Positive />} />
+        <Route path="/reply_negative" element={<Reply_Negative />} />
+        <Route path="/mainpage" element={<MainPage />} />
+        {/* <Route path="/analysis" element={<Analysis />} /> */}
       </Routes>
     </BrowserRouter>
   );
