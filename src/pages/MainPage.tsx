@@ -11,7 +11,7 @@ const cardData = [
   {
     img: analysisIcon,
     title: (
-      <span className="font-bold text-white text-[42px] font-['Inter']">Channel Analysis</span>
+      <span className="font-bold text-[#ffffff] text-[42px]">Channel Analysis</span>
     ),
     desc: (
       <span className="text-[28px] text-[rgba(255,255,255,0.9)] font-regular mt-2">다른 채널의 분석을 통해<br />내 채널 성장의 발판을 마련해보세요.</span>
@@ -20,7 +20,7 @@ const cardData = [
   {
     img: categoryIcon,
     title: (
-      <span className="font-bold text-white text-[42px] font-['Inter']">Video Category</span>
+      <span className="font-bold text-[#ffffff] text-[42px] font-['Inter']">Video Category</span>
     ),
     desc: (
       <span className="text-[28px] text-[rgba(255,255,255,0.9)] font-regular mt-2">영상을 분석하여 시청자의 눈길을<br />사로잡을 수 있도록 도와줍니다.</span>
@@ -29,7 +29,7 @@ const cardData = [
   {
     img: replyIcon,
     title: (
-      <span className="font-bold text-white text-[42px] font-['Inter']">Reply Management</span>
+      <span className="font-bold text-[#ffffff] text-[42px] font-['Inter']">Reply Management</span>
     ),
     desc: (
       <span className="text-[28px] text-[rgba(255,255,255,0.9)] font-regular mt-2">편리한 댓글 관리를 통해<br />구독자들과 더 쉽게 소통하세요.</span>

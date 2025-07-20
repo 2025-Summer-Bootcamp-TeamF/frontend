@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import avatar from "../assets/avatar.png";
-import thumbnail from "../assets/thumbnail.png";
+import thumbnail from "../assets/thumbnail1.png";
 import arrow from "../assets/arrow.png";
+import mypageIcon from "../assets/mypagelogo.png";
+import insightIcon from "../assets/insight.png";
+import analysisIcon from "../assets/analysis.png";
 
 // 댓글 데이터 타입 정의
 interface Comment {
@@ -103,28 +106,16 @@ export default function ReplyManagement() {
         style={{ width: "6vw" }}
       >
         <div style={{ marginTop: "2.94vh", marginBottom: "24px" }}>
-          <img src="/logo.png" alt="Logo" className="w-auto h-auto" />
+          <img src={"/logo.png"} alt="Logo" className="w-auto h-auto" />
         </div>
-        <button className="p-3 rounded-lg transition-all mb-4 group" onClick={() => navigate("/mypage")}>
-          <img
-            src="/mypagelogo.png"
-            alt="My Page"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
+        <button className="p-3 rounded-lg transition-all mb-4 group">
+          <img src={mypageIcon} alt="My Page" className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all" />
         </button>
-        <button className="p-3 rounded-lg transition-all mb-4 group" onClick={() => navigate("/reply_analysis")}>
-          <img
-            src="/insight.png"
-            alt="Insight"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
+        <button className="p-3 rounded-lg transition-all mb-4 group">
+          <img src={insightIcon} alt="Insight" className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all" />
         </button>
         <button className="p-3 rounded-lg transition-all group">
-          <img
-            src="/analysis.png"
-            alt="Analysis"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
+          <img src={analysisIcon} alt="Analysis" className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all" />
         </button>
       </div>
 
@@ -264,10 +255,10 @@ export default function ReplyManagement() {
             </div>
 
             {/* 댓글 테이블 */}
-            <div className="flex-1 flex flex-col bg-[#1c2023] pt-6 pb-2 pr-2 pl-2 rounded-[10px] overflow-y-auto">
+            <div className="flex-1 flex flex-col bg-[#1c2023] pt-6 pb-2 pr-2 pl-2 rounded-[10px] overflow-y-auto overflow-x-hidden">
               {/* 테이블 헤더 */}
-              <div className="w-full flex flex-row text-[#a3a3a3] text-[17px] font-medium border-b border-[#333] pb-2 mb-2">
-                <div className="w-[60px] flex items-center justify-center">
+              <div className="w-full flex flex-row text-[#a3a3a3] text-[17px] font-medium border-b border-[#333] pb-2 mb-2 min-w-0">
+                <div className="w-[60px] flex-shrink-0 flex items-center justify-center">
                   <input 
                     type="checkbox" 
                     className="w-5 h-5 accent-[#ff0000]" 
@@ -275,17 +266,17 @@ export default function ReplyManagement() {
                     onChange={handleCheckAll} 
                   />
                 </div>
-                <div className="w-[140px] text-[#a3a3a3] text-[17px] font-medium flex items-center justify-center">Account</div>
-                <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex items-center justify-center">Comment</div>
-                <div className="w-[140px] text-[#a3a3a3] text-[17px] font-medium flex items-center justify-center">Date</div>
+                <div className="w-[140px] flex-shrink-0 text-[#a3a3a3] text-[17px] font-medium flex items-center justify-center">Account</div>
+                <div className="flex-1 min-w-0 text-[#a3a3a3] text-[17px] font-medium flex items-center justify-center">Comment</div>
+                <div className="w-[140px] flex-shrink-0 text-[#a3a3a3] text-[17px] font-medium flex items-center justify-center">Date</div>
               </div>
 
               {/* 댓글 목록 */}
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden">
                 {pagedComments.map((comment, index) => (
-                  <div key={comment.id} className="w-full flex flex-col border-down-[1px] border-[#606265]">
-                    <div className="w-full flex flex-row items-center py-2 hover:bg-[#232335] transition">
-                      <div className="w-[60px] flex items-center justify-center">
+                  <div key={comment.id} className="w-full flex flex-col border-down-[1px] border-[#606265] min-w-0">
+                    <div className="w-full flex flex-row items-center py-2 hover:bg-[#232335] transition min-w-0">
+                      <div className="w-[60px] flex-shrink-0 flex items-center justify-center">
                         <input 
                           type="checkbox" 
                           className="w-5 h-5 accent-[#ff0000]" 
@@ -293,14 +284,14 @@ export default function ReplyManagement() {
                           onChange={() => handleCheck(comment.id)} 
                         />
                       </div>
-                      <div className="w-[200px] flex items-center gap-3 pl-1">
+                      <div className="w-[140px] flex-shrink-0 flex items-center gap-3 pl-1">
                         <img src={avatar} alt="profile" className="w-6 h-6 rounded-full object-cover select-none" draggable={false} />
                         <span className="truncate text-[#d9d9d9] text-[15px] font-regular">{comment.account}</span>
                       </div>
-                      <div className="flex-1 text-[#d9d9d9] text-[15px] truncate pl-6" title={comment.comment}>
+                      <div className="flex-1 min-w-0 text-[#d9d9d9] text-[15px] truncate pl-6" title={comment.comment}>
                         {comment.comment}
                       </div>
-                      <div className="w-[140px] flex items-center justify-center text-[#d9d9d9] text-[15px]">
+                      <div className="w-[140px] flex-shrink-0 flex items-center justify-center text-[#d9d9d9] text-[15px]">
                         {comment.date}
                       </div>
                     </div>

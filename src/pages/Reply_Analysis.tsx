@@ -1,11 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import youtubeLogo from "../assets/youtube.png";
-import thumbnail from "../assets/thumbnail.png";
+import thumbnail from "../assets/thumbnail1.png";
 import arrow from "../assets/arrow.png";
 import mypageIcon from "../assets/mypagelogo.png";
 import insightIcon from "../assets/insight.png";
 import analysisIcon from "../assets/analysis.png";
-import categoryIcon from "../assets/category.png";
 
 export default function ReplyAnalysis() {
   const navigate = useNavigate();
@@ -32,34 +30,19 @@ export default function ReplyAnalysis() {
         }}
       />
 
-      {/* Sidebar - MyPage와 동일한 스타일 */}
-      <div
-        className="fixed left-0 top-0 h-full flex flex-col items-center z-50"
-        style={{ width: "6vw" }}
-      >
+      {/* Sidebar (mypage.tsx와 동일) */}
+      <div className="fixed left-0 top-0 h-full flex flex-col items-center z-50" style={{ width: "6vw" }}>
         <div style={{ marginTop: "2.94vh", marginBottom: "24px" }}>
-          <img src="/logo.png" alt="Logo" className="w-auto h-auto" />
+          <img src={"/logo.png"} alt="Logo" className="w-auto h-auto" />
         </div>
-        <button className="p-3 rounded-lg transition-all mb-4 group" onClick={() => navigate("/mypage")}>
-          <img
-            src="/mypagelogo.png"
-            alt="My Page"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
+        <button className="p-3 rounded-lg transition-all mb-4 group" onClick={() => navigate("/mypage")}> 
+          <img src={mypageIcon} alt="My Page" className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all" />
         </button>
-        <button className="p-3 rounded-lg transition-all mb-4 group" onClick={() => navigate("/reply_analysis")}>
-          <img
-            src="/insight.png"
-            alt="Insight"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
+        <button className="p-3 rounded-lg transition-all mb-4 group" onClick={() => navigate("/reply_analysis")}> 
+          <img src={insightIcon} alt="Insight" className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all" />
         </button>
-        <button className="p-3 rounded-lg transition-all group">
-          <img
-            src="/analysis.png"
-            alt="Analysis"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
+        <button className="p-3 rounded-lg transition-all group"> 
+          <img src={analysisIcon} alt="Analysis" className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all" />
         </button>
       </div>
 
@@ -96,10 +79,10 @@ export default function ReplyAnalysis() {
 
             {/* 영상 정보 */}
             <div className="text-white mb-6">
-              <div className="text-[#848485] text-[20px] font-regular mb-2">2025. 07. 10</div>
+              <div className="text-[#848485] text-[20px] font-normal mb-2">2025. 07. 10</div>
               <div className="text-[22px] font-regular mb-2">[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE</div>
-              <div className="text-[#848485] text-[20px] font-regular mb-1">조회수 38,665회</div>
-              <div className="text-[#848485] text-[20px] font-regular mb-1">댓글 참여율 0.007%</div>
+              <div className="text-[#848485] text-[20px] font-normal mb-1">조회수 38,665회</div>
+              <div className="text-[#848485] text-[20px] font-normal mb-1">댓글 참여율 0.007%</div>
               <div className="text-[#848485] text-[20px] font-regular">좋아요 참여율 0.7%</div>
             </div>
 
