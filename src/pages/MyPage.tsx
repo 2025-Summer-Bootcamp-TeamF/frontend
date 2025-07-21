@@ -74,9 +74,7 @@ const MyPage: React.FC = () => {
           >
             <div className="flex items-center gap-2 mb-4">
               <img src="/mypagelogo.png" alt="My Page" className="w-6 h-6" />
-              <span className="text-gray-200" style={{ fontSize: "27.73px" }}>
-                My Account
-              </span>
+              <span className="text-gray-200 text-[1.7rem]">My Account</span>
             </div>
 
             {/* Profile Section */}
@@ -88,13 +86,10 @@ const MyPage: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <h1
-                    className="font-bold mb-2"
-                    style={{ fontSize: "41.79px", lineHeight: "1.2" }}
-                  >
+                  <h1 className="font-bold mb-2 text-4xl sm:text-5xl leading-[1.2]">
                     Estar el mono
                   </h1>
-                  <p className="text-gray-400" style={{ fontSize: "24.56px" }}>
+                  <p className="text-gray-400 text-xl sm:text-2xl">
                     hi welcome to my channel
                   </p>
                 </div>
@@ -102,40 +97,26 @@ const MyPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-x-12 gap-y-4 mr-8">
                 <div className="text-left">
-                  <p
-                    className="text-gray-500 mb-1"
-                    style={{ fontSize: "24.56px" }}
-                  >
+                  <p className="text-gray-500 mb-1 text-xl sm:text-2xl">
                     구독자 수
                   </p>
-                  <p style={{ fontSize: "24.56px" }}>200만</p>
+                  <p className="text-xl sm:text-2xl">200만</p>
                 </div>
                 <div className="text-left">
-                  <p
-                    className="text-gray-500 mb-1"
-                    style={{ fontSize: "24.56px" }}
-                  >
+                  <p className="text-gray-500 mb-1 text-xl sm:text-2xl">
                     총 영상 수
                   </p>
-                  <p style={{ fontSize: "24.56px" }}>878개</p>
+                  <p className="text-xl sm:text-2xl">878개</p>
                 </div>
                 <div className="text-left">
-                  <p
-                    className="text-gray-500 mb-1"
-                    style={{ fontSize: "24.56px" }}
-                  >
+                  <p className="text-gray-500 mb-1 text-xl sm:text-2xl">
                     채널 가입일
                   </p>
-                  <p style={{ fontSize: "24.56px" }}>2023-07-19</p>
+                  <p className="text-xl sm:text-2xl">2023-07-19</p>
                 </div>
                 <div className="text-left">
-                  <p
-                    className="text-gray-500 mb-1"
-                    style={{ fontSize: "24.56px" }}
-                  >
-                    국가
-                  </p>
-                  <p style={{ fontSize: "24.56px" }}>대한민국</p>
+                  <p className="text-gray-500 mb-1 text-xl sm:text-2xl">국가</p>
+                  <p className="text-xl sm:text-2xl">대한민국</p>
                 </div>
               </div>
             </div>
@@ -147,23 +128,21 @@ const MyPage: React.FC = () => {
             className="flex gap-8"
           >
             <button
-              className={`pb-3 hover:text-white transition-colors ${
+              className={`pb-3 hover:text-white transition-colors text-2xl ${
                 activeTab === "overview"
                   ? "text-white border-b-2 border-red-500"
                   : "text-gray-400"
               }`}
-              style={{ fontSize: "28.69px" }}
               onClick={() => setActiveTab("overview")}
             >
               Overview
             </button>
             <button
-              className={`pb-3 hover:text-white transition-colors ${
+              className={`pb-3 hover:text-white transition-colors text-2xl ${
                 activeTab === "video"
                   ? "text-white border-b-2 border-red-500"
                   : "text-gray-400"
               }`}
-              style={{ fontSize: "28.69px" }}
               onClick={() => setActiveTab("video")}
             >
               Video

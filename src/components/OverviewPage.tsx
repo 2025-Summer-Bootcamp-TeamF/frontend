@@ -42,49 +42,69 @@ const OverviewPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-6 md:p-8 lg:p-12 w-full">
-      <div className="flex flex-col xl:flex-row gap-8 xl:gap-16">
-        {/* 왼쪽: 통계 카드 + 차트 */}
-        <div className="flex-1 min-w-0 flex flex-col">
+    <div className="w-full h-full" style={{ padding: "2.5%" }}>
+      <div className="flex w-full h-full" style={{ gap: "2.5%" }}>
+        {/* 왼쪽: 통계 카드 + 차트 - 50% */}
+        <div className="flex flex-col" style={{ width: "48%" }}>
           {/* 통계 카드 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+          <div
+            className="grid grid-cols-2"
+            style={{ gap: "3%", marginBottom: "3%" }}
+          >
             <div
-              className="rounded-2xl p-4 md:p-6"
+              className="rounded-xl"
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.05)",
                 border: "1px solid rgba(255, 255, 255, 0.1)",
+                padding: "8%",
               }}
             >
-              <h3 className="text-gray-400 text-base md:text-lg mb-2">
+              <h3
+                className="text-gray-400"
+                style={{ fontSize: "0.9vw", marginBottom: "8%" }}
+              >
                 일일 평균 조회수
               </h3>
-              <p className="text-white text-2xl md:text-3xl lg:text-4xl font-bold leading-none">
+              <p
+                className="text-white font-bold leading-none"
+                style={{ fontSize: "2vw" }}
+              >
                 290만
               </p>
             </div>
             <div
-              className="rounded-2xl p-4 md:p-6"
+              className="rounded-xl"
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.05)",
                 border: "1px solid rgba(255, 255, 255, 0.1)",
+                padding: "8%",
               }}
             >
-              <h3 className="text-gray-400 text-base md:text-lg mb-2">
+              <h3
+                className="text-gray-400"
+                style={{ fontSize: "0.9vw", marginBottom: "8%" }}
+              >
                 영상별 평균 조회수
               </h3>
-              <p className="text-white text-2xl md:text-3xl lg:text-4xl font-bold leading-none">
+              <p
+                className="text-white font-bold leading-none"
+                style={{ fontSize: "2vw" }}
+              >
                 170만
               </p>
             </div>
           </div>
 
           {/* 차트 */}
-          <div className="flex flex-col h-full">
-            <h3 className="text-white text-lg md:text-xl mb-4">
+          <div className="flex flex-col flex-1">
+            <h3
+              className="text-white"
+              style={{ fontSize: "1.1vw", marginBottom: "2%" }}
+            >
               구독자 수 변화량
             </h3>
             <div
-              className="relative rounded-xl w-full flex-1"
+              className="relative rounded-xl flex-1"
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.03)",
               }}
@@ -149,10 +169,12 @@ const OverviewPage: React.FC = () => {
               </svg>
 
               <div
-                className="absolute bg-black bg-opacity-80 px-2 md:px-3 py-1 md:py-2 rounded text-xs md:text-sm"
+                className="absolute bg-black bg-opacity-80 rounded"
                 style={{
                   right: "15%",
                   top: "15%",
+                  padding: "0.7vw",
+                  fontSize: "0.75vw",
                 }}
               >
                 <span className="text-gray-300">2025/03/28</span>
@@ -163,16 +185,18 @@ const OverviewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 오른쪽: 최근 영상들 */}
-        <div className="flex flex-col gap-4 md:gap-6 xl:max-w-2xl xl:w-full">
+        {/* 오른쪽: 최근 영상들 - 50% */}
+        <div className="flex flex-col" style={{ width: "48%", gap: "2%" }}>
           {videos.map((video, index) => (
             <div
               key={index}
-              className="relative flex flex-col sm:flex-row gap-4 md:gap-6 p-4 md:p-6"
+              className="relative flex rounded-2xl"
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.05)",
                 border: "1px solid rgba(255, 255, 255, 0.2)",
-                borderRadius: "20px",
+                padding: "2%",
+                gap: "3%",
+                height: "32%",
               }}
             >
               {/* 메달 이미지 */}
@@ -181,50 +205,61 @@ const OverviewPage: React.FC = () => {
                   index === 0 ? "first" : index === 1 ? "second" : "third"
                 }.png`}
                 alt={`${index + 1}st place medal`}
-                className="absolute left-6 z-10"
+                className="absolute z-10"
                 style={{
-                  width: "40px",
-                  height: "40px",
-                  top: "0px",
+                  width: "2vw",
+                  height: "2vw",
+                  top: "0vw",
+                  left: "2%",
                 }}
               />
 
-              <div className="relative">
-                <img
-                  src="/thumbnail.png"
-                  alt="Video thumbnail"
-                  className="w-full sm:w-48 md:w-56 h-40 md:h-44 rounded-xl object-cover flex-shrink-0"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-white font-medium mb-2 text-lg md:text-xl truncate">
-                  {video.title}
-                </h4>
-                <p className="text-gray-500 mb-4 text-base md:text-lg">
-                  {video.date}
-                </p>
-                <div className="space-y-2">
+              <img
+                src="/thumbnail.png"
+                alt="Video thumbnail"
+                className="rounded-xl object-cover"
+                style={{
+                  width: "25%",
+                  height: "100%",
+                }}
+              />
+              <div
+                className="flex-1 flex flex-col justify-between"
+                style={{ paddingTop: "1%", paddingBottom: "1%" }}
+              >
+                <div>
+                  <h4
+                    className="text-white font-medium truncate"
+                    style={{ fontSize: "1vw", marginBottom: "3%" }}
+                  >
+                    {video.title}
+                  </h4>
+                  <p className="text-gray-500" style={{ fontSize: "0.85vw" }}>
+                    {video.date}
+                  </p>
+                </div>
+                <div className="flex flex-col" style={{ gap: "5%" }}>
                   <div className="flex justify-between items-center">
-                    <p className="text-gray-500" style={{ fontSize: "20px" }}>
+                    <p className="text-gray-500" style={{ fontSize: "0.95vw" }}>
                       조회수
                     </p>
-                    <p className="text-gray-300" style={{ fontSize: "20px" }}>
+                    <p className="text-gray-300" style={{ fontSize: "0.95vw" }}>
                       {video.views}
                     </p>
                   </div>
                   <div className="flex justify-between items-center">
-                    <p className="text-gray-500" style={{ fontSize: "20px" }}>
+                    <p className="text-gray-500" style={{ fontSize: "0.95vw" }}>
                       댓글 참여율
                     </p>
-                    <p className="text-gray-300" style={{ fontSize: "20px" }}>
+                    <p className="text-gray-300" style={{ fontSize: "0.95vw" }}>
                       {video.viewRate}
                     </p>
                   </div>
                   <div className="flex justify-between items-center">
-                    <p className="text-gray-500" style={{ fontSize: "20px" }}>
+                    <p className="text-gray-500" style={{ fontSize: "0.95vw" }}>
                       좋아요 참여율
                     </p>
-                    <p className="text-gray-300" style={{ fontSize: "20px" }}>
+                    <p className="text-gray-300" style={{ fontSize: "0.95vw" }}>
                       {video.likeRate}
                     </p>
                   </div>
