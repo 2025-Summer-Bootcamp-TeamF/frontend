@@ -135,8 +135,7 @@ export default function ReplyManagement() {
           className="
             flex flex-col rounded-2xl overflow-hidden
             bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
-            w-full max-w-[560px]
-            h-full
+            w-[33vw]
             p-10
             pl-6 pr-6
             "
@@ -169,7 +168,7 @@ export default function ReplyManagement() {
             </div>
 
             {/* 영상 정보 */}
-            <div className="text-white mt-2 mb-10 pt-3 px-6 max-w-[420px] justify-center items-center w-full">
+            <div className="text-white mt-2 mb-10 pt-3 px-6 justify-center items-center w-full">
               <div className="text-[#848485] text-[20px] font-regular mb-2">{/* 날짜 */}
                 2025. 07. 10
               </div>
@@ -239,9 +238,8 @@ export default function ReplyManagement() {
           className="
             flex flex-col rounded-2xl overflow-hidden
             bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
-            w-full max-w-[1190px]
-            h-full
-            "
+            flex-1 h-full min-h-0
+          "
           style={{
             // 배경색과 테두리는 tailwind로 대체
           }}
@@ -293,7 +291,7 @@ export default function ReplyManagement() {
 
             {/* 댓글 테이블 */}
             <div className="
-              flex-1 flex flex-col bg-[#1c2023] w-full max-w-[1120px] h-full pt-6 pb-2 pr-2 pl-2 rounded-[10px] overflow-y-auto
+              flex-1 flex flex-col bg-[#1c2023] w-full h-full pt-6 pb-2 pr-2 pl-2 rounded-[10px] overflow-y-auto
             ">
               {/* 테이블 헤더 */}
               <div className="
