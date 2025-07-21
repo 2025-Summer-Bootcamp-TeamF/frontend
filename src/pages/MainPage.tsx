@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import youtubeLogo from "../assets/logo.png";
+import youtubeLogo from "../assets/youtubelogo.png";
 import analysisIcon from "../assets/video_analysis.png";
 import categoryIcon from "../assets/category.png";
 import replyIcon from "../assets/reply.png";
@@ -55,43 +55,43 @@ export default function MainPage() {
 
   return (
     <div
-      className="w-[1920px] h-[1080px] text-white relative overflow-x-hidden bg-cover bg-center"
+      className="w-screen h-screen text-white relative overflow-x-hidden bg-cover bg-center"
       style={{
         backgroundImage: `url(${background})`,
         backgroundColor: '#111',
       }}
     >
       {/* Header */}
-      <div className="flex justify-between items-center px-30 pt-14 pb-6 w-full max-w-[1920px] mx-auto">
+      <div className="flex justify-between items-center px-30 pt-14 pb-6 w-full mx-auto">
         <div className="flex items-center cursor-pointer select-none" onClick={() => navigate("/")}> 
-          <img src={youtubeLogo} alt="YouTube Logo" className="h-[60px] w-[270px]" />
+          <img src={youtubeLogo} alt="YouTube Logo" className="h-[3rem] w-[12rem]" />
         </div>
         {/* 오른쪽 상단 로그인/로그아웃 버튼 */}
         {isLoggedIn ? (
           <div className="flex items-center cursor-pointer select-none" onClick={handleLogout}>
-            <img src={logoutIcon} alt="로그아웃" className="h-[40px] w-[190px]" />
+            <img src={logoutIcon} alt="로그아웃" className="h-[2rem] w-[10rem]" />
           </div>
         ) : (
           <div className="flex items-center cursor-pointer select-none" onClick={() => navigate("/login")}> 
-            <img src={loginIcon} alt="로그인" className="h-[45px] w-[120px]" />
+            <img src={loginIcon} alt="로그인" className="h-[2rem] w-[6rem]" />
           </div>
         )}
       </div>
 
       {/* Main Section */}
       <div className="flex flex-row items-center justify-center w-full min-h-[calc(100vh-120px)] pt-8 pb-8">
-        <div className="flex flex-row justify-center items-stretch gap-12 mt-8">
+        <div className="flex flex-row justify-center items-stretch gap-12 mt-8 w-full">
           {cardData.map((card, idx) => (
             <div
               key={idx}
-              className="bg-[#111213] rounded-[14px] border border-rgba(255,255,255,0.6) w-[530px] h-[780px] flex flex-col items-center justify-between px-8 py-10 relative"
+              className="bg-[#111213] rounded-2xl border border-rgba(255,255,255,0.6) w-[26vw] h-full flex flex-col items-center justify-between px-8 py-10 relative"
               style={{boxShadow: '0 0 24px 2px #e52d27a0'}}
             >
-              <img src={card.img} alt="card icon" className="w-[230px] h-[205px] object-contain pt-10 mb-2 mt-12 select-none" />
+              <img src={card.img} alt="card icon" className="w-[14vw] h-[12vw] object-contain pt-10 mb-2 mt-12 select-none" />
               <div className="mt-4 text-center">{card.title}</div>
               <div className="mb-6 text-center">{card.desc}</div>
               <button
-                className="bg-[#c90101] hover:bg-[#b31217] text-white text-[32.5px] font-medium rounded-[14px] px-8 py-3 mt-6 mb-4 shadow-md transition-colors w-full max-w-[360px]"
+                className="bg-[#c90101] hover:bg-[#b31217] text-white text-[32.5px] font-medium rounded-[14px] px-8 py-3 mt-6 mb-4 shadow-md transition-colors w-full min-w-[360px]"
                 onClick={() => {
                   if (!isLoggedIn) {
                     navigate('/login');
