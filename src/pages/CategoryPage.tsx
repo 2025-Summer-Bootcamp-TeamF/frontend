@@ -65,7 +65,7 @@ export default function CategoryPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
+    <div className="w-[1920px] h-[1080px] bg-black text-white flex">
       {/* Sidebar */}
       <div className="fixed left-0 top-0 h-full flex flex-col items-center z-50 bg-black" style={{ width: "6vw" }}>
         <div style={{ marginTop: "2.94vh", marginBottom: "24px" }}>
@@ -82,17 +82,17 @@ export default function CategoryPage() {
         </button>
       </div>
       {/* Main Container */}
-      <div className="flex-1 min-h-screen flex flex-col items-center justify-start bg-black ml-[6vw] py-10 px-4">
-        <div className="w-full max-w-[1770px] rounded-[15px] bg-[#2c2c2c] border border-rgba(255, 255, 255, 0.6) p-12 mt-2">
+      <div className="flex-1 h-[1080px] flex flex-col items-center justify-start bg-black ml-[6vw] py-8 pr-8">
+        <div className="w-[1770px] h-[1025px] rounded-[15px] bg-[#2c2c2c] border border-rgba(255, 255, 255, 0.6)">
           {/* 뒤로가기 버튼 */}
-          <div className="mb-6 flex">
+          <div className="mb-2 flex">
             <button
-              className="w-[40px] h-[40px] rounded-full flex items-center justify-center cursor-pointer shadow-lg z-10"
-              onClick={() => navigate("/mainpage_login")}
-              style={{ marginRight: "8px", transform: "scaleX(-1)" }}
+              className="mb-3 rounded-full flex items-center justify-center cursor-pointer shadow-lg z-10"
+              onClick={() => navigate("/")}
+              style={{ marginRight: "8px", marginTop: "8px", transform: "scaleX(-1)" }}
               aria-label="뒤로가기"
             >
-              <img src={arrow} alt="뒤로가기" className="w-6 h-4" />
+              <img src={arrow} alt="뒤로가기" className="w-[36px] h-[28px]" />
             </button>
           </div>
           
