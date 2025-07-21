@@ -12,10 +12,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-[1920px] h-[1080px] flex justify-center items-center bg-black pl-6 overflow-hidden">
+    <div className="w-screen h-screen flex justify-center items-center bg-black pl-6 overflow-hidden">
       {/* 왼쪽: 카드형 배경+텍스트 */}
       <div
-        className="w-[1010px] h-[1035px] rounded-[24px] flex flex-col justify-between relative"
+        className="w-[50vw] h-full rounded-2xl flex flex-col justify-between relative"
         style={{
           backgroundImage: `url(${loginBg})`,
           backgroundSize: "cover",
@@ -23,14 +23,17 @@ export default function LoginPage() {
         }}
       >
         {/* ← 버튼 (arrow.png) */}
-        <button
-          className="absolute top-14 left-8 z-10"
-          onClick={() => navigate("/")}
-          style={{ transform: "scaleX(-1)" }}
-        >
-          <img src={arrow} alt="back" className="w-[65px] h-[55px]" />
-        </button>
-        <div className="flex-1 flex flex-col mt-36 ml-14">
+        <div className="absolute top-14 left-8 z-10">
+          <button
+            className="rounded-full items-center justify-center cursor-pointer"
+            onClick={() => navigate("/")}
+            style={{ transform: "scaleX(-1)" }}
+            aria-label="뒤로가기"
+          >
+          <img src={arrow} alt="뒤로가기" className="w-[36px] h-[28px]" />
+          </button>
+        </div>
+        <div className="flex-1 flex flex-col mt-28 ml-12">
           <div className="text-white text-[33px] font-regular">You can easily</div>
           <div className="text-white text-[70px] font-regular">Speed up your work<br/>with our service</div>
         </div>
@@ -39,12 +42,12 @@ export default function LoginPage() {
         </div>
       </div>
       {/* 오른쪽: 로그인 폼 */}
-      <div className="flex-1 w-full h-full flex flex-col justify-center ml-10 bg-black">
+      <div className="flex-1 flex flex-col justify-center ml-10 mr-10 bg-black">
         <div className="text-white text-[70px] font-regular">Get Started Now</div>
-        <div className="text-[#a3a3a3] text-[23px] font-regular mb-16">Please log in to your account to continue.</div>
-        <div className="w-full max-w-[670px]">
+        <div className="text-[#a3a3a3] text-[23px] font-regular mb-10">Please log in to your account to continue.</div>
+        <div className="w-full">
           <div className="text-white text-[22px] font-regular mb-3">YouTube Account</div>
-          <button className="w-full h-[70px] bg-[#ff0000] text-white text-[22px] font-semibold rounded-[13px] mt-2 mb-2 hover:bg-[#d90000] transition-all" onClick={handleLogin}>Continue with YouTube</button>
+          <button className="w-[40vw] min-h-[70px] bg-[#ff0000] text-white text-[22px] font-semibold rounded-[13px] mt-2 mb-2 hover:bg-[#d90000] transition-all" onClick={handleLogin}>Continue with YouTube</button>
         </div>
       </div>
     </div>

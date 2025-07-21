@@ -129,15 +129,14 @@ export default function ReplyManagement() {
       </div>
 
       {/* 메인 컨텐츠 영역 */}
-      <div className="ml-[6vw] flex-1 pr-8 py-8 flex gap-4">
+      <div className="ml-[6vw] py-8 flex gap-4 w-full flex pr-6">
         {/* 왼쪽 컨테이너 - 영상 정보 및 탭 */}
         <div
           className="
-            flex flex-col rounded-2xl overflow-hidden
+            flex flex-1 w-full flex-col rounded-2xl overflow-hidden
             bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
-            w-[33vw]
-            p-10
-            pl-6 pr-6
+            p-6
+            pl-6 
             "
           style={{
             // 배경색과 테두리는 tailwind로 대체
@@ -145,7 +144,7 @@ export default function ReplyManagement() {
         >
           <div>
             {/* 영상 썸네일 */}
-            <div className="relative flex flex-col px-6">
+            <div className="relative flex flex-col ">
               {/* 뒤로가기 버튼을 썸네일 위가 아닌 바깥쪽에 배치 */}
               <div>
                 <button
@@ -236,18 +235,17 @@ export default function ReplyManagement() {
         {/* 오른쪽 컨테이너 - 댓글 목록 */}
         <div
           className="
-            flex flex-col rounded-2xl overflow-hidden
+            flex flex-col rounded-2xl 
             bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
-            flex-1 h-full min-h-0
+            flex-2 h-full min-h-0 w-full
           "
           style={{
             // 배경색과 테두리는 tailwind로 대체
           }}
         >
-          <div className="px-8 py-10 flex flex-col flex-1">
+          <div className="px-8 py-10 flex flex-col ">
             {/* 헤더 영역 */}
-            <div className="flex flex-row items-center justify-between mb-6
-            ">
+            <div className="flex flex-row items-center justify-between mb-6">
               <div>
                 <div className="text-[22px] font-semibold text-[#ff0000] mb-2">
                   {activeTab === 'positive' ? '긍정적인 댓글' : '부정적인 댓글 & 광고 댓글'}

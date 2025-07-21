@@ -1,7 +1,4 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import sidebarMypage from "../assets/mypagelogo.png";
-import sidebarInsight from "../assets/insight.png";
-import sidebarAnalysis from "../assets/analysis.png";
 import arrow from "../assets/arrow.png";
 import medal1 from "../assets/1st.png";
 import medal2 from "../assets/2nd.png";
@@ -126,101 +123,151 @@ export default function CategorySegmentation() {
 
   return (
     <div className="min-h-screen bg-black text-white flex">
+        <style
+        dangerouslySetInnerHTML={{
+          __html: `
+          ::-webkit-scrollbar {
+            display: none;
+          }
+          html, body {
+            overflow-y: scroll;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          }
+        `,
+        }}
+      />
+
       {/* Sidebar */}
-      <div className="fixed left-0 top-0 h-full flex flex-col items-center z-50 bg-black" style={{ width: "6vw" }}>
+      <div
+        className="fixed left-0 top-0 h-full flex flex-col items-center z-50"
+        style={{ width: "6vw" }}
+      >
         <div style={{ marginTop: "2.94vh", marginBottom: "24px" }}>
-          <img src={"/logo.png"} alt="Logo" className="w-auto h-auto" />
+          <img src="/logo.png" alt="Logo" className="w-auto h-auto" />
         </div>
         <button className="p-3 rounded-lg transition-all mb-4 group">
-          <img src={sidebarMypage} alt="My Page" className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all" />
+          <img
+            src="/mypagelogo.png"
+            alt="My Page"
+            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
+          />
         </button>
         <button className="p-3 rounded-lg transition-all mb-4 group">
-          <img src={sidebarInsight} alt="Insight" className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all" />
+          <img
+            src="/insight.png"
+            alt="Insight"
+            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
+          />
         </button>
         <button className="p-3 rounded-lg transition-all group">
-          <img src={sidebarAnalysis} alt="Analysis" className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all" />
+          <img
+            src="/analysis.png"
+            alt="Analysis"
+            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
+          />
         </button>
       </div>
 
       {/* Main Container */}
-      <div className="flex-1 min-h-screen flex flex-col items-center justify-start bg-black ml-[6vw] py-10 px-4">
-        <div className="w-full max-w-[1770px] rounded-[15px] bg-[#2c2c2c] border-[1px] border-rgba(255,255,255,0.6) p-12 mt-2">
+      <div className="ml-[6vw] flex-1 pr-8 py-8 overflow-x-hidden">
+        <div
+          className="rounded-2xl overflow-hidden h-full"
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.15)",
+            border: "1px solid rgba(255, 255, 255, 0.6)",
+            maxWidth: "100%",
+          }}
+        >
           {/* 상단 큰 썸네일 섹션 */}
-          <div className="mb-12 bg-[#1c2023] rounded-[16px] p-10 flex flex-row">
+          <div className="m-10 bg-[#1c2023] rounded-2xl p-10 flex flex-row flex-wrap min-w-0">
             {/* 뒤로가기 버튼 */}
-            <div className="mb-6 flex">
+            <div>
               <button
-                className="w-[40px] h-[40px] rounded-full flex items-center justify-center cursor-pointer shadow-lg z-10"
-                onClick={() => navigate("/category")}
-                style={{ marginRight: "8px", transform: "scaleX(-1)" }}
+                className="rounded-full items-center justify-center mr-6 cursor-pointer"
+                onClick={() => navigate("/mainpage_login")}
+                style={{ transform: "scaleX(-1)" }}
                 aria-label="뒤로가기"
               >
-                <img src={arrow} alt="뒤로가기" className="w-6 h-4" />
+                <img src={arrow} alt="뒤로가기" className="w-[36px] h-[28px]" />
               </button>
             </div>
-            <div className="relative flex flex-col ml-6 mr-8">
+
+            <div className="relative flex flex-col ml-2 mr-10 min-w-0">
               {/* 메달 */}
-              <div className="absolute top-4 left-4 z-20">
+              <div className="absolute left-4 z-20">
                 {rank <= 3 ? (
                   <>
                     {medal && <img src={medal} alt={`medal${rank}`} className="w-[80px] h-[80px] z-10" />}
                   </>
                 ) : (
                   <div className="w-[60px] h-[60px] rounded-full bg-[#e0e0e0] flex items-center justify-center text-[28px] font-bold text-[#232325] border-4 border-[#2c2c2c]">{rank}</div>
-                )} {/* 메달 없을 때 글자 크기, 색, 두께 조절해야함 */}
+                )}
               </div>
               {/* 썸네일 */}
-              <img 
-                src={selectedCategory.thumbnail} 
-                alt="Featured thumbnail" 
-                className="w-[450px] h-[250px] object-cover rounded-[11px]"
+              <img
+                src={selectedCategory.thumbnail}
+                alt="Featured thumbnail"
+                className="w-[26vw] min-w-[260px] max-w-full h-[16vw] min-h-[160px] object-cover rounded-2xl"
+                style={{ maxWidth: "100%" }}
               />
             </div>
-            
+
             {/* 제목과 설명 */}
-            <div>
-              <div className="text-[30px] font-semibold text-white mb-2">{selectedCategory.title}</div>
-              <div className="text-rgba(255, 255, 255, 0.6) text-[24px] font-thin">{selectedCategory.desc}</div>
-              <div className="flex flex-row gap-10 text-[#ffffff] text-[25px] font-medium">
+            <div className="min-w-0 flex-1">
+              <div className="text-[30px] font-semibold text-white mb-2 break-words">{selectedCategory.title}</div>
+              <div className="text-[24px] font-thin text-white/60 break-words">{selectedCategory.desc}</div>
+              <div className="flex flex-row flex-wrap gap-10 text-[#ffffff] text-[25px] font-medium">
                 <div>전체 영상 수 : <span>{selectedCategory.videoCount}개</span></div>
                 <div>평균 조회수 : <span>{selectedCategory.viewCount}</span></div>
                 <div>평균 좋아요 수 : <span>{selectedCategory.likeCount}개</span></div>
-              </div> {/* 컨테이너 아래쪽으로 정렬해야함 */}
+              </div>
             </div>
           </div>
 
           {/* 하단 카테고리 카드 섹션 */}
-          <div className="bg-[#1c2023] rounded-[16px] p-8">
+          <div className="m-10 bg-[#1c2023] rounded-2xl p-10">
             {/* 가로 스크롤 컨테이너 */}
-            <div className="relative w-full">
+            <div className="relative overflow-x-auto">
               {/* 카드 컨테이너 */}
-              <div 
-                className="flex gap-6 overflow-x-auto"
+              <div
+                className="flex gap-6"
                 style={{
                   msOverflowStyle: 'none',
                   scrollbarWidth: 'none',
-                  WebkitOverflowScrolling: 'touch'
+                  WebkitOverflowScrolling: 'touch',
+                  minWidth: 0,
+                  maxWidth: "100%",
                 }}
               >
                 {categoryCards.map((card, index) => (
-                  <div key={index} className="flex-shrink-0 w-[485px] h-[505px] bg-[#1c2023] rounded-[16px] p-6 hover:bg-[#2a2e31] transition-colors cursor-pointer border-[1px] border-rgba(255, 255, 255, 0.3)">
+                  <div
+                    key={index}
+                    className="flex-shrink-0 max-w-[485px] h-[505px] bg-[#1c2023] rounded-[16px] p-6 hover:bg-[#2a2e31] transition-colors cursor-pointer border-[1px] border-[rgba(255,255,255,0.3)]"
+                    style={{
+                      minWidth: "320px",
+                      boxSizing: "border-box",
+                    }}
+                  >
                     {/* 썸네일 */}
-                    <img 
-                      src={card.thumbnail} 
-                      alt="Category thumbnail" 
-                      className="w-[450px] h-[250px] object-cover rounded-[11px] mb-4"
+                    <img
+                      src={card.thumbnail}
+                      alt="Category thumbnail"
+                      className="w-[450px] max-w-full h-[250px] object-cover rounded-[11px] mb-4"
+                      style={{ maxWidth: "100%" }}
                     />
-                    
+
                     {/* 정보 */}
                     <div className="space-y-2">
                       <div className="text-[#848485] text-[20px] font-regular">{card.date}</div>
-                      <div 
+                      <div
                         className="text-[22px] font-regular text-white"
                         style={{
                           display: '-webkit-box',
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
+                          overflow: 'hidden',
+                          wordBreak: 'break-all',
                         }}
                       >
                         {card.title}
