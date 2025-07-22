@@ -62,7 +62,7 @@ export default function CategoryPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
+    <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
       <style
         dangerouslySetInnerHTML={{
           __html: `

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
 import thumbnail from "../assets/thumbnail1.png";
 import arrow from "../assets/arrow.png";
 
@@ -11,7 +12,7 @@ export default function ReplyAnalysis() {
   const isPositiveDominant = positivePercentage > negativePercentage;
   
   return (
-    <div className="min-h-screen bg-black text-white flex">
+    <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -27,55 +28,22 @@ export default function ReplyAnalysis() {
         }}
       />
 
-      {/* Sidebar (mypage.tsx와 동일) */}
-      <div
-        className="fixed left-0 top-0 h-full flex flex-col items-center z-50"
-        style={{ width: "6vw" }}
-      >
-        <div style={{ marginTop: "2.94vh", marginBottom: "24px" }}>
-          <img src="/logo.png" alt="Logo" className="w-auto h-auto" />
-        </div>
-        <button className="p-3 rounded-lg transition-all mb-4 group">
-          <img
-            src="/mypagelogo.png"
-            alt="My Page"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-        <button className="p-3 rounded-lg transition-all mb-4 group">
-          <img
-            src="/insight.png"
-            alt="Insight"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-        <button className="p-3 rounded-lg transition-all group">
-          <img
-            src="/analysis.png"
-            alt="Analysis"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-      </div>
+      {/* Sidebar */}
+      <Sidebar />
 
       {/* 메인 컨텐츠 영역 */}
-      <div className="ml-[6vw] flex-1 pr-8 py-8 flex gap-4">
+      <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full">
         {/* 왼쪽 컨테이너 - 영상 정보 및 탭 */}
         <div
           className="
-            flex flex-col rounded-2xl overflow-hidden
+            flex flex-col flex-3 w-full rounded-2xl
             bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
-            w-[33vw]
             p-10
-            pl-6 pr-6
             "
-          style={{
-            // 배경색과 테두리는 tailwind로 대체
-          }}
         >
           <div>
             {/* 영상 썸네일 */}
-            <div className="relative flex flex-col px-6">
+            <div className="relative flex flex-col ">
               {/* 뒤로가기 버튼을 썸네일 위가 아닌 바깥쪽에 배치 */}
               <div>
                 <button
@@ -91,24 +59,24 @@ export default function ReplyAnalysis() {
                 <img
                   src={thumbnail}
                   alt="Video thumbnail"
-                  className="rounded-xl overflow-hidden mt-6 w-full"
+                  className="rounded-xl mt-6"
                   style={{ objectFit: "cover" }}
                 />
               </div>
             </div>
 
             {/* 영상 정보 */}
-            <div className="text-white mt-2 mb-10 pt-3 px-6 justify-center items-center w-full">
-              <div className="text-[#848485] text-[20px] font-regular mb-2">{/* 날짜 */}
+            <div className="text-white mt-2 mb-10 pt-3 justify-center items-center w-full">
+              <div className="text-[#848485] text-[20px] font-regular">{/* 날짜 */}
                 2025. 07. 10
               </div>
               <div className="text-[22px] font-regular mb-2">
                 [Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE
               </div>
-              <div className="text-[#848485] text-[20px] font-regular mb-1">
+              <div className="text-[#848485] text-[20px] font-regular">
                 조회수 38,665회
               </div>
-              <div className="text-[#848485] text-[20px] font-regular mb-1">
+              <div className="text-[#848485] text-[20px] font-regular">
                 댓글 참여율 0.007%
               </div>
               <div className="text-[#848485] text-[20px] font-regular">
@@ -117,45 +85,8 @@ export default function ReplyAnalysis() {
             </div>
 
             {/* 감정 분석 도넛 차트 */}
-            <div className="flex flex-col h-[40%] items-center justify-center mt-10 mr-6 ml-6 relative">
-              {/* 도넛 차트 뒤쪽 배경 */}
-              <div
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0 w-full h-full rounded-2xl bg-[#1c2023]"></div>
-              <svg viewBox="0 0 320 320" className="w-1/2 h-1/2 relative z-[1]">
-                {/* 빨강(부정) - 16% */}
-                <circle
-                  r="120"
-                  cx="160"
-                  cy="160"
-                  fill="none"
-                  stroke="#ff0000"
-                  strokeWidth="80"
-                  strokeDashoffset="633.44"
-                  style={{ transition: "stroke-dasharray 0.5s" }}
-                />
-                {/* 파랑(긍정) - 84% */}
-                <circle
-                  r="120"
-                  cx="160"
-                  cy="160"
-                  fill="none"
-                  stroke="#278eff"
-                  strokeWidth="80"
-                  strokeDasharray="633.44 193.28"
-                  strokeDashoffset="0"
-                  style={{ transition: "stroke-dasharray 0.5s" }}
-                />
-                {/* 부정 텍스트/점/선 */}
-                <circle cx="300" cy="80" r="7" fill="#EF4444" />
-                <line x1="190" y1="110" x2="300" y2="80" stroke="#ff0000" strokeWidth="3" />
-                <text x="295" y="80" fill="#EF4444" fontSize="20" fontWeight="semibold" alignmentBaseline="middle">부정적인 반응</text>
-                <text x="295" y="105" fill="#EF4444" fontSize="22" fontWeight="semibold" alignmentBaseline="middle">16%</text>
-                {/* 긍정 텍스트/점/선 */}
-                <circle cx="60" cy="270" r="7" fill="#3B82F6" />
-                <line x1="120" y1="220" x2="60" y2="270" stroke="#278eff" strokeWidth="3" />
-                <text x="10" y="275" fill="#3B82F6" fontSize="20" fontWeight="semibold" alignmentBaseline="middle">긍정적인 반응</text>
-                <text x="10" y="300" fill="#3B82F6" fontSize="22" fontWeight="semibold" alignmentBaseline="middle">84%</text>
-              </svg>
+            <div className="flex flex-col justify-center items-center w-full h-[370px]">
+              <div className="z-0 w-full h-full rounded-2xl bg-[#1c2023]"></div>
             </div>
           </div>
         </div>
@@ -163,18 +94,15 @@ export default function ReplyAnalysis() {
         {/* 오른쪽 컨테이너 - 댓글 분석 */}
         <div
           className="
-            flex flex-col rounded-2xl overflow-hidden
+            flex flex-col flex-7 w-full rounded-2xl 
             bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
-            flex-1 h-full min-h-0
+            h-full min-h-0
           "
-          style={{
-            // 배경색과 테두리는 tailwind로 대체
-          }}
         >
-          <div className="px-8 py-10 flex flex-col flex-3 gap-4">
+          <div className="p-8 flex flex-col">
             {/* 헤더 영역 */}
             <div>
-              <div className="text-[24px] font-bold text-[#ffffff]">
+              <div className="mt-14 text-[24px] font-bold text-[#ffffff]">
                 해당 영상 댓글에 대한 분석
               </div>
               <div className={`text-[20px] px-3 py-3 font-semibold ${
@@ -190,15 +118,15 @@ export default function ReplyAnalysis() {
             </div>
 
             {/* Positive Reactions Section */}
-            <div className="bg-[#23242A] rounded-2xl shadow p-8 border-l-8 border-blue-500 mt-4 mb-6 max-w-[53vw]">
+            <div className="bg-[#23242A] rounded-2xl p-8 pt-4 pb-6 border-l-8 border-blue-500 mt-6 w-full">
               <div className="flex items-center text-[28px] font-thin text-[#d9d9d9] mb-6">
                 <span className="w-[15px] h-[15px] rounded-full bg-[#278eff] mr-4"></span>
                 긍정적인 반응
               </div>
               
               {/* First Point */}
-              <div className="flex items-center mb-4">
-                <span className="text-[#d9d9d9] text-[15px] font-thin mr-6 justify-center items-center text-right">
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-[#d9d9d9] text-[15px] font-thin mr-2 items-center text-right">
                   기존 뉴스 형식에서 벗어난 새로운 보도 방식이라는 평가
                 </span>
                 {/* '미학적 연출' 태그와 연결된 듯한 원 장식 */}
@@ -209,9 +137,9 @@ export default function ReplyAnalysis() {
                   <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#93c5fd] rounded-full opacity-60"></span>
                   <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#bae6fd] rounded-full opacity-40"></span>
                 </div>
-                <div className="flex gap-4 w-[50vw]">
-                  <span className="bg-[#278eff] text-[#ffffff] rounded-[15px] px-4 py-2 text-[20px] font-regular"># 미학적 연출</span>
-                  <span className="bg-[#278eff] text-[#ffffff] rounded-[15px] px-4 py-2 text-[20px] font-regular"># 감정적 몰입</span>
+                <div className="flex gap-4">
+                  <span className="bg-[#278eff] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 미학적 연출</span>
+                  <span className="bg-[#278eff] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 감정적 몰입</span>
                 </div>
                 <div className="relative flex items-center w-[12vw] h-[5vh]" style={{scale: "-1"}}>
                   {/* 메인 태그(미학적 연출) 위치 기준으로 원 배치 */}
@@ -220,14 +148,14 @@ export default function ReplyAnalysis() {
                   <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#93c5fd] rounded-full opacity-60"></span>
                   <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#bae6fd] rounded-full opacity-40"></span>
                 </div>
-                <span className="text-[#d9d9d9] text-[15px] font-thin ml-6 justify-center items-center text-left">
+                <span className="text-[#d9d9d9] text-[15px] font-thin ml-2 items-center text-left">
                   시청자가 보도 내용에 감정적으로 이입하거나 몰입함을 느낌
                 </span>
               </div>
               
               {/* Second Point */}
-              <div className="flex items-center mb-4">
-                <span className="text-[#d9d9d9] text-[15px] font-thin mr-6 justify-center items-center text-right">
+              <div className="flex items-center mb-6">
+                <span className="text-[#d9d9d9] text-[15px] font-thin mr-2 items-center text-right">
                   단순한 사실 전달이 아닌 이야기 구조로 사건을 전달함
                 </span>
                 <div className="relative flex items-center w-[12vw] h-[5vh]">
@@ -237,9 +165,9 @@ export default function ReplyAnalysis() {
                   <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#93c5fd] rounded-full opacity-60"></span>
                   <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#bae6fd] rounded-full opacity-40"></span>
                 </div>
-                <div className="flex gap-4 w-[50vw]">
-                  <span className="bg-[#278eff] text-[#ffffff] rounded-[15px] px-4 py-2 text-[20px] font-regular"># 창의적 보도</span>
-                  <span className="bg-[#278eff] text-[#ffffff] rounded-[15px] px-4 py-2 text-[20px] font-regular"># 스토리텔링</span>
+                <div className="flex gap-4">
+                  <span className="bg-[#278eff] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 창의적 보도</span>
+                  <span className="bg-[#278eff] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 스토리텔링</span>
                 </div>
                 <div className="relative flex items-center w-[12vw] h-[5vh]" style={{scale: "-1"}}>
                   {/* 메인 태그(미학적 연출) 위치 기준으로 원 배치 */}
@@ -248,7 +176,7 @@ export default function ReplyAnalysis() {
                   <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#93c5fd] rounded-full opacity-60"></span>
                   <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#bae6fd] rounded-full opacity-40"></span>
                 </div>
-                <span className="text-[#d9d9d9] text-[15px] font-thin ml-6 justify-center items-center text-left">
+                <span className="text-[#d9d9d9] text-[15px] font-thin ml-2 items-center text-left">
                   시각적, 음악적 연출이 예술적으로 구성되어 있다는 반응
                 </span>
               </div>
@@ -261,15 +189,15 @@ export default function ReplyAnalysis() {
             </div>
 
             {/* Negative Reactions Section */}
-            <div className="bg-[#23242A] rounded-2xl shadow p-8 border-l-8 border-red-500 max-w-[53vw]">
+            <div className="bg-[#23242A] rounded-2xl p-8 pt-4 border-l-8 border-red-500 mt-6 w-full">
               <div className="flex items-center text-[28px] font-thin text-[#d9d9d9] mb-6">
                 <span className="w-[15px] h-[15px] rounded-full bg-[#ff0000] mr-4"></span>
                 부정적인 반응
               </div>
               
               {/* First Point */}
-              <div className="flex items-center mb-4">
-                <span className="text-[#d9d9d9] text-[15px] font-thin mr-6 justify-center items-center text-right">
+              <div className="flex items-center mb-6">
+                <span className="text-[#d9d9d9] text-[15px] font-thin mr-2 items-center text-right">
                   기존 뉴스 형식에서 벗어난 새로운 보도 방식이라는 평가
                 </span>
                 <div className="relative flex items-center w-[12vw] h-[5vh]">
@@ -279,9 +207,9 @@ export default function ReplyAnalysis() {
                   <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff7a7a] rounded-full opacity-60"></span>
                   <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ffb3b3] rounded-full opacity-40"></span>
                 </div>
-                <div className="flex gap-4 w-[50vw]">
-                  <span className="bg-[#ff0000] text-[#ffffff] rounded-[15px] px-4 py-2 text-[20px] font-regular"># 미학적 연출</span>
-                  <span className="bg-[#ff0000] text-[#ffffff] rounded-[15px] px-4 py-2 text-[20px] font-regular"># 감정적 몰입</span>
+                <div className="flex gap-4">
+                  <span className="bg-[#ff0000] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 미학적 연출</span>
+                  <span className="bg-[#ff0000] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 감정적 몰입</span>
                 </div>
                 <div className="relative flex items-center w-[12vw] h-[5vh]" style={{scale: "-1"}}>
                   {/* 메인 태그(미학적 연출) 위치 기준으로 원 배치 */}
@@ -290,14 +218,14 @@ export default function ReplyAnalysis() {
                   <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff7a7a] rounded-full opacity-60"></span>
                   <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ffb3b3] rounded-full opacity-40"></span>
                 </div>
-                <span className="text-[#d9d9d9] text-[15px] font-thin ml-6 justify-center items-center text-left">
+                <span className="text-[#d9d9d9] text-[15px] font-thin ml-2 items-center text-left">
                   시청자가 보도 내용에 감정적으로 이입하거나 몰입함을 느낌
                 </span>
               </div>
               
               {/* Second Point */}
-              <div className="flex items-center mb-4">
-                <span className="text-[#d9d9d9] text-[15px] font-thin mr-6 justify-center items-center text-right">
+              <div className="flex items-center mb-6">
+                <span className="text-[#d9d9d9] text-[15px] font-thin mr-2 items-center text-right">
                   단순한 사실 전달이 아닌 이야기 구조로 사건을 전달함
                 </span>
                 <div className="relative flex items-center w-[12vw] h-[5vh]">
@@ -307,9 +235,9 @@ export default function ReplyAnalysis() {
                   <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff7a7a] rounded-full opacity-60"></span>
                   <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ffb3b3] rounded-full opacity-40"></span>
                 </div>
-                <div className="flex gap-4 w-[50vw]">
-                  <span className="bg-[#ff0000] text-[#ffffff] rounded-[15px] px-4 py-2 text-[20px] font-regular"># 창의적 보도</span>
-                  <span className="bg-[#ff0000] text-[#ffffff] rounded-[15px] px-4 py-2 text-[20px] font-regular"># 스토리텔링</span>
+                <div className="flex gap-4">
+                  <span className="bg-[#ff0000] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 창의적 보도</span>
+                  <span className="bg-[#ff0000] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 스토리텔링</span>
                 </div>
                 <div className="relative flex items-center w-[12vw] h-[5vh]" style={{scale: "-1"}}>
                   {/* 메인 태그(미학적 연출) 위치 기준으로 원 배치 */}
@@ -318,7 +246,7 @@ export default function ReplyAnalysis() {
                   <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff7a7a] rounded-full opacity-60"></span>
                   <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ffb3b3] rounded-full opacity-40"></span>
                 </div>
-                <span className="text-[#d9d9d9] text-[15px] font-thin ml-6 justify-center items-center text-left">
+                <span className="text-[#d9d9d9] text-[15px] font-thin ml-2 items-center text-left">
                   시각적, 음악적 연출이 예술적으로 구성되어 있다는 반응
                 </span>
               </div>

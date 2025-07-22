@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
 import avatar from "../assets/avatar.png";
 import thumbnail from "../assets/thumbnail1.png";
 import arrow from "../assets/arrow.png";
@@ -22,7 +23,7 @@ export default function ReplyManagement() {
   
   // 페이지네이션 상태 - 1페이지로 시작
   const [currentPage, setCurrentPage] = useState(1);
-  const COMMENTS_PER_PAGE = 17;
+  const COMMENTS_PER_PAGE = 13;
   
   // 긍정적인 댓글 데이터
   const positiveComments: Comment[] = Array.from({ length: 100 }, (_, index) => ({
@@ -81,7 +82,7 @@ export default function ReplyManagement() {
   const allChecked = pagedComments.length > 0 && checkedComments.size === pagedComments.length;
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
+    <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -97,50 +98,18 @@ export default function ReplyManagement() {
         }}
       />
 
-      {/* Sidebar - MyPage와 동일한 스타일 */}
-      <div
-        className="fixed left-0 top-0 h-full flex flex-col items-center z-50"
-        style={{ width: "6vw" }}
-      >
-        <div style={{ marginTop: "2.94vh", marginBottom: "24px" }}>
-          <img src="/logo.png" alt="Logo" className="w-auto h-auto" />
-        </div>
-        <button className="p-3 rounded-lg transition-all mb-4 group">
-          <img
-            src="/mypagelogo.png"
-            alt="My Page"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-        <button className="p-3 rounded-lg transition-all mb-4 group">
-          <img
-            src="/insight.png"
-            alt="Insight"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-        <button className="p-3 rounded-lg transition-all group">
-          <img
-            src="/analysis.png"
-            alt="Analysis"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-      </div>
+      {/* Sidebar */}
+      <Sidebar />
 
       {/* 메인 컨텐츠 영역 */}
-      <div className="ml-[6vw] py-8 flex gap-4 w-full flex pr-6">
+      <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full">
         {/* 왼쪽 컨테이너 - 영상 정보 및 탭 */}
         <div
           className="
-            flex flex-1 w-full flex-col rounded-2xl overflow-hidden
+            flex flex-col flex-3 w-full rounded-2xl
             bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
-            p-6
-            pl-6 
+            p-10
             "
-          style={{
-            // 배경색과 테두리는 tailwind로 대체
-          }}
         >
           <div>
             {/* 영상 썸네일 */}
@@ -160,24 +129,24 @@ export default function ReplyManagement() {
                 <img
                   src={thumbnail}
                   alt="Video thumbnail"
-                  className="rounded-xl overflow-hidden mt-6 w-full"
+                  className="rounded-xl mt-6"
                   style={{ objectFit: "cover" }}
                 />
               </div>
             </div>
 
             {/* 영상 정보 */}
-            <div className="text-white mt-2 mb-10 pt-3 px-6 justify-center items-center w-full">
-              <div className="text-[#848485] text-[20px] font-regular mb-2">{/* 날짜 */}
+            <div className="text-white mt-2 mb-10 pt-3 justify-center items-center w-full">
+              <div className="text-[#848485] text-[20px] font-regular">{/* 날짜 */}
                 2025. 07. 10
               </div>
               <div className="text-[22px] font-regular mb-2">
                 [Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE
               </div>
-              <div className="text-[#848485] text-[20px] font-regular mb-1">
+              <div className="text-[#848485] text-[20px] font-regular">
                 조회수 38,665회
               </div>
-              <div className="text-[#848485] text-[20px] font-regular mb-1">
+              <div className="text-[#848485] text-[20px] font-regular">
                 댓글 참여율 0.007%
               </div>
               <div className="text-[#848485] text-[20px] font-regular">
@@ -186,7 +155,7 @@ export default function ReplyManagement() {
             </div>
 
             {/* 댓글 타입 선택 탭 */}
-            <div className="flex flex-col gap-4 px-6">
+            <div className="flex flex-col gap-4">
               {/* 긍정적인 댓글 탭 */}
               <div
                 className={`rounded-xl border-2 px-6 py-4 flex flex-col cursor-pointer transition
@@ -235,15 +204,12 @@ export default function ReplyManagement() {
         {/* 오른쪽 컨테이너 - 댓글 목록 */}
         <div
           className="
-            flex flex-col rounded-2xl 
+            flex flex-col flex-7 w-full rounded-2xl 
             bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
-            flex-2 h-full min-h-0 w-full
+            h-full min-h-0
           "
-          style={{
-            // 배경색과 테두리는 tailwind로 대체
-          }}
         >
-          <div className="px-8 py-10 flex flex-col ">
+          <div className="p-8 flex flex-col">
             {/* 헤더 영역 */}
             <div className="flex flex-row items-center justify-between mb-6">
               <div>
@@ -271,12 +237,12 @@ export default function ReplyManagement() {
               
               {/* 액션 버튼들 */}
               <div className="flex gap-3">
-                <button className="w-[200px] h-[55px] px-6 py-3 bg-[#555] text-white rounded-[10px] text-[18px] font-semibold hover:bg-[#333] transition-colors
+                <button className="w-[180px] h-[55px] px-6 py-3 bg-[#555] text-white rounded-[10px] text-[18px] font-semibold hover:bg-[#333] transition-colors
                 ">
                   {activeTab === 'positive' ? '악성 댓글로 이동' : '긍정 댓글로 이동'}
                 </button>
                 {activeTab === 'negative' && (
-                  <button className="w-[165px] h-[55px] px-6 py-3 bg-[#ff0000] text-white rounded-[10px] text-[18px] font-semibold hover:bg-[#b31217] transition-colors flex justify-center items-center gap-2
+                  <button className="w-[150px] h-[55px] px-6 py-3 bg-[#ff0000] text-white rounded-[10px] text-[18px] font-semibold hover:bg-[#b31217] transition-colors flex justify-center items-center gap-2
                   ">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -289,31 +255,30 @@ export default function ReplyManagement() {
 
             {/* 댓글 테이블 */}
             <div className="
-              flex-1 flex flex-col bg-[#1c2023] w-full h-full pt-6 pb-2 pr-2 pl-2 rounded-[10px] overflow-y-auto
+              flex flex-col bg-[#1c2023] w-full h-full pt-4 pb-2 pr-2 pl-2 rounded-[10px] overflow-y-auto
             ">
               {/* 테이블 헤더 */}
               <div className="
-                w-full flex flex-row text-[#a3a3a3] text-[17px] font-medium border-b border-[#333] pb-2 mb-2 min-w-0
+                flex flex-row text-[#a3a3a3] text-[17px] font-medium border-b border-[#606265] pb-2 min-w-0
               ">
-                <div className="w-[60px] flex-shrink-0 flex items-center justify-center">
+                <div className="w-[60px] flex justify-center items-center">
                   <input 
                     type="checkbox" 
-                    className="w-5 h-5 accent-[#ff0000]" 
+                    className="w-5 h-5 accent-[#ff0000] justify-center items-center" 
                     checked={allChecked} 
                     onChange={handleCheckAll} 
                   />
                 </div>
-                <div className="w-[160px] flex-shrink-0 text-[#a3a3a3] text-[17px] font-medium flex items-center justify-center">Account</div>
-                <div className="flex-1 min-w-0 text-[#a3a3a3] text-[17px] font-medium flex items-center justify-center">Comment</div>
-                <div className="w-[160px] flex-shrink-0 text-[#a3a3a3] text-[17px] font-medium flex items-center justify-center">Date</div>
+                <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">Account</div>
+                <div className="flex-3 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">Comment</div>
+                <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">Date</div>
               </div>
 
               {/* 댓글 목록 */}
-              <div className="flex-1 overflow-y-auto">
-                {pagedComments.map((comment, index) => (
-                  <div key={comment.id} className="w-full flex flex-col border-down-[1px] border-[#606265] min-w-0">
-                    <div className="w-full flex flex-row items-center py-2 hover:bg-[#232335] transition min-w-0
-                    ">
+              <div className="w-full flex-1 overflow-y-auto">
+                {pagedComments.map((comment) => (
+                  <div key={comment.id} className="flex flex-col border-b border-[#606265] min-w-0">
+                    <div className="flex flex-row items-center py-2 hover:bg-[#232335] transition min-w-0">
                       <div className="w-[60px] flex-shrink-0 flex items-center justify-center">
                         <input 
                           type="checkbox" 
@@ -322,30 +287,26 @@ export default function ReplyManagement() {
                           onChange={() => handleCheck(comment.id)} 
                         />
                       </div>
-                      <div className="w-[180px] flex-shrink-0 flex items-center gap-3 pl-1">
-                        <img src={avatar} alt="profile" className="w-6 h-6 rounded-full object-cover select-none ml-1 justify-center items-center" draggable={false} />
-                        <span className="truncate text-[#d9d9d9] text-[15px] font-regular justify-center items-center">{comment.account}</span>
+                      <div className="flex-1 flex justify-center items-center gap-3">
+                        <img src={avatar} alt="profile" className="w-6 h-6 rounded-full object-cover select-none justify-center items-center" draggable={false} />
+                        <span className="justify-center items-center text-[#d9d9d9] text-[15px] font-regular truncate">{comment.account}</span>
                       </div>
-                      <div className="flex-1 min-w-0 text-[#d9d9d9] text-[15px] truncate pl-12 justify-center items-center" title={comment.comment}>
+                      <div className="flex-3 flex justify-left items-center text-[#d9d9d9] text-[15px] font-regular truncate ml-16" title={comment.comment}>
                         {comment.comment}
                       </div>
-                      <div className="w-[160px] flex-shrink-0 flex items-center justify-center text-[#d9d9d9] text-[15px]">
+                      <div className="flex-1 flex justify-center items-center text-[#d9d9d9] text-[15px] font-regular">
                         {comment.date}
                       </div>
                     </div>
-                    {/* 흰색 구분선 - 마지막 항목이 아닌 경우에만 표시 */}
-                    {index < pagedComments.length - 1 && (
-                      <div className="w-full h-[1px] bg-[#606265] mx-2"></div>
-                    )}
                   </div>
                 ))}
               </div>
 
               {/* 페이지네이션 */}
-              <div className="flex justify-center items-center mt-1 mb-3 gap-2.5">
+              <div className="flex justify-center items-center mt-4 mb-3 gap-2.5">
                 {/* 이전 페이지 버튼 */}
                 <button
-                  className="w-[24px] h-[24px] bg-none text-[#d9d9d9] rounded-lg hover:text-[#a3a3a3] transition-colors flex items-center justify-center"
+                  className="w-[24px] h-[24px] bg-none text-[#d9d9d9] rounded-full hover:text-[#a3a3a3] transition-colors flex items-center justify-center"
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
                   aria-label="이전 페이지"
@@ -358,7 +319,7 @@ export default function ReplyManagement() {
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
                   <button
                     key={pageNum}
-                    className={`w-[24px] h-[24px] rounded-full font-regular text-[13.5px] transition-colors items-center justify-center text-[11px]
+                    className={`w-[24px] h-[24px] rounded-full font-regular text-[13.5px] transition-colors items-center justify-center
                       ${pageNum === currentPage
                         ? 'bg-[#ff0000] text-white'
                         : 'bg-[#d9d9d9] text-[#848485] hover:bg-[#a3a3a3]'
@@ -371,7 +332,7 @@ export default function ReplyManagement() {
                 ))}
                 {/* 다음 페이지 버튼 */}
                 <button
-                  className="w-[24px] h-[24px] bg-none text-[#d9d9d9] rounded-lg hover:text-[#a3a3a3] transition-colors flex items-center justify-center"
+                  className="w-[24px] h-[24px] bg-none text-[#d9d9d9] rounded-full hover:text-[#a3a3a3] transition-colors flex items-center justify-center"
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
                   aria-label="다음 페이지"
