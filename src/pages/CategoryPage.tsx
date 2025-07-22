@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
 import medal1 from "../assets/1st.png";
 import medal2 from "../assets/2nd.png";
 import medal3 from "../assets/3rd.png";
@@ -79,40 +80,12 @@ export default function CategoryPage() {
       />
 
       {/* Sidebar */}
-      <div
-        className="fixed left-0 top-0 h-full flex flex-col items-center z-50"
-        style={{ width: "6vw" }}
-      >
-        <div style={{ marginTop: "2.94vh", marginBottom: "24px" }}>
-          <img src="/logo.png" alt="Logo" className="w-auto h-auto" />
-        </div>
-        <button className="p-3 rounded-lg transition-all mb-4 group">
-          <img
-            src="/mypagelogo.png"
-            alt="My Page"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-        <button className="p-3 rounded-lg transition-all mb-4 group">
-          <img
-            src="/insight.png"
-            alt="Insight"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-        <button className="p-3 rounded-lg transition-all group">
-          <img
-            src="/analysis.png"
-            alt="Analysis"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-      </div>
+      <Sidebar />
 
       {/* Main Container */}
-      <div className="ml-[6vw] flex-1 pr-8 py-8">
-      <div
-          className="rounded-2xl overflow-hidden h-full"
+      <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full">
+        <div
+          className="rounded-2xl overflow-hidden h-full px-8"
           style={{
             backgroundColor: "rgba(255, 255, 255, 0.15)",
             border: "1px solid rgba(255, 255, 255, 0.6)",
@@ -120,7 +93,7 @@ export default function CategoryPage() {
         >
           
           {/* 상단 제목/설명 */}
-          <div className="mb-10 relative">
+          <div className="mt-4 mb-8 relative">
             {/* 뒤로가기 버튼 */}
             <div className="relative p-8 pb-4">
                 <button
@@ -133,8 +106,8 @@ export default function CategoryPage() {
                 </button>
             </div>
 
-            <div className="text-[25px] font-semibold text-[#ff0000] mb-2 ml-10">썸네일 유형별 인기 콘텐츠 분석</div>
-            <div className="text-[#d9d9d9] text-[20px] font-light ml-10">
+            <div className="text-[1.8rem] text-[#ff0000] font-semibold mb-2 ml-10">썸네일 유형별 인기 콘텐츠 분석</div>
+            <div className="text-[1.3rem] text-[#d9d9d9] font-light ml-10">
               영상의 썸네일을 분류하고, 각 카테고리별로 조회수가 높은 콘텐츠를 순위별로 정리하여 보여주는 공간입니다.<br />
               썸네일 스타일과 조회수 간의 상관관계를 분석하거나, 어떤 유형이 더 효과적인지 파악할 수 있습니다.
             </div>
@@ -144,34 +117,50 @@ export default function CategoryPage() {
             {data.map((item, idx) => (
               <div 
                 key={idx} 
-                className="flex flex-row items-center bg-[#1c2023] rounded-[16px] mx-10 px-10 py-8 cursor-pointer hover:bg-[#2a2e31] transition-colors"
+                className="flex flex-row items-center bg-[#1c2023] rounded-2xl mx-10 pl-10 pr-24 py-8 cursor-pointer hover:bg-[#2a2e31] transition-colors"
                 onClick={() => navigate(`/category_segmentation?rank=${item.rank}`)}
               >
                 {/* 순위 뱃지 */}
                 <div className="flex flex-col items-center mr-8">
                   {item.rank <= 3 ? (
                     <>
-                      <img
-                        src={item.rank === 1 ? medal1 : item.rank === 2 ? medal2 : item.rank === 3 ? medal3 : ""}
-                        alt={`medal${item.rank}`}
-                        className="w-[54px] h-[54px] -mb-4 z-10"
-                      />
-                      <div className="w-[44px] h-[44px] rounded-full bg-[#e0e0e0] flex items-center justify-center text-[28px] font-bold text-[#232325] border-4 border-[#2c2c2c] z-20 relative -mt-6">{item.rank}</div>
+                      {/* 3위 이내면 assets 폴더의 1st, 2nd, 3rd png 사용 */}
+                      {item.rank === 1 && (
+                        <img
+                          src={medal1}
+                          alt="1st medal"
+                          className="w-[4vw] h-[6vh] -mb-4 z-10"
+                        />
+                      )}
+                      {item.rank === 2 && (
+                        <img
+                          src={medal2}
+                          alt="2nd medal"
+                          className="w-[4vw] h-[6vh] -mb-4 z-10"
+                        />
+                      )}
+                      {item.rank === 3 && (
+                        <img
+                          src={medal3}
+                          alt="3rd medal"
+                          className="w-[4vw] h-[6vh] -mb-4 z-10"
+                        />
+                      )}
                     </>
                   ) : (
-                    <div className="w-[44px] h-[44px] rounded-full bg-[#e0e0e0] flex items-center justify-center text-[28px] font-bold text-[#232325] border-4 border-[#2c2c2c]">{item.rank}</div>
+                    <div className="w-[3vw] h-[5vh] mx-3 rounded-full bg-[#e0e0e0] flex justify-center items-center text-[2rem] font-bold text-[#232325]">{item.rank}</div>
                   )}
                 </div>
                 {/* 썸네일 */}
-                <img src={item.thumbnail} alt="썸네일" className="w-[450px] h-[250px] mr-4 object-cover rounded-[11px]" />
+                <img src={item.thumbnail} alt="썸네일" className="w-[24vw] min-w-[300px] h-[14vw] min-h-[200px] max-h-[250px] mr-4 object-cover rounded-2xl" />
                 {/* 텍스트/설명 */}
-                <div className="flex flex-col flex-1 ml-4">
-                  <div className="text-[30px] font-semibold text-white mb-2">{item.title}</div>
-                  <div className="text-rgba(255,255,255,0.6) text-[24px] font-thin mb-4">{item.desc}</div>
-                  <div className="flex flex-row gap-10 text-[#ffffff] text-[25px] font-medium">
-                    <div>전체 영상 수 : <span>{item.videoCount}개</span></div>
-                    <div>평균 조회수 : <span>{item.viewCount}</span></div>
-                    <div>평균 좋아요 수 : <span>{item.likeCount}개</span></div>
+                <div className="flex flex-col ml-4">
+                  <div className="text-[1.8rem] text-white font-semibold mb-2">{item.title}</div>
+                  <div className="text-[1.3rem] text-rgba(255,255,255,0.6) font-thin mb-4">{item.desc}</div>
+                  <div className="flex flex-row justify-between text-[#ffffff] text-[1.5rem] font-medium pr-2 mt-18">
+                      <div>전체 영상 수 : <span>{item.videoCount}개</span></div>
+                      <div>평균 조회수 : <span>{item.viewCount}</span></div>
+                      <div>평균 좋아요 수 : <span>{item.likeCount}개</span></div>
                   </div>
                 </div>
               </div>
