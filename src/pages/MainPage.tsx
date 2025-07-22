@@ -88,7 +88,8 @@ export default function MainPage() {
               style={{boxShadow: '0 0 24px 2px #e52d27a0'}}
             >
               <img src={card.img} alt="card icon" className="w-[18vw] h-[14vw] object-contain m-8 select-none" />
-              <div className="text-[2.4rem] text-[#ffffff] text-center font-bold mt-4 mb-4">{card.title}</div>
+              <div className="text-[2.2rem] text-[#ffffff] text-center font-bold mt-4 mb-4">{card.title}</div>
+              {/* title 크기 2.4rem이면 reply 2줄로 바뀜, 2.2rem이 최대 */}
               <div className="text-[1.4rem] text-[rgba(255,255,255,0.9)] text-center font-regular">{card.desc}</div>
               <button
                 className="bg-[#c90101] hover:bg-[#b31217] text-white text-[1.7rem] font-medium rounded-xl transition-colors w-full mt-20 mb-2"

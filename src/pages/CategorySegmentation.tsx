@@ -1,4 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
 import arrow from "../assets/arrow.png";
 import medal1 from "../assets/1st.png";
 import medal2 from "../assets/2nd.png";
@@ -122,8 +123,8 @@ export default function CategorySegmentation() {
   const selectedCategory = categoryData.find(item => item.rank === rank) || categoryData[0];
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
-        <style
+    <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
+      <style
         dangerouslySetInnerHTML={{
           __html: `
           ::-webkit-scrollbar {
@@ -139,58 +140,30 @@ export default function CategorySegmentation() {
       />
 
       {/* Sidebar */}
-      <div
-        className="fixed left-0 top-0 h-full flex flex-col items-center z-50"
-        style={{ width: "6vw" }}
-      >
-        <div style={{ marginTop: "2.94vh", marginBottom: "24px" }}>
-          <img src="/logo.png" alt="Logo" className="w-auto h-auto" />
-        </div>
-        <button className="p-3 rounded-lg transition-all mb-4 group">
-          <img
-            src="/mypagelogo.png"
-            alt="My Page"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-        <button className="p-3 rounded-lg transition-all mb-4 group">
-          <img
-            src="/insight.png"
-            alt="Insight"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-        <button className="p-3 rounded-lg transition-all group">
-          <img
-            src="/analysis.png"
-            alt="Analysis"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-      </div>
+      <Sidebar />
 
       {/* Main Container */}
-      <div className="ml-[6vw] flex-1 pr-8 py-8 overflow-x-hidden">
+      <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full overflow-x-hidden">
         <div
           className="rounded-2xl overflow-hidden h-full"
           style={{
             backgroundColor: "rgba(255, 255, 255, 0.15)",
             border: "1px solid rgba(255, 255, 255, 0.6)",
-            maxWidth: "100%",
           }}
         >
+
           {/* 상단 큰 썸네일 섹션 */}
-          <div className="m-10 bg-[#1c2023] rounded-2xl p-10 flex flex-row flex-wrap min-w-0">
+          <div className="m-10 bg-[#1c2023] rounded-2xl pl-6 pr-10 py-8 flex flex-row">
             {/* 뒤로가기 버튼 */}
-            <div>
-              <button
-                className="rounded-full items-center justify-center mr-6 cursor-pointer"
-                onClick={() => navigate("/mainpage_login")}
-                style={{ transform: "scaleX(-1)" }}
-                aria-label="뒤로가기"
-              >
+            <div className="relative pr-8 pl-4">
+                <button
+                    className="rounded-full items-center justify-center cursor-pointer"
+                    onClick={() => navigate("/category")}
+                    style={{ transform: "scaleX(-1)" }}
+                    aria-label="뒤로가기"
+                >
                 <img src={arrow} alt="뒤로가기" className="w-[36px] h-[28px]" />
-              </button>
+                </button>
             </div>
 
             <div className="relative flex flex-col ml-2 mr-10 min-w-0">
@@ -198,81 +171,56 @@ export default function CategorySegmentation() {
               <div className="absolute left-4 z-20">
                 {rank <= 3 ? (
                   <>
-                    {medal && <img src={medal} alt={`medal${rank}`} className="w-[80px] h-[80px] z-10" />}
+                    {medal && <img src={medal} alt={`medal${rank}`} className="w-[5vw] h-[8vh] z-10" />}
                   </>
                 ) : (
-                  <div className="w-[60px] h-[60px] rounded-full bg-[#e0e0e0] flex items-center justify-center text-[28px] font-bold text-[#232325] border-4 border-[#2c2c2c]">{rank}</div>
+                  <div className="w-[3vw] h-[5vh] rounded-full bg-[#e0e0e0] flex items-center justify-center text-[2rem] font-bold text-[#232325] border-3 border-[#2c2c2c]">{rank}</div>
                 )}
               </div>
               {/* 썸네일 */}
               <img
                 src={selectedCategory.thumbnail}
                 alt="Featured thumbnail"
-                className="w-[26vw] min-w-[260px] max-w-full h-[16vw] min-h-[160px] object-cover rounded-2xl"
+                className="w-[24vw] min-w-[300px] h-[14vw] min-h-[200px] object-cover rounded-2xl"
                 style={{ maxWidth: "100%" }}
               />
             </div>
 
             {/* 제목과 설명 */}
-            <div className="min-w-0 flex-1">
-              <div className="text-[30px] font-semibold text-white mb-2 break-words">{selectedCategory.title}</div>
-              <div className="text-[24px] font-thin text-white/60 break-words">{selectedCategory.desc}</div>
-              <div className="flex flex-row flex-wrap gap-10 text-[#ffffff] text-[25px] font-medium">
+            <div className="min-w-0 flex flex-col pr-10">
+              <div className="text-[1.8rem] font-semibold text-white mt-1 mb-1 break-words">{selectedCategory.title}</div>
+              <div className="text-[1.5rem] font-thin text-white/60 break-words">{selectedCategory.desc}</div>
+              <div className="flex flex-row gap-10 text-[#ffffff] text-[1.5rem] font-medium justify-between pr-8 mt-18">
                 <div>전체 영상 수 : <span>{selectedCategory.videoCount}개</span></div>
                 <div>평균 조회수 : <span>{selectedCategory.viewCount}</span></div>
                 <div>평균 좋아요 수 : <span>{selectedCategory.likeCount}개</span></div>
-              </div>
+              </div> {/* 아래로 정렬해야함 */}
             </div>
           </div>
 
           {/* 하단 카테고리 카드 섹션 */}
-          <div className="m-10 bg-[#1c2023] rounded-2xl p-10">
+          <div className="mx-10 my-8 bg-[#1c2023] rounded-2xl p-8">
             {/* 가로 스크롤 컨테이너 */}
             <div className="relative overflow-x-auto">
               {/* 카드 컨테이너 */}
-              <div
-                className="flex gap-6"
-                style={{
-                  msOverflowStyle: 'none',
-                  scrollbarWidth: 'none',
-                  WebkitOverflowScrolling: 'touch',
-                  minWidth: 0,
-                  maxWidth: "100%",
-                }}
-              >
+              <div className="flex gap-4">
                 {categoryCards.map((card, index) => (
                   <div
                     key={index}
-                    className="flex-shrink-0 max-w-[485px] h-[505px] bg-[#1c2023] rounded-[16px] p-6 hover:bg-[#2a2e31] transition-colors cursor-pointer border-[1px] border-[rgba(255,255,255,0.3)]"
-                    style={{
-                      minWidth: "320px",
-                      boxSizing: "border-box",
-                    }}
+                    className="bg-[#1c2023] rounded-2xl p-5 border-2 border-[rgba(255,255,255,0.3)]"
                   >
                     {/* 썸네일 */}
                     <img
                       src={card.thumbnail}
                       alt="Category thumbnail"
-                      className="w-[450px] max-w-full h-[250px] object-cover rounded-[11px] mb-4"
-                      style={{ maxWidth: "100%" }}
+                      className="w-[25vw] min-w-[300px] h-[12vw] min-h-[200px] object-cover rounded-2xl"
                     />
 
                     {/* 정보 */}
-                    <div className="space-y-2">
-                      <div className="text-[#848485] text-[20px] font-regular">{card.date}</div>
-                      <div
-                        className="text-[22px] font-regular text-white"
-                        style={{
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          wordBreak: 'break-all',
-                        }}
-                      >
-                        {card.title}
-                      </div>
-                      <div className="space-y-1 text-[#848485] text-[20px] font-regular">
+                    <div className="flex flex-col">
+                      <div className="text-[#848485] text-[1rem] font-regular mt-2">{card.date}</div>
+                      <div className="text-[1.3rem] font-regular text-white mb-2">{card.title}</div>
+                      <div className="text-[#848485] text-[1rem] font-regular">
                         <div>조회수 {card.views}</div>
                         <div>댓글 참여율 {card.commentRate}</div>
                         <div>좋아요 참여율 {card.likeRate}</div>

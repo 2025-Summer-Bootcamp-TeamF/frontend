@@ -7,6 +7,7 @@ import Reply_Analysis from "./pages/Reply_Analysis";
 import CategoryPage from "./pages/CategoryPage";
 import CategorySegmentation from "./pages/CategorySegmentation";
 import ReplyManagement from "./pages/ReplyManagement";
+import Reply_AnalysisList from "./pages/Reply_AnalysisList";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/category" element={<CategoryPage />} />
         <Route path="/category_segmentation" element={<CategorySegmentation />} />
         <Route path="/reply_management" element={<ReplyManagement />} />
+        <Route path="/reply_analysis_list" element={<Reply_AnalysisList />} />
       </Routes>
     </BrowserRouter>
   );
