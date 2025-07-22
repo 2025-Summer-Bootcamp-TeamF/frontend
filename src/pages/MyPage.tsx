@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Sidebar from "../components/Sidebar";
 import VideoPage from "../components/VideoPage";
 import OverviewPage from "../components/OverviewPage";
 
@@ -23,35 +24,7 @@ const MyPage: React.FC = () => {
       />
 
       {/* Sidebar */}
-      <div
-        className="fixed left-0 top-0 h-full flex flex-col items-center z-50"
-        style={{ width: "6vw" }}
-      >
-        <div style={{ marginTop: "2.94vh", marginBottom: "24px" }}>
-          <img src="/logo.png" alt="Logo" className="w-auto h-auto" />
-        </div>
-        <button className="p-3 rounded-lg transition-all mb-4 group">
-          <img
-            src="/mypagelogo.png"
-            alt="My Page"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-        <button className="p-3 rounded-lg transition-all mb-4 group">
-          <img
-            src="/insight.png"
-            alt="Insight"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-        <button className="p-3 rounded-lg transition-all group">
-          <img
-            src="/analysis.png"
-            alt="Analysis"
-            className="w-7 h-7 opacity-60 group-hover:opacity-100 group-hover:brightness-200 transition-all"
-          />
-        </button>
-      </div>
+      <Sidebar />
 
       {/* Main Container */}
       <div className="ml-[6vw] flex-1 pr-8 py-8">
