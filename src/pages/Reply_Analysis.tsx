@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import thumbnail from "../assets/thumbnail1.png";
 import arrow from "../assets/arrow.png";
+import VideoInfoBox from "../components/VideoInfoBox";
 
 export default function ReplyAnalysis() {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ export default function ReplyAnalysis() {
             "
         >
           <div>
-            {/* 영상 썸네일 */}
+            {/* 영상 썸네일 및 정보 - VideoInfoBox 컴포넌트로 대체 */}
             <div className="relative flex flex-col ">
               {/* 뒤로가기 버튼을 썸네일 위가 아닌 바깥쪽에 배치 */}
               <div>
@@ -55,33 +56,15 @@ export default function ReplyAnalysis() {
                   <img src={arrow} alt="뒤로가기" className="w-[36px] h-[28px]" />
                 </button>
               </div>
-              <div className="flex justify-center items-center w-full">
-                <img
-                  src={thumbnail}
-                  alt="Video thumbnail"
-                  className="rounded-xl mt-6"
-                  style={{ objectFit: "cover" }}
-                />
-              </div>
-            </div>
-
-            {/* 영상 정보 */}
-            <div className="text-white mt-2 mb-10 pt-3 justify-center items-center w-full">
-              <div className="text-[#848485] text-[20px] font-regular">{/* 날짜 */}
-                2025. 07. 10
-              </div>
-              <div className="text-[22px] font-regular mb-2">
-                [Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE
-              </div>
-              <div className="text-[#848485] text-[20px] font-regular">
-                조회수 38,665회
-              </div>
-              <div className="text-[#848485] text-[20px] font-regular">
-                댓글 참여율 0.007%
-              </div>
-              <div className="text-[#848485] text-[20px] font-regular">
-                좋아요 참여율 0.7%
-              </div>
+              <VideoInfoBox
+                thumbnail={thumbnail}
+                date="2025. 07. 10"
+                title="[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE"
+                views="38,665회"
+                commentRate="0.007%"
+                likeRate="0.7%"
+                className=""
+              />
             </div>
 
             {/* 감정 분석 도넛 차트 */}
