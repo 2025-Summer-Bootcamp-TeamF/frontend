@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import loginBg from "../assets/login_background.png";
 import youtubeLogo from "../assets/youtubelogo.png";
@@ -7,8 +7,16 @@ import arrow from "../assets/arrow.png";
 export default function LoginPage() {
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    navigate("/");
+  // 로그인 상태 감지: 이미 로그인되어 있으면 바로 메인페이지로 이동
+  useEffect(() => {
+    if (localStorage.getItem("isLoggedIn") === "true") {
+      navigate("/main", { replace: true });
+    }
+  }, [navigate]);
+
+  // 구글 로그인 버튼 클릭 시 실행
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:8000/auth/google";
   };
 
   return (
@@ -47,7 +55,12 @@ export default function LoginPage() {
         <div className="text-[#a3a3a3] text-[1.5rem] font-regular mb-10">Please log in to your account to continue.</div>
         <div className="w-full">
           <div className="text-white text-[1.7rem] font-regular mb-3">YouTube Account</div>
-          <button className="w-auto h-auto bg-[#ff0000] text-white text-[1.5rem] font-semibold rounded-[13px] px-42 py-3 hover:bg-[#d90000] transition-all" onClick={handleLogin}>Continue with YouTube</button>
+          <button 
+          onClick={handleGoogleLogin}
+          className="w-auto h-auto bg-[#ff0000] text-white text-[1.5rem] font-semibold rounded-[13px] px-42 py-3 hover:bg-[#d90000] transition-all"
+          >
+            Continue with YouTube
+            </button>
         </div>
       </div>
     </div>

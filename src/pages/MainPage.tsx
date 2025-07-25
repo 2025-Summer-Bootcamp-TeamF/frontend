@@ -72,7 +72,7 @@ export default function MainPage() {
       <div className="flex justify-between items-center px-36 mt-12 mb-6 w-full mx-auto">
         <div
           className="flex items-center cursor-pointer select-none"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/main")}
         >
           <img
             src={youtubeLogo}
@@ -129,7 +129,15 @@ export default function MainPage() {
                   if (!isLoggedIn) {
                     navigate("/login");
                   } else {
-                    // 로그인 상태에서 각 카드별로 원하는 동작을 추가할 수 있음
+                    if (idx === 2) {
+                      navigate("/my?tab=video");
+                    } else if (idx === 0) {
+                      navigate("/in");
+                    } else if (idx === 1) {
+                      navigate("/category");
+                    } else {
+                      // 기존 동작 또는 다른 카드별 동작
+                    }
                   }
                 }}
               >
