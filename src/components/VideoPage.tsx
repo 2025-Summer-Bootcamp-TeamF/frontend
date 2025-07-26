@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface VideoData {
   videoId: string;
@@ -11,13 +11,21 @@ interface VideoData {
   likeRate: string;
 }
 
-const VideoPage: React.FC = () => {
+interface VideoPageProps {
+  searchTitle?: string;
+}
+
+const VideoPage: React.FC<VideoPageProps> = ({ searchTitle: propSearchTitle }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [videos, setVideos] = useState<VideoData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const videosPerPage = 9; // 한 페이지당 9개 영상 (3x3 그리드)
+
+  // 검색어 가져오기 (prop 우선, 없으면 location state에서)
+  const searchTitle = propSearchTitle || location.state?.searchTitle || "";
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -45,7 +53,17 @@ const VideoPage: React.FC = () => {
         if (response.ok) {
           const data = await response.json();
           console.log("Videos data received:", data);
-          setVideos(data.data || []);
+          
+          // 검색어가 있으면 필터링
+          let filteredVideos = data.data || [];
+          if (searchTitle) {
+            filteredVideos = filteredVideos.filter((video: VideoData) =>
+              video.title.toLowerCase().includes(searchTitle.toLowerCase())
+            );
+            console.log(`검색어 "${searchTitle}"로 필터링된 영상 수:`, filteredVideos.length);
+          }
+          
+          setVideos(filteredVideos);
         } else {
           const errorText = await response.text();
           console.error("Failed to fetch videos. Status:", response.status);
@@ -65,7 +83,12 @@ const VideoPage: React.FC = () => {
     };
 
     fetchVideos();
-  }, []);
+  }, [searchTitle]);
+
+  // 검색어가 변경되면 첫 페이지로 리셋
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTitle]);
 
   // 날짜 포맷팅 함수
   const formatDate = (dateString: string) => {
@@ -167,14 +190,36 @@ const VideoPage: React.FC = () => {
         <div className="mt-auto pt-2">
           <div className="flex gap-2">
             <button
-              onClick={() => navigate('/reply_analysis_list')}
+              onClick={() => navigate('/reply_analysis_list', { 
+                state: { 
+                  videoInfo: {
+                    thumbnail: video.thumbnail,
+                    date: formatDate(video.publishedAt),
+                    title: video.title,
+                    views: formatNumber(video.viewCount) + "회",
+                    commentRate: video.commentRate,
+                    likeRate: video.likeRate
+                  }
+                }
+              })}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition-colors"
               style={{ fontSize: "16px" }}
             >
               댓글 분석
             </button>
             <button
-              onClick={() => navigate('/reply_management')}
+              onClick={() => navigate('/reply_management', { 
+                state: { 
+                  videoInfo: {
+                    thumbnail: video.thumbnail,
+                    date: formatDate(video.publishedAt),
+                    title: video.title,
+                    views: formatNumber(video.viewCount) + "회",
+                    commentRate: video.commentRate,
+                    likeRate: video.likeRate
+                  }
+                }
+              })}
               className="flex-1 bg-white hover:bg-red-50 text-red-500 py-2 rounded-lg font-medium transition-colors border border-red-500 hover:border-red-600"
               style={{ fontSize: "16px" }}
             >
@@ -205,13 +250,27 @@ const VideoPage: React.FC = () => {
   if (videos.length === 0) {
     return (
       <div className="p-6 flex justify-center items-center min-h-96">
-        <div className="text-gray-400 text-xl">등록된 비디오가 없습니다.</div>
+        <div className="text-gray-400 text-xl">
+          {searchTitle 
+            ? `"${searchTitle}" 검색 결과가 없습니다.` 
+            : "등록된 비디오가 없습니다."
+          }
+        </div>
       </div>
     );
   }
 
   return (
     <div className="p-6">
+      {/* 검색 결과 표시 */}
+      {searchTitle && (
+        <div className="mb-4 text-center">
+          <div className="text-white text-lg">
+            "{searchTitle}" 검색 결과: {videos.length}개의 영상
+          </div>
+        </div>
+      )}
+
       {/* 비디오 그리드 */}
       <div
         className="grid gap-3"
