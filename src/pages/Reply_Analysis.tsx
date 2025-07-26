@@ -1,11 +1,32 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import thumbnail from "../assets/thumbnail1.png";
 import arrow from "../assets/arrow.png";
 import VideoInfoBox from "../components/VideoInfoBox";
 
+// 영상 정보 타입 정의
+interface VideoInfo {
+  thumbnail: string;
+  date: string;
+  title: string;
+  views: string;
+  commentRate: string;
+  likeRate: string;
+}
+
 export default function ReplyAnalysis() {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // 전달받은 영상 정보 또는 기본값 사용
+  const videoInfo: VideoInfo = location.state?.videoInfo || {
+    thumbnail: thumbnail,
+    date: "2025. 07. 10",
+    title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
+    views: "38,665회",
+    commentRate: "0.007%",
+    likeRate: "0.7%"
+  };
   
   // 감정 분석 결과 (긍정 84%, 부정 16%)
   const positivePercentage = 84;
@@ -57,12 +78,12 @@ export default function ReplyAnalysis() {
                 </button>
               </div>
               <VideoInfoBox
-                thumbnail={thumbnail}
-                date="2025. 07. 10"
-                title="[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE"
-                views="38,665회"
-                commentRate="0.007%"
-                likeRate="0.7%"
+                thumbnail={videoInfo.thumbnail}
+                date={videoInfo.date}
+                title={videoInfo.title}
+                views={videoInfo.views}
+                commentRate={videoInfo.commentRate}
+                likeRate={videoInfo.likeRate}
                 className=""
               />
             </div>

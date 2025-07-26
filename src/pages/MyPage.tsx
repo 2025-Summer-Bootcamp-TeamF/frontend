@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import VideoPage from "../components/VideoPage";
 import OverviewPage from "../components/OverviewPage";
@@ -25,6 +26,13 @@ const MyPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("video");
   const [channelData, setChannelData] = useState<ChannelData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchTitle, setSearchTitle] = useState("");
+
+  const handleSearchTitle = () => {
+    console.log("Search title:", searchTitle);
+    // 검색어가 변경되면 Video 탭으로 자동 이동
+    setActiveTab("video");
+  };
 
   useEffect(() => {
     const fetchChannelData = async () => {
@@ -194,28 +202,46 @@ const MyPage: React.FC = () => {
           {/* Tabs */}
           <div
             style={{ paddingLeft: "89.76px", paddingRight: "89.76px" }}
-            className="flex gap-8"
+            className="flex gap-8 items-center justify-between"
           >
-            <button
-              className={`pb-3 hover:text-white transition-colors text-2xl ${
-                activeTab === "overview"
-                  ? "text-white border-b-2 border-red-500"
-                  : "text-gray-400"
-              }`}
-              onClick={() => setActiveTab("overview")}
-            >
-              Overview
-            </button>
-            <button
-              className={`pb-3 hover:text-white transition-colors text-2xl ${
-                activeTab === "video"
-                  ? "text-white border-b-2 border-red-500"
-                  : "text-gray-400"
-              }`}
-              onClick={() => setActiveTab("video")}
-            >
-              Video
-            </button>
+            <div className="flex gap-8">
+              <button
+                className={`pb-3 hover:text-white transition-colors text-2xl ${
+                  activeTab === "overview"
+                    ? "text-white border-b-2 border-red-500"
+                    : "text-gray-400"
+                }`}
+                onClick={() => setActiveTab("overview")}
+              >
+                Overview
+              </button>
+              <button
+                className={`pb-3 hover:text-white transition-colors text-2xl ${
+                  activeTab === "video"
+                    ? "text-white border-b-2 border-red-500"
+                    : "text-gray-400"
+                }`}
+                onClick={() => setActiveTab("video")}
+              >
+                Video
+              </button>
+            </div>
+            {/* 영상 제목 검색창 */}
+            <div className="flex items-center ml-auto">
+              <input
+                type="text"
+                placeholder="영상 제목 검색"
+                className="bg-[#23242A] border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500 transition w-64"
+                value={searchTitle || ""}
+                onChange={e => setSearchTitle(e.target.value)}
+              />
+              <button
+                className="ml-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                onClick={handleSearchTitle}
+              >
+                검색
+              </button>
+            </div>
           </div>
 
           {/* Content */}
@@ -227,7 +253,7 @@ const MyPage: React.FC = () => {
               marginRight: "89.76px",
             }}
           >
-            {activeTab === "video" && <VideoPage />}
+            {activeTab === "video" && <VideoPage searchTitle={searchTitle} />}
             {activeTab === "overview" && <OverviewPage />}
           </div>
         </div>

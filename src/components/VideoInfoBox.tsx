@@ -24,7 +24,7 @@ const VideoInfoBox: React.FC<VideoInfoBoxProps> = ({
       <img
         src={thumbnail}
         alt="Video thumbnail"
-        className="rounded-xl mt-6 w-full object-cover"
+        className="rounded-xl mt-6 w-full object-contain"
         style={{ maxHeight: 250, minHeight: 200 }}
       />
     </div>

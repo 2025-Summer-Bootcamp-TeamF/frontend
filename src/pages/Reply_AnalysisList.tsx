@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import thumbnail from "../assets/thumbnail1.png";
 import arrow from "../assets/arrow.png";
@@ -16,9 +16,20 @@ interface Comment {
   checked: boolean;
 }
 
+// 영상 정보 타입 정의
+interface VideoInfo {
+  thumbnail: string;
+  date: string;
+  title: string;
+  views: string;
+  commentRate: string;
+  likeRate: string;
+}
+
 // 댓글 관리 페이지 컴포넌트
 export default function ReplyManagement() {
   const navigate = useNavigate();
+  const location = useLocation();
   
   // 페이지네이션 상태 - 1페이지로 시작
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,6 +80,16 @@ export default function ReplyManagement() {
   // 전체 체크 상태 확인
   const allChecked = pagedComments.length > 0 && checkedComments.size === pagedComments.length;
 
+  // 전달받은 영상 정보 또는 기본값 사용
+  const videoInfo: VideoInfo = location.state?.videoInfo || {
+    thumbnail: thumbnail,
+    date: "2025. 07. 10",
+    title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
+    views: "38,665회",
+    commentRate: "0.007%",
+    likeRate: "0.7%"
+  };
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
       <style
@@ -113,18 +134,22 @@ export default function ReplyManagement() {
               </button>
             </div>
             <VideoInfoBox
-              thumbnail={thumbnail}
-              date="2025. 07. 10"
-              title="[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE"
-              views="38,665회"
-              commentRate="0.007%"
-              likeRate="0.7%"
+              thumbnail={videoInfo.thumbnail}
+              date={videoInfo.date}
+              title={videoInfo.title}
+              views={videoInfo.views}
+              commentRate={videoInfo.commentRate}
+              likeRate={videoInfo.likeRate}
               className=""
             />
             {/* 댓글 분석하기 버튼 */}
             <div className="flex flex-1 items-end mt-auto">
               <button
-                onClick={() => navigate('/reply_analysis')}
+                onClick={() => navigate('/reply_analysis', { 
+                  state: { 
+                    videoInfo: videoInfo
+                  }
+                })}
                 className="w-full rounded-xl bg-[#ff0000] text-white text-[20px] font-semibold my-5 py-3 transition-colors hover:bg-[#b31217]"
                 type="button"
               >
