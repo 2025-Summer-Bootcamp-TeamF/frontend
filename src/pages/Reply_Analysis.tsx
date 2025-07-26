@@ -49,7 +49,7 @@ export default function ReplyAnalysis() {
               <div>
                 <button
                   className="rounded-full items-center justify-center cursor-pointer"
-                  onClick={() => navigate("/mainpage_login")}
+                  onClick={() => navigate("/reply_analysis_list")}
                   style={{ transform: "scaleX(-1)" }}
                   aria-label="뒤로가기"
                 >
