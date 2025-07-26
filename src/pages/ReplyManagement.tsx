@@ -1,0 +1,305 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+import avatar from "../assets/avatar.png";
+import thumbnail from "../assets/thumbnail1.png";
+import arrow from "../assets/arrow.png";
+import VideoInfoBox from "../components/VideoInfoBox";
+import CommentTable from "../components/CommentTable";
+
+// 댓글 데이터 타입 정의
+export interface Comment {
+  id: number;
+  account: string;
+  comment: string;
+  date: string;
+  checked: boolean;
+}
+
+// 댓글 관리 페이지 컴포넌트
+export default function ReplyManagement() {
+  const navigate = useNavigate();
+
+  // 현재 활성화된 탭 상태 (긍정/부정) - 긍정적인 댓글을 기본으로 설정
+  const [activeTab, setActiveTab] = useState<"positive" | "negative">(
+    "positive"
+  );
+
+  // 페이지네이션 상태 - 1페이지로 시작
+  const [currentPage, setCurrentPage] = useState(1);
+  const COMMENTS_PER_PAGE = 13;
+
+  // 긍정적인 댓글 데이터
+  const positiveComments: Comment[] = Array.from(
+    { length: 100 },
+    (_, index) => ({
+      id: index + 1,
+      account: "Kim Hanjooo_",
+      comment: "와 영상 너무 멋져요 기대됩니다",
+      date: "2019-08-21",
+      checked: index % 2 === 0,
+    })
+  );
+
+  // 부정적인 댓글 데이터
+  const negativeComments: Comment[] = Array.from(
+    { length: 100 },
+    (_, index) => ({
+      id: index + 1,
+      account: "Kim Hanjooo_",
+      comment: "와 영상 너무 멋져요 기대됩니다",
+      date: "2019-08-21",
+      checked: index % 2 === 0,
+    })
+  );
+
+  // 현재 활성화된 댓글 데이터
+  const currentComments =
+    activeTab === "positive" ? positiveComments : negativeComments;
+
+  // 현재 페이지의 댓글들
+  const pagedComments = currentComments.slice(
+    (currentPage - 1) * COMMENTS_PER_PAGE,
+    currentPage * COMMENTS_PER_PAGE
+  );
+
+  // 전체 페이지 수 계산
+  const totalPages = Math.ceil(currentComments.length / COMMENTS_PER_PAGE);
+
+  // 체크박스 상태 관리
+  const [checkedComments, setCheckedComments] = useState<Set<number>>(
+    new Set()
+  );
+
+  // 개별 체크박스 토글
+  const handleCheck = (commentId: number) => {
+    const newChecked = new Set(checkedComments);
+    if (newChecked.has(commentId)) {
+      newChecked.delete(commentId);
+    } else {
+      newChecked.add(commentId);
+    }
+    setCheckedComments(newChecked);
+  };
+
+  // 전체 체크박스 토글
+  const handleCheckAll = () => {
+    if (checkedComments.size === pagedComments.length) {
+      setCheckedComments(new Set());
+    } else {
+      setCheckedComments(new Set(pagedComments.map((c) => c.id)));
+    }
+  };
+
+  // 전체 체크 상태 확인
+  const allChecked =
+    pagedComments.length > 0 && checkedComments.size === pagedComments.length;
+
+  return (
+    <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+          ::-webkit-scrollbar {
+            display: none;
+          }
+          html, body {
+            overflow-y: scroll;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          }
+        `,
+        }}
+      />
+
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* 메인 컨텐츠 영역 */}
+      <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full">
+        {/* 왼쪽 컨테이너 - 영상 정보 및 탭 */}
+        <div
+          className="
+            flex flex-col flex-3 w-full rounded-2xl
+            bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
+            p-10
+            "
+        >
+          <div>
+            {/* 영상 썸네일 및 정보 - VideoInfoBox 컴포넌트로 대체 */}
+            <div className="relative flex flex-col ">
+              {/* 뒤로가기 버튼을 썸네일 위가 아닌 바깥쪽에 배치 */}
+              <div>
+                <button
+                  className="rounded-full items-center justify-center cursor-pointer"
+                  onClick={() => navigate("/mainpage_login")}
+                  style={{ transform: "scaleX(-1)" }}
+                  aria-label="뒤로가기"
+                >
+                  <img
+                    src={arrow}
+                    alt="뒤로가기"
+                    className="w-[36px] h-[28px]"
+                  />
+                </button>
+              </div>
+              <VideoInfoBox
+                thumbnail={thumbnail}
+                date="2025. 07. 10"
+                title="[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE"
+                views="38,665회"
+                commentRate="0.007%"
+                likeRate="0.7%"
+                className=""
+              />
+            </div>
+
+            {/* 댓글 타입 선택 탭 */}
+            <div className="flex flex-col gap-4">
+              {/* 긍정적인 댓글 탭 */}
+              <div
+                className={`rounded-xl border-2 px-6 py-4 flex flex-col cursor-pointer transition
+                  ${
+                    activeTab === "positive"
+                      ? "border-[#ff0000] bg-white"
+                      : "border-transparent bg-[#ffffff]"
+                  }
+                `}
+                onClick={() => setActiveTab("positive")}
+              >
+                <span
+                  className={`text-[18.5px] font-semibold mb-1 ${
+                    activeTab === "positive"
+                      ? "text-[#ff0000]"
+                      : "text-[#a3a3a3]"
+                  }`}
+                >
+                  긍정적인 댓글 {activeTab === "positive" && "✓"}
+                </span>
+                <span className="text-[#6c6b6b] text-[15px] font-regular">
+                  영상의 긍정적인 댓글만 모아,
+                  <br />한 번에 좋아요를 눌러 팬들과 빠르게 교감하세요.
+                </span>
+              </div>
+
+              {/* 부정적인 댓글 탭 */}
+              <div
+                className={`rounded-xl border-2 px-6 py-4 flex flex-col cursor-pointer transition
+                  ${
+                    activeTab === "negative"
+                      ? "border-[#ff0000] bg-white"
+                      : "border-transparent bg-[#ffffff]"
+                  }
+                `}
+                onClick={() => setActiveTab("negative")}
+              >
+                <span
+                  className={`text-[18.5px] font-semibold mb-1 ${
+                    activeTab === "negative"
+                      ? "text-[#ff0000]"
+                      : "text-[#a3a3a3]"
+                  }`}
+                >
+                  부정적인 댓글 & 광고 댓글 {activeTab === "negative" && "✓"}
+                </span>
+                <span className="text-[#6c6b6b] text-[15px] font-regular">
+                  악성 댓글과 광고성 댓글을 자동으로 선별해,
+                  <br />
+                  클릭 한 번으로 정리할 수 있어요.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 오른쪽 컨테이너 - 댓글 목록 */}
+        <div
+          className="
+            flex flex-col flex-7 w-full rounded-2xl 
+            bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
+            h-full min-h-0
+          "
+        >
+          <div className="p-8 flex flex-col">
+            {/* 헤더 영역 */}
+            <div className="flex flex-row items-center justify-between mb-6">
+              <div>
+                <div className="text-[22px] font-semibold text-[#ff0000] mb-2">
+                  {activeTab === "positive"
+                    ? "긍정적인 댓글"
+                    : "부정적인 댓글 & 광고 댓글"}
+                </div>
+                <div className="text-[#d9d9d9] text-[15px] font-extralight">
+                  {activeTab === "positive" ? (
+                    <>
+                      해당 페이지에서는 긍정적인 댓글로 분류된 댓글들을 모아볼
+                      수 있으며,
+                      <br />
+                      잘못 분류된 악성 댓글은 긍정 댓글에서 제외할 수 있습니다.
+                      <br />
+                      올바른 분류를 통해 더 정확한 분석이 가능해집니다.
+                    </>
+                  ) : (
+                    <>
+                      악성 댓글 및 광고 댓글로 분류된 내용입니다.
+                      <br />
+                      잘못 분류되었다고 생각되는 댓글은 체크를 해제하고,
+                      <br />
+                      삭제할 댓글만 선택해 한 번에 삭제할 수 있어요.
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* 액션 버튼들 */}
+              <div className="flex gap-3">
+                <button
+                  className="w-[200px] h-[55px] px-6 py-3 bg-[#555] text-white rounded-[10px] text-[18px] font-semibold hover:bg-[#333] transition-colors
+                "
+                >
+                  {activeTab === "positive"
+                    ? "악성 댓글로 이동"
+                    : "긍정 댓글로 이동"}
+                </button>
+                {activeTab === "negative" && (
+                  <button
+                    className="w-[170px] h-[55px] px-6 py-3 bg-[#ff0000] text-white rounded-[10px] text-[18px] font-semibold hover:bg-[#b31217] transition-colors flex justify-center items-center gap-2
+                  "
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                    <span>댓글 삭제</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* 댓글 테이블 */}
+            <CommentTable
+              comments={pagedComments}
+              checkedComments={checkedComments}
+              onCheck={handleCheck}
+              allChecked={allChecked}
+              onCheckAll={handleCheckAll}
+              avatar={avatar}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
