@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import VideoPage from "../components/VideoPage";
 import OverviewPage from "../components/OverviewPage";
-import ChannelSnapshotTest from "../components/ChannelSnapshotTest";
 
 interface ChannelData {
   channel: {
@@ -33,24 +32,38 @@ const MyPage: React.FC = () => {
         const token = localStorage.getItem("token");
         if (!token) {
           console.error("No token found");
+          setLoading(false);
           return;
         }
 
+        console.log("Fetching channel data from:", "http://localhost:8000/api/channel/my");
+        console.log("Token:", token.substring(0, 20) + "...");
+
         const response = await fetch("http://localhost:8000/api/channel/my", {
+          method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
 
+        console.log("Response status:", response.status);
+        console.log("Response headers:", response.headers);
+
         if (response.ok) {
           const data = await response.json();
+          console.log("Channel data received:", data);
           setChannelData(data);
         } else {
-          console.error("Failed to fetch channel data");
+          const errorText = await response.text();
+          console.error("Failed to fetch channel data. Status:", response.status);
+          console.error("Error response:", errorText);
         }
       } catch (error) {
         console.error("Error fetching channel data:", error);
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          console.error("Network error - 백엔드 서버가 실행 중인지 확인하세요");
+        }
       } finally {
         setLoading(false);
       }
@@ -217,13 +230,6 @@ const MyPage: React.FC = () => {
             {activeTab === "video" && <VideoPage />}
             {activeTab === "overview" && <OverviewPage />}
           </div>
-
-          {/* Channel Snapshot Test */}
-          {channelData && (
-            <div className="mt-8" style={{ marginLeft: "89.76px", marginRight: "89.76px" }}>
-              <ChannelSnapshotTest channelId={channelData.channel.id} />
-            </div>
-          )}
         </div>
       </div>
     </div>
