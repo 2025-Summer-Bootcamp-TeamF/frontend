@@ -98,7 +98,7 @@ export default function CategoryPage() {
             <div className="relative p-8 pb-4">
                 <button
                     className="rounded-full items-center justify-center cursor-pointer"
-                    onClick={() => navigate("/mainpage_login")}
+                    onClick={() => navigate("/main")}
                     style={{ transform: "scaleX(-1)" }}
                     aria-label="뒤로가기"
                 >

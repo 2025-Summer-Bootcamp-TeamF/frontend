@@ -132,7 +132,7 @@ export default function ReplyManagement() {
               <div>
                 <button
                   className="rounded-full items-center justify-center cursor-pointer"
-                  onClick={() => navigate("/mainpage_login")}
+                  onClick={() => navigate("/my")}
                   style={{ transform: "scaleX(-1)" }}
                   aria-label="뒤로가기"
                 >
