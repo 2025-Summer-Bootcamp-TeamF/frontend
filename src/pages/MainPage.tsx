@@ -56,8 +56,15 @@ export default function MainPage() {
 
   // 로그아웃 처리
   const handleLogout = () => {
+    // 1. localStorage에서 로그인 정보 삭제
     localStorage.removeItem("isLoggedIn");
-    window.location.reload();
+    localStorage.removeItem("token");
+
+    // 2. (선택) 백엔드에 로그아웃 API 호출
+    fetch("/auth/logout", { method: "POST", credentials: "include" });
+
+    // 3. 메인페이지 또는 로그인페이지로 이동
+    window.location.href = "/main"; // 또는 navigate("/login");
   };
 
   return (

@@ -1,10 +1,71 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import VideoPage from "../components/VideoPage";
 import OverviewPage from "../components/OverviewPage";
+import ChannelSnapshotTest from "../components/ChannelSnapshotTest";
+
+interface ChannelData {
+  channel: {
+    id: number;
+    channel_name: string;
+    profile_image_url: string;
+    channel_intro: string;
+    youtube_channel_id: string;
+    created_at: string;
+  };
+  snapshot: {
+    subscriber: number;
+    total_videos: number;
+    total_view: number;
+    channel_created: string;
+    nation: string;
+  };
+}
 
 const MyPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("video");
+  const [channelData, setChannelData] = useState<ChannelData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchChannelData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found");
+          return;
+        }
+
+        const response = await fetch("http://localhost:8000/api/channel/my", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setChannelData(data);
+        } else {
+          console.error("Failed to fetch channel data");
+        }
+      } catch (error) {
+        console.error("Error fetching channel data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChannelData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex justify-center items-center">
+        <div className="text-2xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white flex">
@@ -55,15 +116,23 @@ const MyPage: React.FC = () => {
               <div className="flex items-center gap-8">
                 <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 p-0.5">
                   <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
-                    <span className="text-5xl">🐵</span>
+                    {channelData?.channel.profile_image_url ? (
+                      <img 
+                        src={channelData.channel.profile_image_url} 
+                        alt="Profile" 
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-5xl">🐵</span>
+                    )}
                   </div>
                 </div>
                 <div>
                   <h1 className="font-bold mb-2 text-4xl sm:text-5xl leading-[1.2]">
-                    Estar el mono
+                    {channelData?.channel.channel_name || "Channel Name"}
                   </h1>
                   <p className="text-gray-400 text-xl sm:text-2xl">
-                    hi welcome to my channel
+                    {channelData?.channel.channel_intro || ""}
                   </p>
                 </div>
               </div>
@@ -73,23 +142,37 @@ const MyPage: React.FC = () => {
                   <p className="text-gray-500 mb-1 text-xl sm:text-2xl">
                     구독자 수
                   </p>
-                  <p className="text-xl sm:text-2xl">200만</p>
+                  <p className="text-xl sm:text-2xl">
+                    {channelData?.snapshot.subscriber ? 
+                      `${(channelData.snapshot.subscriber / 10000).toFixed(1)}만` : 
+                      "N/A"
+                    }
+                  </p>
                 </div>
                 <div className="text-left">
                   <p className="text-gray-500 mb-1 text-xl sm:text-2xl">
                     총 영상 수
                   </p>
-                  <p className="text-xl sm:text-2xl">878개</p>
+                  <p className="text-xl sm:text-2xl">
+                    {channelData?.snapshot.total_videos || "N/A"}개
+                  </p>
                 </div>
                 <div className="text-left">
                   <p className="text-gray-500 mb-1 text-xl sm:text-2xl">
                     채널 가입일
                   </p>
-                  <p className="text-xl sm:text-2xl">2023-07-19</p>
+                  <p className="text-xl sm:text-2xl">
+                    {channelData?.snapshot.channel_created ? 
+                      new Date(channelData.snapshot.channel_created).toLocaleDateString() : 
+                      "N/A"
+                    }
+                  </p>
                 </div>
                 <div className="text-left">
                   <p className="text-gray-500 mb-1 text-xl sm:text-2xl">국가</p>
-                  <p className="text-xl sm:text-2xl">대한민국</p>
+                  <p className="text-xl sm:text-2xl">
+                    {channelData?.snapshot.nation || "N/A"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -134,6 +217,13 @@ const MyPage: React.FC = () => {
             {activeTab === "video" && <VideoPage />}
             {activeTab === "overview" && <OverviewPage />}
           </div>
+
+          {/* Channel Snapshot Test */}
+          {channelData && (
+            <div className="mt-8" style={{ marginLeft: "89.76px", marginRight: "89.76px" }}>
+              <ChannelSnapshotTest channelId={channelData.channel.id} />
+            </div>
+          )}
         </div>
       </div>
     </div>
