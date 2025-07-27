@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 interface VideoData {
   id: string;
@@ -10,7 +10,42 @@ interface VideoData {
   likeRate: string;
 }
 
-const OverviewPage: React.FC = () => {
+interface SubscriberChange {
+  date: string;
+  subscriber: number;
+}
+
+interface OverviewPageProps {
+  dailyView?: number;
+  averageView?: number;
+}
+
+const OverviewPage: React.FC<OverviewPageProps> = ({ dailyView, averageView }) => {
+  const [subscriberData, setSubscriberData] = useState<SubscriberChange[]>([]);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchSubscriberChange = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        console.log("Token:", token); // 디버깅용 로그 추가
+        const response = await fetch("http://localhost:8000/api/channel/subscriber-change", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Subscriber data:", data); // 디버깅용 로그 추가
+          setSubscriberData(data.data || []);
+        } else {
+          console.error("API response not ok:", response.status, response.statusText);
+        }
+      } catch (e) {
+        console.error("Failed to fetch subscriber change", e);
+      }
+    };
+    fetchSubscriberChange();
+  }, []);
+
   const videos: VideoData[] = [
     {
       id: "1",
@@ -41,6 +76,30 @@ const OverviewPage: React.FC = () => {
     },
   ];
 
+  // 그래프 영역 계산
+  const chartWidth = 500;
+  const chartHeight = 220;
+  const margin = 40;
+
+  let points: { x: number; y: number }[] = [];
+  let min = 0, max = 0;
+  if (subscriberData.length > 0) {
+    min = Math.min(...subscriberData.map(d => d.subscriber));
+    max = Math.max(...subscriberData.map(d => d.subscriber));
+    // 모두 0일 때는 min=0, max=1로 고정
+    if (min === 0 && max === 0) {
+      max = 1;
+    } else if (min === max) {
+      min = min - 1;
+      max = max + 1;
+    }
+    points = subscriberData.map((d, i) => {
+      const x = margin + (i * (chartWidth - 2 * margin)) / Math.max(1, subscriberData.length - 1);
+      const y = chartHeight - margin - ((d.subscriber - min) / (max - min)) * (chartHeight - 2 * margin);
+      return { x, y };
+    });
+  }
+
   return (
     <div className="w-full h-full" style={{ padding: "2.5%" }}>
       <div className="flex w-full h-full" style={{ gap: "2.5%" }}>
@@ -69,7 +128,7 @@ const OverviewPage: React.FC = () => {
                 className="text-white font-bold leading-none"
                 style={{ fontSize: "2vw" }}
               >
-                290만
+                {dailyView !== undefined && dailyView !== null ? dailyView.toLocaleString() : "-"}
               </p>
             </div>
             <div
@@ -90,97 +149,87 @@ const OverviewPage: React.FC = () => {
                 className="text-white font-bold leading-none"
                 style={{ fontSize: "2vw" }}
               >
-                170만
+                {averageView !== undefined && averageView !== null ? averageView.toLocaleString() : "-"}
               </p>
             </div>
           </div>
 
-          {/* 차트 */}
+          {/* 구독자 수 변화량 꺾은선 그래프 */}
           <div className="flex flex-col flex-1">
-            <h3
-              className="text-white"
-              style={{ fontSize: "1.1vw", marginBottom: "2%" }}
-            >
+            <h3 className="text-white" style={{ fontSize: "1.1vw", marginBottom: "2%" }}>
               구독자 수 변화량
             </h3>
-            <div
-              className="relative rounded-xl flex-1"
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.03)",
-              }}
+            <div className="relative rounded-xl flex-1"
+              style={{ backgroundColor: "rgba(255, 255, 255, 0.03)", height: chartHeight, minHeight: chartHeight }}
             >
-              <svg
-                viewBox="0 0 840 402.51"
-                className="absolute inset-0 w-full h-full"
-                preserveAspectRatio="none"
-              >
-                <defs>
-                  <linearGradient
-                    id="lineGradient"
-                    x1="0%"
-                    y1="0%"
-                    x2="100%"
-                    y2="0%"
-                  >
-                    <stop offset="0%" stopColor="#ef4444" />
-                    <stop offset="100%" stopColor="#dc2626" />
-                  </linearGradient>
-                </defs>
-                <g stroke="rgba(255,255,255,0.1)" strokeWidth="1">
-                  <line x1="0" y1="80" x2="840" y2="80" />
-                  <line x1="0" y1="160" x2="840" y2="160" />
-                  <line x1="0" y1="240" x2="840" y2="240" />
-                  <line x1="0" y1="320" x2="840" y2="320" />
-                </g>
-                <polyline
-                  fill="none"
-                  stroke="url(#lineGradient)"
-                  strokeWidth="3"
-                  points="80,320 240.83,280 401.66,200 562.49,140 723.32,100"
-                />
-                <g fill="#ef4444">
-                  <circle cx="80" cy="320" r="5" />
-                  <circle cx="240.83" cy="280" r="5" />
-                  <circle cx="401.66" cy="200" r="5" />
-                  <circle cx="562.49" cy="140" r="5" />
-                  <circle cx="723.32" cy="100" r="5" />
-                </g>
-                <g
-                  fill="rgba(255,255,255,0.6)"
-                  fontSize="14"
-                  textAnchor="middle"
+              {subscriberData.length > 1 ? (
+                <svg
+                  viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                  className="absolute inset-0 w-full h-full"
+                  preserveAspectRatio="none"
                 >
-                  <text x="80" y="370">
-                    3월 1주차
+                  {/* X축 라벨 */}
+                  {subscriberData.map((d, i) => (
+                    <text
+                      key={i}
+                      x={points[i]?.x}
+                      y={chartHeight - margin + 20}
+                      textAnchor="middle"
+                      fill="#aaa"
+                      fontSize="12"
+                    >
+                      {d.date.slice(5)}
+                    </text>
+                  ))}
+                  {/* Y축 라벨 (최소/최대) */}
+                  <text x={10} y={margin} fill="#aaa" fontSize="12">
+                    {max.toLocaleString()}
                   </text>
-                  <text x="240.83" y="370">
-                    3월 2주차
+                  <text x={10} y={chartHeight - margin} fill="#aaa" fontSize="12">
+                    {min.toLocaleString()}
                   </text>
-                  <text x="401.66" y="370">
-                    3월 3주차
-                  </text>
-                  <text x="562.49" y="370">
-                    3월 4주차
-                  </text>
-                  <text x="723.32" y="370">
-                    3월 5주차
-                  </text>
-                </g>
-              </svg>
-
-              <div
-                className="absolute bg-black bg-opacity-80 rounded"
-                style={{
-                  right: "15%",
-                  top: "15%",
-                  padding: "0.7vw",
-                  fontSize: "0.75vw",
-                }}
-              >
-                <span className="text-gray-300">2025/03/28</span>
-                <br />
-                <span className="text-white font-bold">30,456명</span>
-              </div>
+                  {/* 꺾은선 */}
+                  <polyline
+                    fill="none"
+                    stroke="#ef4444"
+                    strokeWidth="3"
+                    points={points.map(p => `${p.x},${p.y}`).join(" ")}
+                  />
+                  {/* 점 */}
+                  {points.map((p, i) => (
+                    <circle
+                      key={i}
+                      cx={p.x}
+                      cy={p.y}
+                      r={6}
+                      fill="#ef4444"
+                      style={{ cursor: "pointer" }}
+                      onMouseEnter={() => setHoverIndex(i)}
+                      onMouseLeave={() => setHoverIndex(null)}
+                    />
+                  ))}
+                </svg>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-400">
+                  구독자 변화 데이터가 없습니다.
+                </div>
+              )}
+              {/* 툴팁 */}
+              {hoverIndex !== null && points[hoverIndex] && (
+                <div
+                  className="absolute bg-black bg-opacity-80 rounded px-3 py-2 text-white text-sm"
+                  style={{
+                    left: points[hoverIndex].x,
+                    top: points[hoverIndex].y - 40,
+                    transform: "translate(-50%, 0)",
+                    pointerEvents: "none",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  {subscriberData[hoverIndex].date} <br />
+                  <span className="font-bold">{subscriberData[hoverIndex].subscriber.toLocaleString()}명</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

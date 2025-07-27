@@ -19,6 +19,8 @@ interface ChannelData {
     total_view: number;
     channel_created: string;
     nation: string;
+    daily_view: number;
+    average_view: number;
   };
 }
 
@@ -254,7 +256,12 @@ const MyPage: React.FC = () => {
             }}
           >
             {activeTab === "video" && <VideoPage searchTitle={searchTitle} />}
-            {activeTab === "overview" && <OverviewPage />}
+            {activeTab === "overview" && (
+              <OverviewPage
+                dailyView={channelData?.snapshot.daily_view}
+                averageView={channelData?.snapshot.average_view}
+              />
+            )}
           </div>
         </div>
       </div>
