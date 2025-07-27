@@ -7,17 +7,72 @@ import Sidebar from "../components/Sidebar";
 
 const CompetitorInsightPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("views");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedChannels, setSelectedChannels] = useState([
-    "https://www.youtube.com/@SilicaGel",
-  ]);
+  const [newChannelUrl, setNewChannelUrl] = useState("");
+  const [isAddingChannel, setIsAddingChannel] = useState(false);
+  const [addChannelError, setAddChannelError] = useState("");
+  const [addChannelSuccess, setAddChannelSuccess] = useState("");
 
-  const handleChannelSelect = (channel: string) => {
-    setSelectedChannels((prev) =>
-      prev.includes(channel)
-        ? prev.filter((c) => c !== channel)
-        : [...prev, channel]
-    );
+  // 성공 메시지 자동 제거
+  React.useEffect(() => {
+    if (addChannelSuccess) {
+      const timer = setTimeout(() => {
+        setAddChannelSuccess("");
+      }, 3000); // 3초 후 자동 제거
+      return () => clearTimeout(timer);
+    }
+  }, [addChannelSuccess]);
+
+  const handleAddChannel = async () => {
+    if (!newChannelUrl.trim()) {
+      setAddChannelError("채널 URL을 입력해주세요.");
+      return;
+    }
+
+    setIsAddingChannel(true);
+    setAddChannelError("");
+    setAddChannelSuccess("");
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setAddChannelError("로그인이 필요합니다.");
+        return;
+      }
+
+      console.log("Adding competitor channel:", newChannelUrl);
+
+      const response = await fetch("http://localhost:8000/api/others", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          channelUrl: newChannelUrl
+        }),
+      });
+
+      const data = await response.json();
+      console.log("Response:", data);
+
+      if (response.ok) {
+        setNewChannelUrl("");
+        setAddChannelSuccess("경쟁 채널이 성공적으로 등록되었습니다!");
+        console.log("Competitor channel added successfully");
+        
+        // ViewsPage 데이터 새로고침
+        if ((window as any).refreshViewsPageData) {
+          (window as any).refreshViewsPageData();
+        }
+      } else {
+        setAddChannelError(data.message || "채널 추가에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("Error adding competitor channel:", error);
+      setAddChannelError("네트워크 오류가 발생했습니다.");
+    } finally {
+      setIsAddingChannel(false);
+    }
   };
 
   return (
@@ -71,270 +126,138 @@ const CompetitorInsightPage: React.FC = () => {
                 </span>
               </div>
 
-              {/* 드롭다운 컨테이너 */}
+              {/* 채널 입력 컨테이너 */}
               <div
                 className="relative flex-1"
                 style={{ marginLeft: "62.07px" }}
               >
                 <div
-                  className="rounded-[10px] px-6 py-4 cursor-pointer flex items-center justify-between"
+                  className="rounded-[10px] px-6 py-4"
                   style={{
                     backgroundColor: "#1C2023",
                     width: "100%",
                     height: "87.38px",
                     minWidth: "600px",
                   }}
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 >
-                  <div
-                    className="flex items-center"
-                    style={{ gap: "110.69px" }}
-                  >
-                    <span
-                      className="text-gray-400"
-                      style={{ fontSize: "24.56px", color: "#858585" }}
-                    >
-                      채널
-                    </span>
-                    <span
-                      className="text-white"
-                      style={{ fontSize: "24.56px", color: "#A3A3A3" }}
-                    >
-                      비교하고 싶은 채널의 주소를 입력하세요
+                  <div className="flex items-center gap-4 h-full">
+                    <span>
+                      <input
+                        type="text-gray-400"
+                        placeholder="비교하고 싶은 채널의 주소를 입력하세요 (예: https://www.youtube.com/@username)"
+                        value={newChannelUrl}
+                        onChange={(e) => setNewChannelUrl(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            handleAddChannel();
+                          }
+                        }}
+                        className="w-[47vw] justify-center items-center px-3 py-3 mr-4 bg-gray-800 text-white font-medium rounded border border-gray-600 focus:border-red-500 focus:outline-none"
+                        style={{ fontSize: "21px", color: "#858585" }}
+                      />
+                      <button
+                        onClick={handleAddChannel}
+                        disabled={isAddingChannel}
+                        className="px-6 py-3 bg-red-500 justify-center items-center text-white rounded hover:bg-red-600 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors font-medium"
+                        style={{ fontSize: "21px" }}
+                      >
+                        {isAddingChannel ? "등록 중..." : "경쟁 채널 등록"}
+                      </button>
                     </span>
                   </div>
-                  <svg
-                    className={`w-5 h-5 text-gray-400 transition-transform ${
-                      isDropdownOpen ? "rotate-180" : ""
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </div>
-
-                {/* 드롭다운 메뉴 - 부모 div와 같은 너비 */}
-                {isDropdownOpen && (
-                  <div
-                    className="absolute rounded-[10px] shadow-lg"
-                    style={{
-                      backgroundColor: "#1C2023",
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
-                      zIndex: 9999,
-                      top: "calc(100% + 8px)",
-                      left: 0,
-                      width: "100%", // 부모와 같은 너비
-                      minWidth: "600px", // 부모와 같은 최소 너비
-                    }}
-                  >
-                    <div className="p-4">
-                      <div
-                        className="flex items-center gap-3 mb-3 py-3 hover:bg-gray-700 rounded cursor-pointer"
-                        onClick={() =>
-                          handleChannelSelect(
-                            "https://www.youtube.com/@SilicaGel"
-                          )
-                        }
-                      >
-                        <div
-                          className={`rounded-sm flex-shrink-0 ${
-                            selectedChannels.includes(
-                              "https://www.youtube.com/@SilicaGel"
-                            )
-                              ? "bg-red-500"
-                              : "border border-gray-500"
-                          }`}
-                          style={{ width: "35.67px", height: "35.67px" }}
-                        >
-                          {selectedChannels.includes(
-                            "https://www.youtube.com/@SilicaGel"
-                          ) && (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <svg
-                                className="w-4 h-4 text-white"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            </div>
-                          )}
+                  
+                  {/* 에러/성공 메시지 */}
+                  {(addChannelError || addChannelSuccess) && (
+                    <div className="mt-3 px-4 py-2 rounded">
+                      {addChannelError && (
+                        <div className="text-red-400 text-sm">
+                          {addChannelError}
                         </div>
-                        <span
-                          className="text-white flex-1"
-                          style={{ fontSize: "24.56px", color: "#A3A3A3" }}
-                        >
-                          https://www.youtube.com/@SilicaGel
-                        </span>
-                        <button
-                          className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white transition-colors flex-shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // 삭제 로직
-                          }}
-                        >
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                      <div
-                        className="flex items-center gap-3 py-3 hover:bg-gray-700 rounded cursor-pointer"
-                        onClick={() =>
-                          handleChannelSelect(
-                            "https://www.youtube.com/@SilicaGel2"
-                          )
-                        }
-                      >
-                        <div
-                          className={`rounded-sm flex-shrink-0 ${
-                            selectedChannels.includes(
-                              "https://www.youtube.com/@SilicaGel2"
-                            )
-                              ? "bg-red-500"
-                              : "border border-gray-500"
-                          }`}
-                          style={{ width: "35.67px", height: "35.67px" }}
-                        >
-                          {selectedChannels.includes(
-                            "https://www.youtube.com/@SilicaGel2"
-                          ) && (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <svg
-                                className="w-4 h-4 text-white"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            </div>
-                          )}
+                      )}
+                      {addChannelSuccess && (
+                        <div className="text-green-400 text-sm">
+                          {addChannelSuccess}
                         </div>
-                        <span
-                          className="text-gray-400 flex-1"
-                          style={{ fontSize: "24.56px", color: "#A3A3A3" }}
-                        >
-                          https://www.youtube.com/@SilicaGel
-                        </span>
-                        <button
-                          className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white transition-colors flex-shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // 삭제 로직
-                          }}
-                        >
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      </div>
+                      )}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* 하단 박스 */}
+          {/* 하단 컨텐츠 */}
           <div
-            className="rounded-2xl overflow-hidden flex-1"
+            className="rounded-2xl overflow-visible relative z-10 flex-1"
             style={{
               backgroundColor: "rgba(255, 255, 255, 0.15)",
               border: "1px solid rgba(255, 255, 255, 0.6)",
             }}
           >
-            {/* 설명 텍스트 */}
             <div
               style={{
+                paddingTop: "32px",
+                paddingBottom: "24px",
                 paddingLeft: "89.76px",
                 paddingRight: "89.76px",
-                paddingTop: "42px",
-                fontSize: "24px",
-                color: "#A3A3A3",
+                height: "100%",
               }}
             >
-              각 채널이 어떻게 운영되었는지 비교해보았어요!
-            </div>
+              <div className="text-gray-200 text-[1.7rem] mb-8">
+                각 채널이 어떻게 운영되었는지 비교해보았어요!
+              </div>
 
-            {/* 탭 섹션 */}
-            <div
-              style={{
-                paddingLeft: "89.76px",
-                paddingRight: "89.76px",
-                paddingTop: "34px",
-              }}
-              className="flex gap-8"
-            >
-              {[
-                { key: "views", label: "조회수" },
-                { key: "upload", label: "업로드 주기" },
-                { key: "likes", label: "좋아요" },
-                { key: "dislikes", label: "싫어요" },
-              ].map((tab) => (
+              {/* 탭 버튼들 */}
+              <div className="flex gap-8 mb-8">
                 <button
-                  key={tab.key}
-                  className={`pb-3 hover:text-white transition-colors text-2xl ${
-                    activeTab === tab.key
-                      ? "text-white border-b-2 border-red-500"
-                      : "text-gray-400"
+                  onClick={() => setActiveTab("views")}
+                  className={`text-[1.5rem] font-medium transition-colors ${
+                    activeTab === "views"
+                      ? "text-red-500 border-b-2 border-red-500"
+                      : "text-gray-400 hover:text-white"
                   }`}
-                  onClick={() => setActiveTab(tab.key)}
                 >
-                  {tab.label}
+                  조회수
                 </button>
-              ))}
-            </div>
+                <button
+                  onClick={() => setActiveTab("upload")}
+                  className={`text-[1.5rem] font-medium transition-colors ${
+                    activeTab === "upload"
+                      ? "text-red-500 border-b-2 border-red-500"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  업로드 주기
+                </button>
+                <button
+                  onClick={() => setActiveTab("likes")}
+                  className={`text-[1.5rem] font-medium transition-colors ${
+                    activeTab === "likes"
+                      ? "text-red-500 border-b-2 border-red-500"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  좋아요
+                </button>
+                <button
+                  onClick={() => setActiveTab("dislikes")}
+                  className={`text-[1.5rem] font-medium transition-colors ${
+                    activeTab === "dislikes"
+                      ? "text-red-500 border-b-2 border-red-500"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  싫어요
+                </button>
+              </div>
 
-            {/* 콘텐츠 */}
-            <div
-              className="rounded-[13px] overflow-x-auto"
-              style={{
-                backgroundColor: "#1C2023",
-                marginLeft: "89.76px",
-                marginRight: "89.76px",
-                marginTop: "0",
-                height: "calc(100% - 154.87px)",
-              }}
-            >
-              {activeTab === "views" && <ViewsPage />}
-              {activeTab === "upload" && <UploadPage />}
-              {activeTab === "likes" && <LikesPage />}
-              {activeTab === "dislikes" && <InsightPage />}
+              {/* 탭 컨텐츠 */}
+              <div className="flex-1">
+                {activeTab === "views" && <ViewsPage />}
+                {activeTab === "upload" && <UploadPage />}
+                {activeTab === "likes" && <LikesPage />}
+                {activeTab === "dislikes" && <InsightPage />}
+              </div>
             </div>
           </div>
         </div>
