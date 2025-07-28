@@ -189,7 +189,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
         { period: "최신-2", my: 0, competitor1: 0, competitor2: 0, myViews: 0, competitor1Views: 0, competitor2Views: 0, myRate: 0, competitor1Rate: 0, competitor2Rate: 0 },
         { period: "최신-1", my: 0, competitor1: 0, competitor2: 0, myViews: 0, competitor1Views: 0, competitor2Views: 0, myRate: 0, competitor1Rate: 0, competitor2Rate: 0 },
         { period: "최신", my: 0, competitor1: 0, competitor2: 0, myViews: 0, competitor1Views: 0, competitor2Views: 0, myRate: 0, competitor1Rate: 0, competitor2Rate: 0 },
-      ];
+  ];
     }
 
     // 내 채널 개별 영상 조회수 (최신순: 0=최신, 1=최신-1, 2=최신-2)
@@ -356,14 +356,14 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
                 
                 return (
                   <g key={i}>
-                    <line
-                      x1="100"
+              <line
+                x1="100"
                       y1={y}
-                      x2="1100"
+                x2="1100"
                       y2={y}
-                      stroke="rgba(255,255,255,0.15)"
-                      strokeWidth="1"
-                    />
+                stroke="rgba(255,255,255,0.15)"
+                strokeWidth="1"
+              />
                     {/* Y축 라벨 */}
                     <text
                       x="90"
@@ -395,7 +395,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
                     height={(item.my / effectiveMaxViews) * 300}
                     fill="#ef4444"
                   />
-                  
+
                   {/* 내 채널 조회수 텍스트 */}
                   <text
                     x={groupX - barWidth - gap + barWidth / 2}
@@ -428,14 +428,14 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
                     
                     return (
                       <g key={channelIdx}>
-                        <rect
+                  <rect
                           x={groupX + (channelIdx * (barWidth + gap))}
                           y={350 - (competitorValue / effectiveMaxViews) * 300}
-                          width={barWidth}
+                    width={barWidth}
                           height={(competitorValue / effectiveMaxViews) * 300}
                           fill={colors[channelIdx + 1] || colors[0]}
-                        />
-                        
+                  />
+
                         {/* 경쟁 채널 조회수 텍스트 */}
                         <text
                           x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
@@ -492,16 +492,16 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
       <div className="flex justify-center flex-wrap" style={{ gap: "100px" }}>
         {/* 내 채널 */}
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3">
-            <div
-              className="rounded-full"
-              style={{
+            <div className="flex items-center gap-3">
+              <div
+                className="rounded-full"
+                style={{
                 backgroundColor: colors[0],
-                width: "14px",
-                height: "14px",
-              }}
-            />
-            <span className="text-white" style={{ fontSize: "20px" }}>
+                  width: "14px",
+                  height: "14px",
+                }}
+              />
+              <span className="text-white" style={{ fontSize: "20px" }}>
               내 채널
             </span>
           </div>
@@ -578,33 +578,33 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
                   </svg>
                 </button>
               </div>
-              <div>
-                <div
-                  className="text-white font-bold"
-                  style={{ fontSize: "32px", lineHeight: "32px" }}
-                >
+            <div>
+              <div
+                className="text-white font-bold"
+                style={{ fontSize: "32px", lineHeight: "32px" }}
+              >
                   {competitorViews?.individualViews && competitorViews.individualViews.length > 0 
                     ? formatNumber(competitorViews.individualViews[0].views) 
                     : "0"}
-                </div>
-                <div
-                  className="text-gray-400"
-                  style={{ fontSize: "15px", marginTop: "4px" }}
-                >
+              </div>
+              <div
+                className="text-gray-400"
+                style={{ fontSize: "15px", marginTop: "4px" }}
+              >
                   최신 영상 조회수
-                </div>
-                <div
-                  className="flex items-center gap-1"
-                  style={{ marginTop: "2px" }}
-                >
+              </div>
+              <div
+                className="flex items-center gap-1"
+                style={{ marginTop: "2px" }}
+              >
                   <span style={{ color: colors[idx + 1] || colors[0], fontSize: "16px" }}>
                     {competitorViews?.individualViews && competitorViews.individualViews.length > 0 
                       ? `${competitorViews.individualViews[0].rate.toFixed(2)}%` 
                       : "0.00%"}
-                  </span>
+                </span>
                   <span style={{ color: colors[idx + 1] || colors[0], fontSize: "12px" }}>
                     {competitorViews?.individualViews && competitorViews.individualViews.length > 0 && competitorViews.individualViews[0].rate > 0 ? "▲" : "▼"}
-                  </span>
+                </span>
                 </div>
               </div>
             </div>

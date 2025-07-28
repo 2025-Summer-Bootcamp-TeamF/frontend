@@ -1,113 +1,123 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import arrow from "../assets/arrow.png";
 import medal1 from "../assets/1st.png";
 import medal2 from "../assets/2nd.png";
 import medal3 from "../assets/3rd.png";
-import thumbnail1 from "../assets/thumbnail1.png";
-import thumbnail2 from "../assets/thumbnail2.png";
-import thumbnail3 from "../assets/thumbnail3.png";
 
-// CategoryPage.tsx와 동일한 데이터 구조
-const categoryData = [
-  {
-    rank: 1,
-    medal: medal1,
-    thumbnail: thumbnail1,
-    title: "얼굴 클로즈업 + 감정 과장",
-    desc: "인물의 얼굴을 화면 대부분에 배치하고, 놀람·분노·충격 등의 과장된 표정으로 시선을 끄는 형태입니다.",
-    videoCount: 10,
-    viewCount: "10.6만 회",
-    likeCount: 50,
-  },
-  {
-    rank: 2,
-    medal: medal2,
-    thumbnail: thumbnail2,
-    title: "얼굴 클로즈업 + 감정 과장",
-    desc: "인물의 얼굴을 화면 대부분에 배치하고, 놀람·분노·충격 등의 과장된 표정으로 시선을 끄는 형태입니다.",
-    videoCount: 10,
-    viewCount: "10.6만 회",
-    likeCount: 50,
-  },
-  {
-    rank: 3,
-    medal: medal3,
-    thumbnail: thumbnail3,
-    title: "다양한 인물 구도",
-    desc: "여러 인물이 함께 등장하거나, 다양한 구도로 시선을 분산시키는 썸네일 유형입니다.",
-    videoCount: 8,
-    viewCount: "8.2만 회",
-    likeCount: 32,
-  },
-  {
-    rank: 4,
-    thumbnail: thumbnail3,
-    title: "다양한 인물 구도",
-    desc: "여러 인물이 함께 등장하거나, 다양한 구도로 시선을 분산시키는 썸네일 유형입니다.",
-    videoCount: 8,
-    viewCount: "8.2만 회",
-    likeCount: 32,
-  },
-  {
-    rank: 5,
-    thumbnail: thumbnail3,
-    title: "다양한 인물 구도",
-    desc: "여러 인물이 함께 등장하거나, 다양한 구도로 시선을 분산시키는 썸네일 유형입니다.",
-    videoCount: 8,
-    viewCount: "8.2만 회",
-    likeCount: 32,
-  },
-];
+interface Video {
+  id: number;
+  title: string;
+  thumbnail_url: string;
+  views: number;
+  likes: number;
+  dislikes: number;
+  comments: number;
+  upload_date: string;
+}
 
-// 하단 작은 카드 데이터
-const categoryCards = [
-  {
-    thumbnail: thumbnail1,
-    date: "2025. 07. 10",
-    title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-    views: "38,665회",
-    commentRate: "0.007%",
-    likeRate: "0.7%",
-  },
-  {
-    thumbnail: thumbnail2,
-    date: "2025. 07. 10",
-    title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-    views: "38,665회",
-    commentRate: "0.007%",
-    likeRate: "0.7%",
-  },
-  {
-    thumbnail: thumbnail3,
-    date: "2025. 07. 10",
-    title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-    views: "38,665회",
-    commentRate: "0.007%",
-    likeRate: "0.7%",
-  },
-  {
-    thumbnail: thumbnail1,
-    date: "2025. 07. 10",
-    title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-    views: "38,665회",
-    commentRate: "0.007%",
-    likeRate: "0.7%",
-  },
-  {
-    thumbnail: thumbnail2,
-    date: "2025. 07. 10",
-    title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-    views: "38,665회",
-    commentRate: "0.007%",
-    likeRate: "0.7%",
-  },
-];
+interface Category {
+  name: string;
+  description: string;
+  videoCount: number;
+  averageViews: number;
+  averageLikes: number;
+  videos: Video[];
+}
 
 export default function CategorySegmentation() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const rank = parseInt(searchParams.get("rank") || "1");
+  const rankParam = searchParams.get("rank");
+  const rank = rankParam ? parseInt(rankParam) : 1;
+  
+  // rank가 유효하지 않으면 1로 설정
+  const validRank = isNaN(rank) || rank < 1 ? 1 : rank;
+  
+  const [category, setCategory] = useState<Category | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchCategoryData();
+  }, [validRank]);
+
+  const fetchCategoryData = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('로그인이 필요합니다.');
+        return;
+      }
+
+      const response = await fetch('http://localhost:8000/api/videos/thumbnail-categories', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('카테고리 데이터를 가져오는데 실패했습니다.');
+      }
+
+      const result = await response.json();
+      console.log('[DEBUG] CategorySegmentation - API 응답:', result);
+      console.log('[DEBUG] CategorySegmentation - 데이터 길이:', result.data?.length);
+      console.log('[DEBUG] CategorySegmentation - 요청한 rank:', validRank);
+      
+      if (result.success && result.data && result.data.length > 0) {
+        // rank에 해당하는 카테고리 찾기 (1부터 시작하므로 -1)
+        const selectedCategory = result.data[validRank - 1];
+        console.log('[DEBUG] CategorySegmentation - 선택된 카테고리:', selectedCategory);
+        
+        if (selectedCategory) {
+          setCategory(selectedCategory);
+        } else {
+          console.log('[DEBUG] CategorySegmentation - 해당 순위 카테고리 없음');
+          setError('해당 순위의 카테고리를 찾을 수 없습니다.');
+        }
+      } else {
+        console.log('[DEBUG] CategorySegmentation - 데이터 없음 또는 실패');
+        setError('분류 데이터를 가져오는데 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('카테고리 데이터 오류:', error);
+      setError('카테고리 데이터를 가져오는 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatNumber = (num: number) => {
+    if (num === undefined || num === null) {
+      return "0";
+    }
+    if (num >= 10000) {
+      return `${(num / 10000).toFixed(1)}만`;
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}천`;
+    }
+    return num.toString();
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}. ${String(date.getMonth() + 1).padStart(2, '0')}. ${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  const calculateCommentRate = (viewCount: number, commentCount: number = 0) => {
+    if (viewCount === 0) return "0%";
+    return `${((commentCount / viewCount) * 100).toFixed(1)}%`;
+  };
+
+  const calculateLikeRate = (viewCount: number, likeCount: number) => {
+    if (viewCount === 0) return "0%";
+    return `${((likeCount / viewCount) * 100).toFixed(1)}%`;
+  };
 
   // rank에 따른 메달 결정
   const getMedal = (rank: number) => {
@@ -117,11 +127,49 @@ export default function CategorySegmentation() {
     return null;
   };
 
-  const medal = getMedal(rank);
+  const medal = getMedal(validRank);
 
-  // rank에 따른 카테고리 데이터 가져오기
-  const selectedCategory =
-    categoryData.find((item) => item.rank === rank) || categoryData[0];
+  if (loading) {
+    return (
+      <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
+        <Sidebar />
+        <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full overflow-x-hidden">
+          <div
+            className="rounded-2xl overflow-hidden h-full"
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.15)",
+              border: "1px solid rgba(255, 255, 255, 0.6)",
+            }}
+          >
+            <div className="flex items-center justify-center h-64">
+              <div className="text-white text-xl">카테고리 데이터를 불러오는 중...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !category) {
+    return (
+      <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
+        <Sidebar />
+        <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full overflow-x-hidden">
+          <div
+            className="rounded-2xl overflow-hidden h-full"
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.15)",
+              border: "1px solid rgba(255, 255, 255, 0.6)",
+            }}
+          >
+            <div className="flex items-center justify-center h-64">
+              <div className="text-red-400 text-xl">{error || '카테고리를 찾을 수 없습니다.'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
@@ -129,6 +177,13 @@ export default function CategorySegmentation() {
         dangerouslySetInnerHTML={{
           __html: `
           ::-webkit-scrollbar {
+            display: none;
+          }
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          .scrollbar-hide::-webkit-scrollbar {
             display: none;
           }
           html, body {
@@ -166,7 +221,7 @@ export default function CategorySegmentation() {
               </button>
             </div>
 
-            <div className="relative flex flex-col ml-2 mr-10 min-w-0">
+            <div className="relative flex flex-col ml-2 mr-10 min-w-0 flex-shrink-0">
               {/* 메달 */}
               <div className="absolute left-4 z-20">
                 {rank <= 3 ? (
@@ -186,63 +241,66 @@ export default function CategorySegmentation() {
                 )}
               </div>
               {/* 썸네일 */}
-              <img
-                src={selectedCategory.thumbnail}
-                alt="Featured thumbnail"
-                className="w-[24vw] min-w-[300px] h-[14vw] min-h-[200px] object-cover rounded-2xl"
-                style={{ maxWidth: "100%" }}
-              />
+              {category.videos[0] && (
+                <img
+                  src={category.videos[0].thumbnail_url}
+                  alt="Featured thumbnail"
+                  className="w-[25vw] min-w-[300px] h-[15vw] min-h-[200px] object-cover rounded-2xl"
+                  style={{ maxWidth: "100%" }}
+                />
+              )}
             </div>
 
             {/* 제목과 설명 */}
-            <div className="min-w-0 flex flex-col pr-10">
+            <div className="min-w-0 flex flex-col pr-10 ml-6 flex-1">
               <div className="text-[1.8rem] font-semibold text-white mt-1 mb-1 break-words">
-                {selectedCategory.title}
+                {category.name}
               </div>
               <div className="text-[1.5rem] font-thin text-white/60 break-words">
-                {selectedCategory.desc}
+                {category.description}
               </div>
-              <div className="flex flex-row gap-10 text-[#ffffff] text-[1.5rem] font-medium justify-between pr-8 mt-18">
+              <div className="flex flex-row gap-10 text-[#ffffff] text-[1.5rem] font-medium justify-between pr-8 mt-15">
                 <div>
-                  전체 영상 수 : <span>{selectedCategory.videoCount}개</span>
+                  전체 영상 수 : <span>{category.videoCount}개</span>
                 </div>
                 <div>
-                  평균 조회수 : <span>{selectedCategory.viewCount}</span>
+                  평균 조회수 : <span>{formatNumber(category.averageViews)}회</span>
                 </div>
                 <div>
-                  평균 좋아요 수 : <span>{selectedCategory.likeCount}개</span>
+                  평균 좋아요 수 : <span>{category.averageLikes}개</span>
                 </div>
-              </div>{" "}
-              {/* 아래로 정렬해야함 */}
+              </div>
             </div>
           </div>
 
           {/* 하단 카테고리 카드 섹션 */}
           <div className="mx-10 my-8 bg-[#1c2023] rounded-2xl p-8">
             {/* 가로 스크롤 컨테이너 */}
-
             <div
-              className="relative overflow-x-auto"
-              style={{ WebkitOverflowScrolling: "touch" }}
+              className="relative overflow-x-auto scrollbar-hide"
+              style={{ 
+                WebkitOverflowScrolling: "touch",
+                scrollBehavior: "smooth"
+              }}
               onWheel={(e) => {
-                // shift키를 누르지 않아도 휠로 좌우 스크롤
+                // 부드러운 좌우 스크롤
                 const container = e.currentTarget;
                 if (e.deltaY !== 0) {
                   e.preventDefault();
-                  container.scrollLeft += e.deltaY;
+                  container.scrollLeft += e.deltaY * 2; // 스크롤 속도 조정
                 }
               }}
             >
               {/* 카드 컨테이너 */}
-              <div className="flex gap-4">
-                {categoryCards.map((card, index) => (
+              <div className="flex gap-4 pb-4">
+                {category.videos.map((video, index) => (
                   <div
-                    key={index}
+                    key={video.id}
                     className="bg-[#1c2023] rounded-2xl p-5 border-2 border-[rgba(255,255,255,0.3)]"
                   >
                     {/* 썸네일 */}
                     <img
-                      src={card.thumbnail}
+                      src={video.thumbnail_url}
                       alt="Category thumbnail"
                       className="w-[25vw] min-w-[300px] h-[12vw] min-h-[200px] object-cover rounded-2xl"
                     />
@@ -250,15 +308,15 @@ export default function CategorySegmentation() {
                     {/* 정보 */}
                     <div className="flex flex-col">
                       <div className="text-[#848485] text-[1rem] font-regular mt-2">
-                        {card.date}
+                        {formatDate(video.upload_date)}
                       </div>
                       <div className="text-[1.3rem] font-regular text-white mb-2">
-                        {card.title}
+                        {video.title}
                       </div>
                       <div className="text-[#848485] text-[1rem] font-regular">
-                        <div>조회수 {card.views}</div>
-                        <div>댓글 참여율 {card.commentRate}</div>
-                        <div>좋아요 참여율 {card.likeRate}</div>
+                        <div>조회수 {formatNumber(video.views)}</div>
+                        <div>댓글 참여율 {calculateCommentRate(video.views, video.comments)}</div>
+                        <div>좋아요 참여율 {calculateLikeRate(video.views, video.likes)}</div>
                       </div>
                     </div>
                   </div>
