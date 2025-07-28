@@ -1,40 +1,234 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
-const UploadPage: React.FC = () => {
-  const competitorData = [
-    {
-      name: "내 채널",
-      subscribers: "65,600",
-      change: "1주 전에 비해",
-      changePercent: "0.01%",
-      color: "#ef4444",
-      data: [20, 35, 50, 60, 65.6],
-    },
-    {
-      name: "A 채널",
-      subscribers: "88,600",
-      change: "1주 전에 비해",
-      changePercent: "0.01%",
-      color: "#22c55e",
-      data: [70, 80, 75, 83, 88.6],
-    },
-    {
-      name: "B 채널",
-      subscribers: "98,600",
-      change: "1주 전에 비해",
-      changePercent: "0.01%",
-      color: "#3b82f6",
-      data: [50, 65, 80, 92, 98.6],
-    },
-  ];
+interface CompetitorChannel {
+  id: number; // other_channel 테이블의 id
+  channel_id: number; // channel 테이블의 id
+  channel_name: string;
+  youtube_channel_id: string;
+}
 
-  const xLabels = [
-    "3월 1주차",
-    "3월 2주차",
-    "3월 3주차",
-    "3월 4주차",
-    "3월 5주차",
-  ];
+interface WeeklyUpload {
+  week: string;
+  count: number;
+}
+
+interface ChannelUploads {
+  channel_id: number;
+  channel_name: string;
+  weeklyUploads: WeeklyUpload[];
+}
+
+interface UploadPageProps {
+  onDataRefresh?: () => void;
+  competitors?: CompetitorChannel[];
+}
+
+const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: propCompetitors }) => {
+  const [competitors, setCompetitors] = useState<CompetitorChannel[]>([]);
+  const [channelUploads, setChannelUploads] = useState<{
+    myChannel?: ChannelUploads;
+    competitors: ChannelUploads[];
+  }>({ competitors: [] });
+  const [loading, setLoading] = useState(true);
+  const [tooltip, setTooltip] = useState<{
+    show: boolean;
+    value: number;
+    x: number;
+    y: number;
+  }>({ show: false, value: 0, x: 0, y: 0 });
+
+  const colors = ["#ef4444", "#22c55e", "#3b82f6"];
+
+  const fetchCompetitors = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("인증 토큰이 없습니다.");
+        return;
+      }
+
+      console.log("Fetching competitors...");
+      const response = await fetch("http://localhost:8000/api/others", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Competitors data:", data);
+        setCompetitors(data.data || []);
+      } else {
+        const errorData = await response.json();
+        console.error("Error response:", errorData);
+      }
+    } catch (error) {
+      console.error("Error fetching competitors:", error);
+    }
+  };
+
+  const fetchUploadFrequency = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("인증 토큰이 없습니다.");
+        return;
+      }
+
+      console.log("Fetching upload frequency...");
+      const response = await fetch("http://localhost:8000/api/others/videos/upload-frequency", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Upload frequency data:", data);
+        setChannelUploads(data.data || { competitors: [] });
+      } else {
+        const errorData = await response.json();
+        console.error("Error response:", errorData);
+      }
+    } catch (error) {
+      console.error("Error fetching upload frequency:", error);
+    }
+  };
+
+  const handleDeleteCompetitor = async (otherChannelId: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("인증 토큰이 없습니다.");
+        return;
+      }
+
+      console.log("Deleting competitor with other_channel id:", otherChannelId);
+
+      const response = await fetch(`http://localhost:8000/api/others/${otherChannelId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // 삭제 성공 후 데이터 새로고침
+        await fetchCompetitors();
+        await fetchUploadFrequency();
+        // 부모 컴포넌트에 데이터 새로고침 알림
+        if (onDataRefresh) {
+          onDataRefresh();
+        }
+      } else {
+        const errorData = await response.json();
+        console.error("Delete error:", errorData);
+      }
+    } catch (error) {
+      console.error("Error deleting competitor:", error);
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      if (propCompetitors) {
+        setCompetitors(propCompetitors);
+      } else {
+        await fetchCompetitors();
+      }
+      await fetchUploadFrequency();
+      setLoading(false);
+    };
+
+    loadData();
+  }, [propCompetitors]);
+
+  // propCompetitors가 변경될 때마다 데이터 새로고침
+  useEffect(() => {
+    if (propCompetitors && propCompetitors.length > 0) {
+      fetchUploadFrequency();
+    }
+  }, [propCompetitors]);
+
+  // 차트 데이터 생성
+  const getChartData = () => {
+    const allData = [];
+    
+    // 내 채널 데이터
+    if (channelUploads.myChannel) {
+      allData.push({
+        name: "내 채널",
+        color: colors[0],
+        data: channelUploads.myChannel.weeklyUploads.map(item => item.count)
+      });
+    }
+    
+    // 경쟁 채널 데이터
+    channelUploads.competitors.forEach((competitor, idx) => {
+      allData.push({
+        name: competitor.channel_name,
+        color: colors[idx + 1] || colors[0],
+        data: competitor.weeklyUploads.map(item => item.count)
+      });
+    });
+    
+    return allData;
+  };
+
+  // 최대값 계산
+  const getMaxValue = () => {
+    const allValues = [];
+    
+    if (channelUploads.myChannel) {
+      allValues.push(...channelUploads.myChannel.weeklyUploads.map(item => item.count));
+    }
+    
+    channelUploads.competitors.forEach(competitor => {
+      allValues.push(...competitor.weeklyUploads.map(item => item.count));
+    });
+    
+    const maxValue = Math.max(...allValues, 1); // 최소값 1로 설정
+    return Math.ceil(maxValue * 1.2); // 20% 여유 추가
+  };
+
+  // X축 레이블 생성 (5주치)
+  const getXLabels = () => {
+    const labels = [];
+    const now = new Date();
+    
+    for (let i = 4; i >= 0; i--) {
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay() - 7 * i);
+      const month = weekStart.getMonth() + 1;
+      const week = Math.ceil((weekStart.getDate() + weekStart.getDay()) / 7);
+      labels.push(`${month}월 ${week}주차`);
+    }
+    
+    return labels;
+  };
+
+  const chartData = getChartData();
+  const xLabels = getXLabels();
+  const maxValue = getMaxValue();
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          padding: "40px",
+          backgroundColor: "#1C2023",
+          minHeight: "600px",
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <div className="text-white">로딩 중...</div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -47,6 +241,7 @@ const UploadPage: React.FC = () => {
     >
       {/* 차트 영역 */}
       <div
+        className="chart-container"
         style={{
           position: "relative",
           marginBottom: "80px",
@@ -63,27 +258,36 @@ const UploadPage: React.FC = () => {
             style={{ width: "100%", height: "100%" }}
           >
             {/* 그리드 라인 */}
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <line
-                key={i}
-                x1="100"
-                y1={50 + i * 50}
-                x2="1100"
-                y2={50 + i * 50}
-                stroke="rgba(255,255,255,0.15)"
-                strokeWidth="1"
-              />
-            ))}
+            {(() => {
+              const lines = [];
+              const step = Math.ceil(maxValue / 5);
+              for (let i = 0; i <= maxValue; i += step) {
+                const y = 300 - (i / maxValue) * 250;
+                lines.push(
+                  <line
+                    key={i}
+                    x1="100"
+                    y1={y}
+                    x2="1100"
+                    y2={y}
+                    stroke="rgba(255,255,255,0.15)"
+                    strokeWidth="1"
+                  />
+                );
+              }
+              return lines;
+            })()}
 
             {/* 데이터 라인 */}
-            {competitorData.map((channel, idx) => {
-              const points = channel.data
-                .map((value, i) => {
-                  const x = 100 + (i * 1000) / (channel.data.length - 1);
-                  const y = 300 - (value / 120) * 250;
-                  return `${x},${y}`;
-                })
-                .join(" ");
+            {chartData.map((channel, idx) => {
+                              const points = channel.data
+                  .map((value, i) => {
+                    const x = 100 + (i * 1000) / (channel.data.length - 1);
+                    // 동적 최대값으로 스케일링
+                    const y = 300 - (value / maxValue) * 250;
+                    return `${x},${y}`;
+                  })
+                  .join(" ");
 
               return (
                 <polyline
@@ -97,27 +301,41 @@ const UploadPage: React.FC = () => {
             })}
 
             {/* 데이터 포인트 */}
-            {competitorData.map((channel, idx) => (
+            {chartData.map((channel, idx) => (
               <g key={`points-${idx}`}>
                 {channel.data.map((value, i) => {
                   const x = 100 + (i * 1000) / (channel.data.length - 1);
-                  const y = 300 - (value / 120) * 250;
+                  const y = 300 - (value / maxValue) * 250;
                   return (
-                    <circle
-                      key={i}
-                      cx={x}
-                      cy={y}
-                      r="8"
-                      fill={channel.color}
-                      stroke="#1C2023"
-                      strokeWidth="3"
-                    />
+                    <g key={i}>
+                      <circle
+                        cx={x}
+                        cy={y}
+                        r="8"
+                        fill={channel.color}
+                        stroke="#1C2023"
+                        strokeWidth="3"
+                        style={{ cursor: 'pointer' }}
+                        onMouseEnter={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setTooltip({
+                            show: true,
+                            value: value,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top - 10
+                          });
+                        }}
+                        onMouseLeave={() => {
+                          setTooltip({ show: false, value: 0, x: 0, y: 0 });
+                        }}
+                      />
+                    </g>
                   );
                 })}
               </g>
             ))}
 
-            {/* X축 레이블 - SVG 내부에 포함 */}
+            {/* X축 레이블 */}
             {xLabels.map((label, i) => {
               const x = 100 + (i * 1000) / (xLabels.length - 1);
               return (
@@ -134,26 +352,71 @@ const UploadPage: React.FC = () => {
                 </text>
               );
             })}
+
+            {/* Y축 레이블 */}
+            {(() => {
+              const labels = [];
+              const step = Math.ceil(maxValue / 5);
+              for (let i = 0; i <= maxValue; i += step) {
+                const y = 300 - (i / maxValue) * 250;
+                labels.push(
+                  <text
+                    key={i}
+                    x="80"
+                    y={y + 5}
+                    textAnchor="end"
+                    fill="#666"
+                    fontSize="14"
+                    fontFamily="sans-serif"
+                  >
+                    {i}
+                  </text>
+                );
+              }
+              return labels;
+            })()}
           </svg>
         </div>
       </div>
 
+      {/* 툴팁 */}
+      {tooltip.show && (
+        <div
+          style={{
+            position: 'fixed',
+            left: tooltip.x,
+            top: tooltip.y,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            color: 'white',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            fontSize: '12px',
+            textAlign: 'center',
+            pointerEvents: 'none',
+            zIndex: 1000,
+            transform: 'translateX(-50%)'
+          }}
+        >
+          {tooltip.value}개
+        </div>
+      )}
+
       {/* 범례 */}
       <div className="flex justify-center" style={{ gap: "100px" }}>
-        {competitorData.map((channel, idx) => (
-          <div key={idx} className="flex items-center gap-6">
-            {/* 동그라미와 채널명 */}
+        {/* 내 채널 */}
+        {channelUploads.myChannel && (
+          <div className="flex items-center gap-6">
             <div className="flex items-center gap-3">
               <div
                 className="rounded-full"
                 style={{
-                  backgroundColor: channel.color,
+                  backgroundColor: colors[0],
                   width: "14px",
                   height: "14px",
                 }}
               />
               <span className="text-white" style={{ fontSize: "20px" }}>
-                {channel.name}
+                내 채널
               </span>
             </div>
 
@@ -163,28 +426,107 @@ const UploadPage: React.FC = () => {
                 className="text-white font-bold"
                 style={{ fontSize: "32px", lineHeight: "32px" }}
               >
-                {channel.subscribers}
+                {channelUploads.myChannel.weeklyUploads[channelUploads.myChannel.weeklyUploads.length - 1]?.count || 0}
               </div>
               <div
                 className="text-gray-400"
                 style={{ fontSize: "15px", marginTop: "4px" }}
               >
-                {channel.change}
+                이번 주 업로드
               </div>
               <div
                 className="flex items-center gap-1"
                 style={{ marginTop: "2px" }}
               >
-                <span style={{ color: channel.color, fontSize: "16px" }}>
-                  {channel.changePercent}
+                <span style={{ color: colors[0], fontSize: "16px" }}>
+                  {channelUploads.myChannel.weeklyUploads.reduce((sum, week) => sum + week.count, 0)}개
                 </span>
-                <span style={{ color: channel.color, fontSize: "12px" }}>
-                  ▲
+                <span style={{ color: colors[0], fontSize: "12px" }}>
+                  총 업로드
                 </span>
               </div>
             </div>
           </div>
-        ))}
+        )}
+
+        {/* 경쟁 채널들 */}
+        {Array.isArray(competitors) && competitors.map((competitor, idx) => {
+          const competitorData = channelUploads.competitors.find(
+            c => c.channel_id === competitor.channel_id
+          );
+          
+          return (
+            <div key={competitor.id} className="flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                <div
+                  className="rounded-full"
+                  style={{
+                    backgroundColor: colors[idx + 1] || colors[0],
+                    width: "14px",
+                    height: "14px",
+                  }}
+                />
+                <span className="text-white" style={{ fontSize: "20px" }}>
+                  {competitor.channel_name}
+                </span>
+                <button
+                  onClick={() => handleDeleteCompetitor(competitor.id)}
+                  className="ml-2 text-gray-400 hover:text-red-400 transition-colors"
+                  title="경쟁 채널에서 제거"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* 큰 숫자와 변화율 정보 */}
+              <div>
+                <div
+                  className="text-white font-bold"
+                  style={{ fontSize: "32px", lineHeight: "32px" }}
+                >
+                  {competitorData?.weeklyUploads[competitorData.weeklyUploads.length - 1]?.count || 0}
+                </div>
+                <div
+                  className="text-gray-400"
+                  style={{ fontSize: "15px", marginTop: "4px" }}
+                >
+                  이번 주 업로드
+                </div>
+                <div
+                  className="flex items-center gap-1"
+                  style={{ marginTop: "2px" }}
+                >
+                  <span style={{ color: colors[idx + 1] || colors[0], fontSize: "16px" }}>
+                    {competitorData?.weeklyUploads.reduce((sum, week) => sum + week.count, 0) || 0}개
+                  </span>
+                  <span style={{ color: colors[idx + 1] || colors[0], fontSize: "12px" }}>
+                    총 업로드
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* 경쟁 채널이 없을 때 메시지 */}
+        {competitors.length === 0 && (
+          <div className="text-gray-400 text-center flex-1">
+            등록된 경쟁 채널이 없습니다. <br />
+            <span className="text-sm">Insight 페이지에서 경쟁 채널을 등록해보세요.</span>
+          </div>
+        )}
       </div>
     </div>
   );

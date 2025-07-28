@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import loginBg from "../assets/login_background.png";
 import youtubeLogo from "../assets/youtubelogo.png";

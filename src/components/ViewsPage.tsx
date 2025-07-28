@@ -34,9 +34,10 @@ interface ChannelViews {
 
 interface ViewsPageProps {
   onDataRefresh?: () => void;
+  competitors?: CompetitorChannel[];
 }
 
-const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh }) => {
+const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propCompetitors }) => {
   const [competitors, setCompetitors] = useState<CompetitorChannel[]>([]);
   const [channelViews, setChannelViews] = useState<{
     myChannel: ChannelViews;
@@ -155,11 +156,23 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh }) => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchCompetitors(), fetchChannelViews()]);
+      if (propCompetitors) {
+        setCompetitors(propCompetitors);
+      } else {
+        await fetchCompetitors();
+      }
+      await fetchChannelViews();
       setLoading(false);
     };
     loadData();
-  }, []);
+  }, [propCompetitors]);
+
+  // propCompetitors가 변경될 때마다 데이터 새로고침
+  useEffect(() => {
+    if (propCompetitors && propCompetitors.length > 0) {
+      fetchChannelViews();
+    }
+  }, [propCompetitors]);
 
   // refreshData 함수를 window 객체에 등록 (외부에서 호출 가능하도록)
   useEffect(() => {
@@ -198,51 +211,42 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh }) => {
       { views: 0, rate: 0 }
     ];
 
-    // 최대 조회수 찾기 (스케일링용)
-    const allViews = [
-      ...myViews.map(v => v.views),
-      ...competitor1Views.map(v => v.views),
-      ...competitor2Views.map(v => v.views)
-    ];
-    const maxViews = Math.max(...allViews);
-    const scale = maxViews > 0 ? 100 / maxViews : 1;
-
     return [
       { 
         period: "최신-2", 
-        my: Math.round(myViews[0]?.views * scale || 0), 
-        competitor1: Math.round(competitor1Views[0]?.views * scale || 0), 
-        competitor2: Math.round(competitor2Views[0]?.views * scale || 0),
-        myViews: myViews[0]?.views || 0,
-        competitor1Views: competitor1Views[0]?.views || 0,
-        competitor2Views: competitor2Views[0]?.views || 0,
-        myRate: myViews[0]?.rate || 0,
-        competitor1Rate: competitor1Views[0]?.rate || 0,
-        competitor2Rate: competitor2Views[0]?.rate || 0
-      },
-      { 
-        period: "최신-1", 
-        my: Math.round(myViews[1]?.views * scale || 0), 
-        competitor1: Math.round(competitor1Views[1]?.views * scale || 0), 
-        competitor2: Math.round(competitor2Views[1]?.views * scale || 0),
-        myViews: myViews[1]?.views || 0,
-        competitor1Views: competitor1Views[1]?.views || 0,
-        competitor2Views: competitor2Views[1]?.views || 0,
-        myRate: myViews[1]?.rate || 0,
-        competitor1Rate: competitor1Views[1]?.rate || 0,
-        competitor2Rate: competitor2Views[1]?.rate || 0
-      },
-      { 
-        period: "최신", 
-        my: Math.round(myViews[2]?.views * scale || 0), 
-        competitor1: Math.round(competitor1Views[2]?.views * scale || 0), 
-        competitor2: Math.round(competitor2Views[2]?.views * scale || 0),
+        my: myViews[2]?.views || 0, 
+        competitor1: competitor1Views[2]?.views || 0, 
+        competitor2: competitor2Views[2]?.views || 0,
         myViews: myViews[2]?.views || 0,
         competitor1Views: competitor1Views[2]?.views || 0,
         competitor2Views: competitor2Views[2]?.views || 0,
         myRate: myViews[2]?.rate || 0,
         competitor1Rate: competitor1Views[2]?.rate || 0,
         competitor2Rate: competitor2Views[2]?.rate || 0
+      },
+      { 
+        period: "최신-1", 
+        my: myViews[1]?.views || 0, 
+        competitor1: competitor1Views[1]?.views || 0, 
+        competitor2: competitor2Views[1]?.views || 0,
+        myViews: myViews[1]?.views || 0,
+        competitor1Views: competitor1Views[1]?.views || 0,
+        competitor2Views: competitor2Views[1]?.views || 0,
+        myRate: myViews[1]?.rate || 0,
+        competitor1Rate: competitor1Views[1]?.rate || 0,
+        competitor2Rate: competitor1Views[1]?.rate || 0
+      },
+      { 
+        period: "최신", 
+        my: myViews[0]?.views || 0, 
+        competitor1: competitor1Views[0]?.views || 0, 
+        competitor2: competitor2Views[0]?.views || 0,
+        myViews: myViews[0]?.views || 0,
+        competitor1Views: competitor1Views[0]?.views || 0,
+        competitor2Views: competitor2Views[0]?.views || 0,
+        myRate: myViews[0]?.rate || 0,
+        competitor1Rate: competitor1Views[0]?.rate || 0,
+        competitor2Rate: competitor2Views[0]?.rate || 0
       },
     ];
   };
@@ -294,7 +298,22 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh }) => {
     );
   }
 
-  const maxValue = 100;
+
+
+  // 실제 데이터의 최대값 계산
+  const allIndividualViews = [];
+  if (channelViews && channelViews.myChannel && channelViews.myChannel.individualViews) {
+    allIndividualViews.push(...channelViews.myChannel.individualViews.map(v => v.views));
+  }
+  if (channelViews && channelViews.competitors) {
+    channelViews.competitors.forEach(comp => {
+      if (comp && comp.individualViews) {
+        allIndividualViews.push(...comp.individualViews.map(v => v.views));
+      }
+    });
+  }
+  const maxViews = allIndividualViews.length > 0 ? Math.max(...allIndividualViews) : 0;
+  const effectiveMaxViews = maxViews > 0 ? maxViews : 1000;
 
   return (
     <div
@@ -330,46 +349,35 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh }) => {
             {[0, 1, 2, 3, 4, 5].map((i) => {
               const y = 50 + i * 60;
               const percentage = (5 - i) * 20; // 100%, 80%, 60%, 40%, 20%, 0%
+              const rawViewCount = Math.round((percentage / 100) * effectiveMaxViews);
               
-              // 개별 영상 조회수 중 최대값 찾기
-              const allIndividualViews = [];
-              if (channelViews?.myChannel?.individualViews) {
-                allIndividualViews.push(...channelViews.myChannel.individualViews.map(v => v.views));
-              }
-              if (channelViews?.competitors) {
-                channelViews.competitors.forEach(comp => {
-                  if (comp.individualViews) {
-                    allIndividualViews.push(...comp.individualViews.map(v => v.views));
-                  }
-                });
-              }
-              const maxViews = allIndividualViews.length > 0 ? Math.max(...allIndividualViews) : 0;
-              const viewCount = Math.round((percentage / 100) * maxViews);
-              
-              return (
-                <g key={i}>
-                  <line
-                    x1="100"
-                    y1={y}
-                    x2="1100"
-                    y2={y}
-                    stroke="rgba(255,255,255,0.15)"
-                    strokeWidth="1"
-                  />
-                  {/* Y축 라벨 */}
-                  <text
-                    x="90"
-                    y={y + 5}
-                    textAnchor="end"
-                    fill="#666"
-                    fontSize="12"
-                    fontFamily="sans-serif"
-                  >
-                    {formatNumber(viewCount)}
-                  </text>
-                </g>
-              );
-            })}
+                              // 깔끔하게 올림 (500 단위로)
+                const viewCount = Math.ceil(rawViewCount / 500) * 500;
+                
+                return (
+                  <g key={i}>
+                    <line
+                      x1="100"
+                      y1={y}
+                      x2="1100"
+                      y2={y}
+                      stroke="rgba(255,255,255,0.15)"
+                      strokeWidth="1"
+                    />
+                    {/* Y축 라벨 */}
+                    <text
+                      x="90"
+                      y={y + 5}
+                      textAnchor="end"
+                      fill="#666"
+                      fontSize="12"
+                      fontFamily="sans-serif"
+                    >
+                      {formatNumber(viewCount)}
+                    </text>
+                  </g>
+                );
+              })}
 
             {/* 막대 그래프 */}
             {data.map((item, idx) => {
@@ -382,16 +390,16 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh }) => {
                   {/* 내 채널 막대 */}
                   <rect
                     x={groupX - barWidth - gap}
-                    y={350 - (item.my / maxValue) * 300}
+                    y={350 - (item.my / effectiveMaxViews) * 300}
                     width={barWidth}
-                    height={(item.my / maxValue) * 300}
+                    height={(item.my / effectiveMaxViews) * 300}
                     fill="#ef4444"
                   />
                   
                   {/* 내 채널 조회수 텍스트 */}
                   <text
                     x={groupX - barWidth - gap + barWidth / 2}
-                    y={350 - (item.my / maxValue) * 300 - 10}
+                    y={350 - (item.my / effectiveMaxViews) * 300 - 10}
                     textAnchor="middle"
                     fill="#ef4444"
                     fontSize="14"
@@ -404,7 +412,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh }) => {
                   {/* 내 채널 변화율 텍스트 */}
                   <text
                     x={groupX - barWidth - gap + barWidth / 2}
-                    y={350 - (item.my / maxValue) * 300 - 25}
+                    y={350 - (item.my / effectiveMaxViews) * 300 - 25}
                     textAnchor="middle"
                     fill="#ef4444"
                     fontSize="12"
@@ -414,27 +422,24 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh }) => {
                   </text>
 
                   {/* 경쟁 채널 막대들 */}
-                  {competitors.map((competitor, channelIdx) => {
+                  {competitors.map((_, channelIdx) => {
                     const competitorKey = `competitor${channelIdx + 1}` as keyof typeof item;
                     const competitorValue = item[competitorKey] as number;
-                    const competitorViews = channelViews?.competitors.find(
-                      c => c.channel_id === competitor.channel_id
-                    );
                     
                     return (
                       <g key={channelIdx}>
                         <rect
                           x={groupX + (channelIdx * (barWidth + gap))}
-                          y={350 - (competitorValue / maxValue) * 300}
+                          y={350 - (competitorValue / effectiveMaxViews) * 300}
                           width={barWidth}
-                          height={(competitorValue / maxValue) * 300}
+                          height={(competitorValue / effectiveMaxViews) * 300}
                           fill={colors[channelIdx + 1] || colors[0]}
                         />
                         
                         {/* 경쟁 채널 조회수 텍스트 */}
                         <text
                           x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
-                          y={350 - (competitorValue / maxValue) * 300 - 10}
+                          y={350 - (competitorValue / effectiveMaxViews) * 300 - 10}
                           textAnchor="middle"
                           fill={colors[channelIdx + 1] || colors[0]}
                           fontSize="14"
@@ -450,7 +455,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh }) => {
                         {/* 경쟁 채널 변화율 텍스트 */}
                         <text
                           x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
-                          y={350 - (competitorValue / maxValue) * 300 - 25}
+                          y={350 - (competitorValue / effectiveMaxViews) * 300 - 25}
                           textAnchor="middle"
                           fill={colors[channelIdx + 1] || colors[0]}
                           fontSize="12"

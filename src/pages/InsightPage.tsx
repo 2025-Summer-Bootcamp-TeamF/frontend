@@ -1,9 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ViewsPage from "../components/ViewsPage";
 import UploadPage from "../components/Upload";
 import LikesPage from "../components/Likes";
 import InsightPage from "../components/Dislikes";
 import Sidebar from "../components/Sidebar";
+
+interface CompetitorChannel {
+  id: number;
+  channel_id: number;
+  channel_name: string;
+  youtube_channel_id: string;
+}
 
 const CompetitorInsightPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("views");
@@ -11,6 +18,46 @@ const CompetitorInsightPage: React.FC = () => {
   const [isAddingChannel, setIsAddingChannel] = useState(false);
   const [addChannelError, setAddChannelError] = useState("");
   const [addChannelSuccess, setAddChannelSuccess] = useState("");
+  const [competitors, setCompetitors] = useState<CompetitorChannel[]>([]);
+
+  // 경쟁 채널 목록 가져오기
+  const fetchCompetitors = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("인증 토큰이 없습니다.");
+        return;
+      }
+
+      console.log("Fetching competitors...");
+      const response = await fetch("http://localhost:8000/api/others", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Competitors data:", data);
+        setCompetitors(data.data || []);
+      } else {
+        const errorData = await response.json();
+        console.error("Error response:", errorData);
+      }
+    } catch (error) {
+      console.error("Error fetching competitors:", error);
+    }
+  };
+
+  // 데이터 새로고침 함수
+  const refreshData = () => {
+    fetchCompetitors();
+  };
+
+  // 컴포넌트 마운트 시 경쟁 채널 목록 가져오기
+  useEffect(() => {
+    fetchCompetitors();
+  }, []);
 
   // 성공 메시지 자동 제거
   React.useEffect(() => {
@@ -60,10 +107,8 @@ const CompetitorInsightPage: React.FC = () => {
         setAddChannelSuccess("경쟁 채널이 성공적으로 등록되었습니다!");
         console.log("Competitor channel added successfully");
         
-        // ViewsPage 데이터 새로고침
-        if ((window as any).refreshViewsPageData) {
-          (window as any).refreshViewsPageData();
-        }
+        // 모든 탭 데이터 새로고침
+        refreshData();
       } else {
         setAddChannelError(data.message || "채널 추가에 실패했습니다.");
       }
@@ -253,10 +298,10 @@ const CompetitorInsightPage: React.FC = () => {
 
               {/* 탭 컨텐츠 */}
               <div className="flex-1">
-                {activeTab === "views" && <ViewsPage />}
-                {activeTab === "upload" && <UploadPage />}
-                {activeTab === "likes" && <LikesPage />}
-                {activeTab === "dislikes" && <InsightPage />}
+                {activeTab === "views" && <ViewsPage onDataRefresh={refreshData} competitors={competitors} />}
+                {activeTab === "upload" && <UploadPage onDataRefresh={refreshData} competitors={competitors} />}
+                {activeTab === "likes" && <LikesPage onDataRefresh={refreshData} competitors={competitors} />}
+                {activeTab === "dislikes" && <InsightPage onDataRefresh={refreshData} competitors={competitors} />}
               </div>
             </div>
           </div>
