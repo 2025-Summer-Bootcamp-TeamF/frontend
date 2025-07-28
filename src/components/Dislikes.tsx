@@ -409,21 +409,55 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
               const barWidth = 60;
               const gap = 20;
 
+              // Y축의 실제 최대값 계산 (Y축 라벨의 최대값)
+              const allIndividualDislikes = [];
+              if (channelDislikes && channelDislikes.myChannel && channelDislikes.myChannel.individualDislikes) {
+                allIndividualDislikes.push(...channelDislikes.myChannel.individualDislikes.map(v => v.dislikes));
+              }
+              if (channelDislikes && channelDislikes.competitors) {
+                channelDislikes.competitors.forEach(comp => {
+                  if (comp && comp.individualDislikes) {
+                    allIndividualDislikes.push(...comp.individualDislikes.map(v => v.dislikes));
+                  }
+                });
+              }
+              const maxDislikes = allIndividualDislikes.length > 0 ? Math.max(...allIndividualDislikes) : 0;
+              const effectiveMaxDislikes = maxDislikes > 0 ? maxDislikes : 100;
+              
+              // Y축 간격을 동적으로 계산
+              let step = 5;
+              if (effectiveMaxDislikes <= 10) {
+                step = 2;
+              } else if (effectiveMaxDislikes <= 50) {
+                step = 10;
+              } else if (effectiveMaxDislikes <= 200) {
+                step = 50;
+              } else if (effectiveMaxDislikes <= 1000) {
+                step = 200;
+              } else {
+                step = 500;
+              }
+              
+              // Y축의 실제 최대값
+              const maxLabel = Math.ceil(effectiveMaxDislikes / step) * step;
+              const labelCount = Math.min(6, Math.ceil(effectiveMaxDislikes / step) + 1);
+              const actualMaxValue = Math.round(((labelCount - 1) / (labelCount - 1)) * maxLabel);
+
               return (
                 <g key={idx}>
                   {/* 내 채널 막대 */}
                   <rect
                     x={groupX - barWidth - gap}
-                    y={350 - (item.my / maxValue) * 300}
+                    y={350 - (item.my / actualMaxValue) * 300}
                     width={barWidth}
-                    height={(item.my / maxValue) * 300}
+                    height={(item.my / actualMaxValue) * 300}
                     fill="#ef4444"
                   />
                   
                   {/* 내 채널 싫어요 텍스트 */}
                   <text
                     x={groupX - barWidth - gap + barWidth / 2}
-                    y={350 - (item.my / maxValue) * 300 - 10}
+                    y={350 - (item.my / actualMaxValue) * 300 - 10}
                     textAnchor="middle"
                     fill="#ef4444"
                     fontSize="14"
@@ -436,7 +470,7 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                   {/* 내 채널 변화율 텍스트 */}
                   <text
                     x={groupX - barWidth - gap + barWidth / 2}
-                    y={350 - (item.my / maxValue) * 300 - 25}
+                    y={350 - (item.my / actualMaxValue) * 300 - 25}
                     textAnchor="middle"
                     fill="#ef4444"
                     fontSize="12"
@@ -454,16 +488,16 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                       <g key={channelIdx}>
                         <rect
                           x={groupX + (channelIdx * (barWidth + gap))}
-                          y={350 - (competitorValue / maxValue) * 300}
+                          y={350 - (competitorValue / actualMaxValue) * 300}
                           width={barWidth}
-                          height={(competitorValue / maxValue) * 300}
+                          height={(competitorValue / actualMaxValue) * 300}
                           fill={colors[channelIdx + 1] || colors[0]}
                         />
                         
                         {/* 경쟁 채널 싫어요 텍스트 */}
                         <text
                           x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
-                          y={350 - (competitorValue / maxValue) * 300 - 10}
+                          y={350 - (competitorValue / actualMaxValue) * 300 - 10}
                           textAnchor="middle"
                           fill={colors[channelIdx + 1] || colors[0]}
                           fontSize="14"
@@ -479,7 +513,7 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                         {/* 경쟁 채널 변화율 텍스트 */}
                         <text
                           x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
-                          y={350 - (competitorValue / maxValue) * 300 - 25}
+                          y={350 - (competitorValue / actualMaxValue) * 300 - 25}
                           textAnchor="middle"
                           fill={colors[channelIdx + 1] || colors[0]}
                           fontSize="12"

@@ -409,21 +409,55 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
               const barWidth = 60;
               const gap = 20;
 
+              // Y축의 실제 최대값 계산 (Y축 라벨의 최대값)
+              const allIndividualLikes = [];
+              if (channelLikes && channelLikes.myChannel && channelLikes.myChannel.individualLikes) {
+                allIndividualLikes.push(...channelLikes.myChannel.individualLikes.map(v => v.likes));
+              }
+              if (channelLikes && channelLikes.competitors) {
+                channelLikes.competitors.forEach(comp => {
+                  if (comp && comp.individualLikes) {
+                    allIndividualLikes.push(...comp.individualLikes.map(v => v.likes));
+                  }
+                });
+              }
+              const maxLikes = allIndividualLikes.length > 0 ? Math.max(...allIndividualLikes) : 0;
+              const effectiveMaxLikes = maxLikes > 0 ? maxLikes : 1000;
+              
+              // Y축 간격을 동적으로 계산
+              let step = 500;
+              if (effectiveMaxLikes <= 100) {
+                step = 20;
+              } else if (effectiveMaxLikes <= 500) {
+                step = 100;
+              } else if (effectiveMaxLikes <= 2000) {
+                step = 500;
+              } else if (effectiveMaxLikes <= 10000) {
+                step = 2000;
+              } else {
+                step = 5000;
+              }
+              
+              // Y축의 실제 최대값
+              const maxLabel = Math.ceil(effectiveMaxLikes / step) * step;
+              const labelCount = Math.min(6, Math.ceil(effectiveMaxLikes / step) + 1);
+              const actualMaxValue = Math.round(((labelCount - 1) / (labelCount - 1)) * maxLabel);
+
               return (
                 <g key={idx}>
                   {/* 내 채널 막대 */}
                   <rect
                     x={groupX - barWidth - gap}
-                    y={350 - (item.my / maxValue) * 300}
+                    y={350 - (item.my / actualMaxValue) * 300}
                     width={barWidth}
-                    height={(item.my / maxValue) * 300}
+                    height={(item.my / actualMaxValue) * 300}
                     fill="#ef4444"
                   />
                   
                   {/* 내 채널 좋아요 텍스트 */}
                   <text
                     x={groupX - barWidth - gap + barWidth / 2}
-                    y={350 - (item.my / maxValue) * 300 - 10}
+                    y={350 - (item.my / actualMaxValue) * 300 - 10}
                     textAnchor="middle"
                     fill="#ef4444"
                     fontSize="14"
@@ -436,7 +470,7 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
                   {/* 내 채널 변화율 텍스트 */}
                   <text
                     x={groupX - barWidth - gap + barWidth / 2}
-                    y={350 - (item.my / maxValue) * 300 - 25}
+                    y={350 - (item.my / actualMaxValue) * 300 - 25}
                     textAnchor="middle"
                     fill="#ef4444"
                     fontSize="12"
@@ -454,16 +488,16 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
                       <g key={channelIdx}>
                         <rect
                           x={groupX + (channelIdx * (barWidth + gap))}
-                          y={350 - (competitorValue / maxValue) * 300}
+                          y={350 - (competitorValue / actualMaxValue) * 300}
                           width={barWidth}
-                          height={(competitorValue / maxValue) * 300}
+                          height={(competitorValue / actualMaxValue) * 300}
                           fill={colors[channelIdx + 1] || colors[0]}
                         />
                         
                         {/* 경쟁 채널 좋아요 텍스트 */}
                         <text
                           x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
-                          y={350 - (competitorValue / maxValue) * 300 - 10}
+                          y={350 - (competitorValue / actualMaxValue) * 300 - 10}
                           textAnchor="middle"
                           fill={colors[channelIdx + 1] || colors[0]}
                           fontSize="14"
@@ -479,7 +513,7 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
                         {/* 경쟁 채널 변화율 텍스트 */}
                         <text
                           x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
-                          y={350 - (competitorValue / maxValue) * 300 - 25}
+                          y={350 - (competitorValue / actualMaxValue) * 300 - 25}
                           textAnchor="middle"
                           fill={colors[channelIdx + 1] || colors[0]}
                           fontSize="12"

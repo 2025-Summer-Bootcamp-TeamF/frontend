@@ -192,24 +192,20 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
     return Math.ceil(maxValue * 1.2); // 20% 여유 추가
   };
 
-  // X축 레이블 생성 (5주치)
-  const getXLabels = () => {
-    const labels = [];
-    const now = new Date();
-    
-    for (let i = 4; i >= 0; i--) {
-      const weekStart = new Date(now);
-      weekStart.setDate(now.getDate() - now.getDay() - 7 * i);
-      const month = weekStart.getMonth() + 1;
-      const week = Math.ceil((weekStart.getDate() + weekStart.getDay()) / 7);
-      labels.push(`${month}월 ${week}주차`);
-    }
-    
-    return labels;
-  };
+  // X축 라벨을 실제 데이터의 week로 생성 (과거→최신)
+  const xLabels = channelUploads.myChannel
+    ? channelUploads.myChannel.weeklyUploads.map(item => {
+        const date = new Date(item.week);
+        const month = date.getMonth() + 1;
+        const week = Math.ceil((date.getDate() + date.getDay()) / 7);
+        return `${month}월 ${week}주차`;
+      })
+    : [];
+
+  // '이번 주 업로드' 숫자 (최신 주)
+  const myUploads = channelUploads.myChannel?.weeklyUploads[channelUploads.myChannel.weeklyUploads.length - 1]?.count || 0;
 
   const chartData = getChartData();
-  const xLabels = getXLabels();
   const maxValue = getMaxValue();
 
   if (loading) {
@@ -426,7 +422,7 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
                 className="text-white font-bold"
                 style={{ fontSize: "32px", lineHeight: "32px" }}
               >
-                {channelUploads.myChannel.weeklyUploads[channelUploads.myChannel.weeklyUploads.length - 1]?.count || 0}
+                {myUploads}
               </div>
               <div
                 className="text-gray-400"
