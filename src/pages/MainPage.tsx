@@ -55,16 +55,32 @@ export default function MainPage() {
     localStorage.getItem("isLoggedIn") === "true";
 
   // 로그아웃 처리
-  const handleLogout = () => {
-    // 1. localStorage에서 로그인 정보 삭제
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("token");
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      
+      // 1. 백엔드에 로그아웃 API 호출 (카테고리 데이터 삭제 포함)
+      await fetch("http://localhost:8000/auth/logout", { 
+        method: "POST", 
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-    // 2. (선택) 백엔드에 로그아웃 API 호출
-    fetch("/auth/logout", { method: "POST", credentials: "include" });
+      // 2. localStorage에서 로그인 정보 삭제
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("token");
 
-    // 3. 메인페이지 또는 로그인페이지로 이동
-    window.location.href = "/main"; // 또는 navigate("/login");
+      // 3. 메인페이지로 이동
+      window.location.href = "/main";
+    } catch (error) {
+      console.log('로그아웃 실패:', error);
+      // 에러가 발생해도 로그인 정보는 삭제
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("token");
+      window.location.href = "/main";
+    }
   };
 
   return (

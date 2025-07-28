@@ -205,20 +205,20 @@ const CompetitorInsightPage: React.FC = () => {
                         disabled={isAddingChannel}
                         className="px-6 py-3 bg-red-500 justify-center items-center text-white rounded hover:bg-red-600 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors font-medium"
                         style={{ fontSize: "21px" }}
-                      >
+                    >
                         {isAddingChannel ? "등록 중..." : "경쟁 채널 등록"}
                       </button>
                     </span>
-                  </div>
-                  
+                </div>
+
                   {/* 에러/성공 메시지 */}
                   {(addChannelError || addChannelSuccess) && (
                     <div className="mt-3 px-4 py-2 rounded">
                       {addChannelError && (
                         <div className="text-red-400 text-sm">
                           {addChannelError}
-                        </div>
-                      )}
+                            </div>
+                          )}
                       {addChannelSuccess && (
                         <div className="text-green-400 text-sm">
                           {addChannelSuccess}
@@ -226,7 +226,7 @@ const CompetitorInsightPage: React.FC = () => {
                       )}
                     </div>
                   )}
-                </div>
+                  </div>
               </div>
             </div>
           </div>
@@ -249,8 +249,8 @@ const CompetitorInsightPage: React.FC = () => {
               }}
             >
               <div className="text-gray-200 text-[1.7rem] mb-8">
-                각 채널이 어떻게 운영되었는지 비교해보았어요!
-              </div>
+              각 채널이 어떻게 운영되었는지 비교해보았어요!
+            </div>
 
               {/* 탭 버튼들 */}
               <div className="flex gap-8 mb-8">
@@ -294,7 +294,7 @@ const CompetitorInsightPage: React.FC = () => {
                 >
                   싫어요
                 </button>
-              </div>
+            </div>
 
               {/* 탭 컨텐츠 */}
               <div className="flex-1">

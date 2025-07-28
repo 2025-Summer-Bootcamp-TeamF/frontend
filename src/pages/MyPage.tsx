@@ -146,7 +146,7 @@ const MyPage: React.FC = () => {
                         className="w-full h-full rounded-full object-cover"
                       />
                     ) : (
-                      <span className="text-5xl">🐵</span>
+                    <span className="text-5xl">🐵</span>
                     )}
                   </div>
                 </div>
@@ -207,43 +207,45 @@ const MyPage: React.FC = () => {
             className="flex gap-8 items-center justify-between"
           >
             <div className="flex gap-8">
-              <button
-                className={`pb-3 hover:text-white transition-colors text-2xl ${
-                  activeTab === "overview"
-                    ? "text-white border-b-2 border-red-500"
-                    : "text-gray-400"
-                }`}
-                onClick={() => setActiveTab("overview")}
-              >
-                Overview
-              </button>
-              <button
-                className={`pb-3 hover:text-white transition-colors text-2xl ${
-                  activeTab === "video"
-                    ? "text-white border-b-2 border-red-500"
-                    : "text-gray-400"
-                }`}
-                onClick={() => setActiveTab("video")}
-              >
-                Video
-              </button>
+            <button
+              className={`pb-3 hover:text-white transition-colors text-2xl ${
+                activeTab === "overview"
+                  ? "text-white border-b-2 border-red-500"
+                  : "text-gray-400"
+              }`}
+              onClick={() => setActiveTab("overview")}
+            >
+              Overview
+            </button>
+            <button
+              className={`pb-3 hover:text-white transition-colors text-2xl ${
+                activeTab === "video"
+                  ? "text-white border-b-2 border-red-500"
+                  : "text-gray-400"
+              }`}
+              onClick={() => setActiveTab("video")}
+            >
+              Video
+            </button>
             </div>
-            {/* 영상 제목 검색창 */}
-            <div className="flex items-center ml-auto">
-              <input
-                type="text"
-                placeholder="영상 제목 검색"
-                className="bg-[#23242A] border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500 transition w-64"
-                value={searchTitle || ""}
-                onChange={e => setSearchTitle(e.target.value)}
-              />
-              <button
-                className="ml-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                onClick={handleSearchTitle}
-              >
-                검색
-              </button>
-            </div>
+            {/* 영상 제목 검색창 - Video 탭에서만 표시 */}
+            {activeTab === "video" && (
+              <div className="flex items-center ml-auto">
+                <input
+                  type="text"
+                  placeholder="영상 제목 검색"
+                  className="bg-[#23242A] border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500 transition w-64"
+                  value={searchTitle || ""}
+                  onChange={e => setSearchTitle(e.target.value)}
+                />
+                <button
+                  className="ml-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                  onClick={handleSearchTitle}
+                >
+                  검색
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Content */}

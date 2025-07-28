@@ -379,14 +379,14 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                 
                 return (
                   <g key={i}>
-                    <line
-                      x1="100"
+              <line
+                x1="100"
                       y1={y}
-                      x2="1100"
+                x2="1100"
                       y2={y}
-                      stroke="rgba(255,255,255,0.15)"
-                      strokeWidth="1"
-                    />
+                stroke="rgba(255,255,255,0.15)"
+                strokeWidth="1"
+              />
                     {/* Y축 라벨 */}
                     <text
                       x="90"
@@ -453,7 +453,7 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                     height={(item.my / actualMaxValue) * 300}
                     fill="#ef4444"
                   />
-                  
+
                   {/* 내 채널 싫어요 텍스트 */}
                   <text
                     x={groupX - barWidth - gap + barWidth / 2}
@@ -486,14 +486,14 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                     
                     return (
                       <g key={channelIdx}>
-                        <rect
+                  <rect
                           x={groupX + (channelIdx * (barWidth + gap))}
                           y={350 - (competitorValue / actualMaxValue) * 300}
-                          width={barWidth}
+                    width={barWidth}
                           height={(competitorValue / actualMaxValue) * 300}
                           fill={colors[channelIdx + 1] || colors[0]}
-                        />
-                        
+                  />
+
                         {/* 경쟁 채널 싫어요 텍스트 */}
                         <text
                           x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
@@ -550,38 +550,38 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
       <div className="flex justify-center flex-wrap" style={{ gap: "100px" }}>
         {/* 내 채널 */}
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3">
-            <div
-              className="rounded-full"
-              style={{
+            <div className="flex items-center gap-3">
+              <div
+                className="rounded-full"
+                style={{
                 backgroundColor: colors[0],
-                width: "14px",
-                height: "14px",
-              }}
-            />
-            <span className="text-white" style={{ fontSize: "20px" }}>
+                  width: "14px",
+                  height: "14px",
+                }}
+              />
+              <span className="text-white" style={{ fontSize: "20px" }}>
               내 채널
-            </span>
-          </div>
+              </span>
+            </div>
 
-          {/* 큰 숫자와 변화율 정보 */}
-          <div>
-            <div
-              className="text-white font-bold"
-              style={{ fontSize: "32px", lineHeight: "32px" }}
-            >
+            {/* 큰 숫자와 변화율 정보 */}
+            <div>
+              <div
+                className="text-white font-bold"
+                style={{ fontSize: "32px", lineHeight: "32px" }}
+              >
               {formatNumber(channelDislikes && channelDislikes.myChannel && channelDislikes.myChannel.individualDislikes && channelDislikes.myChannel.individualDislikes[0] ? channelDislikes.myChannel.individualDislikes[0].dislikes : 0)}
-            </div>
-            <div
-              className="text-gray-400"
-              style={{ fontSize: "15px", marginTop: "4px" }}
-            >
+              </div>
+              <div
+                className="text-gray-400"
+                style={{ fontSize: "15px", marginTop: "4px" }}
+              >
               최신 영상 싫어요
-            </div>
-            <div
-              className="flex items-center gap-1"
-              style={{ marginTop: "2px" }}
-            >
+              </div>
+              <div
+                className="flex items-center gap-1"
+                style={{ marginTop: "2px" }}
+              >
               <span style={{ color: colors[0], fontSize: "16px" }}>
                 {channelDislikes && channelDislikes.myChannel && channelDislikes.myChannel.individualDislikes && channelDislikes.myChannel.individualDislikes[0] && channelDislikes.myChannel.individualDislikes[0].rate > 0 ? '+' : ''}{channelDislikes && channelDislikes.myChannel && channelDislikes.myChannel.individualDislikes && channelDislikes.myChannel.individualDislikes[0] ? channelDislikes.myChannel.individualDislikes[0].rate.toFixed(2) : '0.00'}%
               </span>
@@ -653,7 +653,7 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                   </span>
                   <span style={{ color: colors[idx + 1] || colors[0], fontSize: "12px" }}>
                     {channelDislikes && channelDislikes.competitors && channelDislikes.competitors[idx] && channelDislikes.competitors[idx].individualDislikes && channelDislikes.competitors[idx].individualDislikes[0] && channelDislikes.competitors[idx].individualDislikes[0].rate > 0 ? '▲' : '▼'}
-                  </span>
+                </span>
                 </div>
               </div>
             </div>

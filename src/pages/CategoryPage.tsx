@@ -1,66 +1,153 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import medal1 from "../assets/1st.png";
 import medal2 from "../assets/2nd.png";
 import medal3 from "../assets/3rd.png";
-import thumbnail1 from "../assets/thumbnail1.png";
-import thumbnail2 from "../assets/thumbnail2.png";
-import thumbnail3 from "../assets/thumbnail3.png";
 import arrow from "../assets/arrow.png";
 
-const data = [
-  {
-    rank: 1,
-    medal: medal1,
-    thumbnail: thumbnail1,
-    title: "얼굴 클로즈업 + 감정 과장",
-    desc: "인물의 얼굴을 화면 대부분에 배치하고, 놀람·분노·충격 등의 과장된 표정으로 시선을 끄는 형태입니다.",
-    videoCount: 10,
-    viewCount: "10.6만 회",
-    likeCount: 50,
-  },
-  {
-    rank: 2,
-    medal: medal2,
-    thumbnail: thumbnail2,
-    title: "얼굴 클로즈업 + 감정 과장",
-    desc: "인물의 얼굴을 화면 대부분에 배치하고, 놀람·분노·충격 등의 과장된 표정으로 시선을 끄는 형태입니다.",
-    videoCount: 10,
-    viewCount: "10.6만 회",
-    likeCount: 50,
-  },
-  {
-    rank: 3,
-    medal: medal3,
-    thumbnail: thumbnail3,
-    title: "다양한 인물 구도",
-    desc: "여러 인물이 함께 등장하거나, 다양한 구도로 시선을 분산시키는 썸네일 유형입니다.",
-    videoCount: 8,
-    viewCount: "8.2만 회",
-    likeCount: 32,
-  },
-  {
-    rank: 4,
-    thumbnail: thumbnail3,
-    title: "다양한 인물 구도",
-    desc: "여러 인물이 함께 등장하거나, 다양한 구도로 시선을 분산시키는 썸네일 유형입니다.",
-    videoCount: 8,
-    viewCount: "8.2만 회",
-    likeCount: 32,
-  },
-  {
-    rank: 5,
-    thumbnail: thumbnail3,
-    title: "다양한 인물 구도",
-    desc: "여러 인물이 함께 등장하거나, 다양한 구도로 시선을 분산시키는 썸네일 유형입니다.",
-    videoCount: 8,
-    viewCount: "8.2만 회",
-    likeCount: 32,
-  }
-];
+interface Video {
+  id: number;
+  title: string;
+  thumbnail_url: string;
+  view_count: number;
+  like_count: number;
+}
+
+interface Category {
+  name: string;
+  description: string;
+  videoCount: number;
+  averageViews: number;
+  averageLikes: number;
+  videos: Video[];
+}
 
 export default function CategoryPage() {
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      console.log('[DEBUG] CategoryPage - API 호출 시작');
+      console.log('[DEBUG] CategoryPage - Token:', token ? '존재' : '없음');
+      
+      if (!token) {
+        setError('로그인이 필요합니다.');
+        return;
+      }
+
+      console.log('[DEBUG] CategoryPage - API URL:', 'http://localhost:8000/api/videos/thumbnail-categories');
+
+      const response = await fetch('http://localhost:8000/api/videos/thumbnail-categories', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('[DEBUG] CategoryPage - Response status:', response.status);
+      console.log('[DEBUG] CategoryPage - Response ok:', response.ok);
+
+      if (!response.ok) {
+        throw new Error('썸네일 분류 데이터를 가져오는데 실패했습니다.');
+      }
+
+      const result = await response.json();
+      console.log('[DEBUG] CategoryPage - Response data:', result);
+      console.log('[DEBUG] CategoryPage - result.data 타입:', typeof result.data);
+      console.log('[DEBUG] CategoryPage - result.data 내용:', result.data);
+      
+      if (result.success) {
+        console.log('[DEBUG] CategoryPage - result.data 상세:', {
+          type: typeof result.data,
+          isArray: Array.isArray(result.data),
+          length: result.data?.length,
+          content: result.data
+        });
+        setCategories(result.data);
+        console.log('[DEBUG] CategoryPage - 카테고리 설정 완료, 개수:', result.data?.length || 'undefined');
+      } else {
+        setError(result.message || '분류 데이터를 가져오는데 실패했습니다.');
+        console.log('[DEBUG] CategoryPage - API 응답 실패:', result.message);
+      }
+    } catch (error) {
+      console.error('[DEBUG] CategoryPage - 썸네일 분류 오류:', error);
+      setError('썸네일 분류 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+      console.log('[DEBUG] CategoryPage - 로딩 완료');
+    }
+  };
+
+  const formatNumber = (num: number) => {
+    if (num >= 10000) {
+      return `${(num / 10000).toFixed(1)}만`;
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}천`;
+    }
+    return num.toString();
+  };
+
+  const getMedalImage = (rank: number) => {
+    switch (rank) {
+      case 1: return medal1;
+      case 2: return medal2;
+      case 3: return medal3;
+      default: return null;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
+        <Sidebar />
+        <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full">
+          <div
+            className="rounded-2xl overflow-hidden h-full px-8"
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.15)",
+              border: "1px solid rgba(255, 255, 255, 0.6)",
+            }}
+          >
+            <div className="flex items-center justify-center h-64">
+              <div className="text-white text-xl">AI가 썸네일을 분류하고 있습니다...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
+        <Sidebar />
+        <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full">
+          <div
+            className="rounded-2xl overflow-hidden h-full px-8"
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.15)",
+              border: "1px solid rgba(255, 255, 255, 0.6)",
+            }}
+          >
+            <div className="flex items-center justify-center h-64">
+              <div className="text-red-400 text-xl">{error}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
@@ -83,7 +170,7 @@ export default function CategoryPage() {
       <Sidebar />
 
       {/* Main Container */}
-      <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full">
+      <div className="ml-[6vw] flex-1 pr-8 py-8">
         <div
           className="rounded-2xl overflow-hidden h-full px-8"
           style={{
@@ -112,59 +199,58 @@ export default function CategoryPage() {
               썸네일 스타일과 조회수 간의 상관관계를 분석하거나, 어떤 유형이 더 효과적인지 파악할 수 있습니다.
             </div>
           </div>
+
           {/* 인기 썸네일 카드 리스트 */}
           <div className="flex flex-col gap-6 mb-10">
-            {data.map((item, idx) => (
-              <div 
-                key={idx} 
-                className="flex flex-row items-center bg-[#1c2023] rounded-2xl mx-10 pl-10 pr-24 py-8 cursor-pointer hover:bg-[#2a2e31] transition-colors"
-                onClick={() => navigate(`/category_segmentation?rank=${item.rank}`)}
-              >
-                {/* 순위 뱃지 */}
-                <div className="flex flex-col items-center mr-8">
-                  {item.rank <= 3 ? (
-                    <>
-                      {/* 3위 이내면 assets 폴더의 1st, 2nd, 3rd png 사용 */}
-                      {item.rank === 1 && (
-                        <img
-                          src={medal1}
-                          alt="1st medal"
-                          className="w-[4vw] h-[6vh] -mb-4 z-10"
-                        />
-                      )}
-                      {item.rank === 2 && (
-                        <img
-                          src={medal2}
-                          alt="2nd medal"
-                          className="w-[4vw] h-[6vh] -mb-4 z-10"
-                        />
-                      )}
-                      {item.rank === 3 && (
-                        <img
-                          src={medal3}
-                          alt="3rd medal"
-                          className="w-[4vw] h-[6vh] -mb-4 z-10"
-                        />
-                      )}
-                    </>
-                  ) : (
-                    <div className="w-[3vw] h-[5vh] mx-3 rounded-full bg-[#e0e0e0] flex justify-center items-center text-[2rem] font-bold text-[#232325]">{item.rank}</div>
+            {categories.map((category, idx) => {
+              const rank = idx + 1;
+              const medalImg = getMedalImage(rank);
+              const topVideo = category.videos[0]; // 가장 조회수가 높은 영상
+
+              return (
+                <div 
+                  key={idx} 
+                  className="flex flex-row items-center bg-[#1c2023] rounded-2xl mx-10 px-12 py-8 cursor-pointer hover:bg-[#2a2e31] transition-colors"
+                  onClick={() => navigate(`/category_segmentation?rank=${rank}`)}
+                >
+                  {/* 순위 뱃지 */}
+                  <div className="flex flex-col items-center mr-10">
+                    {medalImg ? (
+                      <img
+                        src={medalImg}
+                        alt={`${rank}st medal`}
+                        className="w-[8vw] h-[6vh] -mb-4 z-10"
+                      />
+                    ) : (
+                      <div className="w-[3vw] h-[5vh] mx-1 rounded-full bg-transparent flex justify-center items-center text-[2rem] font-bold text-white/80">
+                        {rank}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 썸네일 */}
+                  {topVideo && (
+                    <img 
+                      src={topVideo.thumbnail_url} 
+                      alt="썸네일" 
+                      className="w-[340px] h-[200px] mr-6 object-cover rounded-2xl flex-shrink-0" 
+                      style={{ width: '340px', height: '200px' }}
+                    />
                   )}
-                </div>
-                {/* 썸네일 */}
-                <img src={item.thumbnail} alt="썸네일" className="w-[24vw] min-w-[300px] h-[14vw] min-h-[200px] max-h-[250px] mr-4 object-cover rounded-2xl" />
-                {/* 텍스트/설명 */}
-                <div className="flex flex-col ml-4">
-                  <div className="text-[1.8rem] text-white font-semibold mb-2">{item.title}</div>
-                  <div className="text-[1.3rem] text-rgba(255,255,255,0.6) font-thin mb-4">{item.desc}</div>
-                  <div className="flex flex-row justify-between text-[#ffffff] text-[1.5rem] font-medium pr-2 mt-18">
-                      <div>전체 영상 수 : <span>{item.videoCount}개</span></div>
-                      <div>평균 조회수 : <span>{item.viewCount}</span></div>
-                      <div>평균 좋아요 수 : <span>{item.likeCount}개</span></div>
+
+                  {/* 텍스트/설명 */}
+                  <div className="flex flex-col ml-4">
+                    <div className="text-[1.8rem] text-white font-semibold mb-2">{category.name}</div>
+                    <div className="text-[1.3rem] text-rgba(255,255,255,0.6) font-thin mb-4">{category.description}</div>
+                    <div className="flex flex-row justify-between text-[#ffffff] text-[1.5rem] font-medium pr-2 mt-8">
+                        <div>전체 영상 수 : <span>{category.videoCount}개</span></div>
+                        <div>평균 조회수 : <span>{formatNumber(category.averageViews)}회</span></div>
+                        <div>평균 좋아요 수 : <span>{category.averageLikes}개</span></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

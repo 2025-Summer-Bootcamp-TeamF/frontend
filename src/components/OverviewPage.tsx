@@ -1,13 +1,19 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
-interface VideoData {
+interface TopVideoData {
+  rank: number;
   id: string;
-  thumbnail: string;
-  date: string;
   title: string;
-  views: string;
-  viewRate: string;
-  likeRate: string;
+  thumbnail_url: string;
+  upload_date: string;
+  views: number;
+  likes: number;
+  comments: number;
+}
+
+interface SubscriberChangeData {
+  date: string;
+  subscriber: number;
 }
 
 interface OverviewPageProps {
@@ -16,35 +22,118 @@ interface OverviewPageProps {
 }
 
 const OverviewPage: React.FC<OverviewPageProps> = ({ dailyView, averageView }) => {
-  const videos: VideoData[] = [
-    {
-      id: "1",
-      thumbnail: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-      date: "2025. 07. 10",
-      title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-      views: "38,665회",
-      viewRate: "0.007%",
-      likeRate: "0.7%",
-    },
-    {
-      id: "2",
-      thumbnail: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-      date: "2025. 07. 10",
-      title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-      views: "38,665회",
-      viewRate: "0.007%",
-      likeRate: "0.7%",
-    },
-    {
-      id: "3",
-      thumbnail: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-      date: "2025. 07. 10",
-      title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-      views: "38,665회",
-      viewRate: "0.007%",
-      likeRate: "0.7%",
-    },
-  ];
+  const [topVideos, setTopVideos] = useState<TopVideoData[]>([]);
+  const [subscriberData, setSubscriberData] = useState<SubscriberChangeData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [subscriberLoading, setSubscriberLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTopVideos = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found");
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch("http://localhost:8000/api/videos/top-views", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setTopVideos(data.data || []);
+        } else {
+          console.error("Failed to fetch top videos");
+        }
+      } catch (error) {
+        console.error("Error fetching top videos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTopVideos();
+  }, []);
+
+  useEffect(() => {
+    const fetchSubscriberData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found");
+          setSubscriberLoading(false);
+          return;
+        }
+
+        console.log("[DEBUG] 구독자 데이터 요청 시작");
+        const response = await fetch("http://localhost:8000/api/channel/subscriber-change", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        console.log("[DEBUG] 구독자 데이터 응답 상태:", response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("[DEBUG] 구독자 데이터:", data);
+          setSubscriberData(data.data || []);
+        } else {
+          const errorData = await response.json();
+          console.error("Failed to fetch subscriber data:", errorData);
+        }
+      } catch (error) {
+        console.error("Error fetching subscriber data:", error);
+      } finally {
+        setSubscriberLoading(false);
+      }
+    };
+
+    fetchSubscriberData();
+  }, []);
+
+  const formatNumber = (num: number): string => {
+    if (num >= 10000) {
+      return `${(num / 10000).toFixed(1)}만`;
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}천`;
+    }
+    return num.toString();
+  };
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}. ${String(date.getMonth() + 1).padStart(2, '0')}. ${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  const calculateEngagementRate = (likes: number, views: number): string => {
+    if (views === 0) return "0%";
+    return `${((likes / views) * 100).toFixed(1)}%`;
+  };
+
+  const formatSubscriberNumber = (num: number): string => {
+    if (num >= 10000) {
+      return `${(num / 10000).toFixed(1)}만`;
+    } else if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}천`;
+    }
+    return num.toString();
+  };
+
+  const formatWeekLabel = (dateString: string): string => {
+    const date = new Date(dateString);
+    const month = date.getMonth() + 1;
+    const week = Math.ceil(date.getDate() / 7);
+    return `${month}월 ${week}주차`;
+  };
 
   return (
     <div className="w-full h-full" style={{ padding: "2.5%" }}>
@@ -66,7 +155,7 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ dailyView, averageView }) =
             >
               <h3
                 className="text-gray-400"
-                style={{ fontSize: "0.9vw", marginBottom: "8%" }}
+                style={{ fontSize: "1.2vw", marginBottom: "5%" }}
               >
                 일일 평균 조회수
               </h3>
@@ -87,7 +176,7 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ dailyView, averageView }) =
             >
               <h3
                 className="text-gray-400"
-                style={{ fontSize: "0.9vw", marginBottom: "8%" }}
+                style={{ fontSize: "1.2vw", marginBottom: "5%" }}
               >
                 영상별 평균 조회수
               </h3>
@@ -104,7 +193,7 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ dailyView, averageView }) =
           <div className="flex flex-col flex-1">
             <h3
               className="text-white"
-              style={{ fontSize: "1.1vw", marginBottom: "2%" }}
+              style={{ fontSize: "1.2vw", marginLeft: "2%", marginBottom: "2%" }}
             >
               구독자 수 변화량
             </h3>
@@ -114,164 +203,246 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ dailyView, averageView }) =
                 backgroundColor: "rgba(255, 255, 255, 0.03)",
               }}
             >
-              <svg
-                viewBox="0 0 840 402.51"
-                className="absolute inset-0 w-full h-full"
-                preserveAspectRatio="none"
-              >
-                <defs>
-                  <linearGradient
-                    id="lineGradient"
-                    x1="0%"
-                    y1="0%"
-                    x2="100%"
-                    y2="0%"
-                  >
-                    <stop offset="0%" stopColor="#ef4444" />
-                    <stop offset="100%" stopColor="#dc2626" />
-                  </linearGradient>
-                </defs>
-                <g stroke="rgba(255,255,255,0.1)" strokeWidth="1">
-                  <line x1="0" y1="80" x2="840" y2="80" />
-                  <line x1="0" y1="160" x2="840" y2="160" />
-                  <line x1="0" y1="240" x2="840" y2="240" />
-                  <line x1="0" y1="320" x2="840" y2="320" />
-                </g>
-                <polyline
-                  fill="none"
-                  stroke="url(#lineGradient)"
-                  strokeWidth="3"
-                  points="80,320 240.83,280 401.66,200 562.49,140 723.32,100"
-                />
-                <g fill="#ef4444">
-                  <circle cx="80" cy="320" r="5" />
-                  <circle cx="240.83" cy="280" r="5" />
-                  <circle cx="401.66" cy="200" r="5" />
-                  <circle cx="562.49" cy="140" r="5" />
-                  <circle cx="723.32" cy="100" r="5" />
-                </g>
-                <g
-                  fill="rgba(255,255,255,0.6)"
-                  fontSize="14"
-                  textAnchor="middle"
+              {subscriberLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-gray-400">로딩 중...</p>
+                </div>
+              ) : subscriberData.length > 0 ? (
+                <svg
+                  viewBox="0 0 840 402.51"
+                  className="absolute inset-0 w-full h-full"
+                  preserveAspectRatio="none"
                 >
-                  <text x="80" y="370">
-                    3월 1주차
-                  </text>
-                  <text x="240.83" y="370">
-                    3월 2주차
-                  </text>
-                  <text x="401.66" y="370">
-                    3월 3주차
-                  </text>
-                  <text x="562.49" y="370">
-                    3월 4주차
-                  </text>
-                  <text x="723.32" y="370">
-                    3월 5주차
-                  </text>
-                </g>
-              </svg>
+                  <defs>
+                    <linearGradient
+                      id="lineGradient"
+                      x1="0%"
+                      y1="0%"
+                      x2="100%"
+                      y2="0%"
+                    >
+                      <stop offset="0%" stopColor="#ef4444" />
+                      <stop offset="100%" stopColor="#dc2626" />
+                    </linearGradient>
+                  </defs>
+                  
+                  {/* Y축 라벨 */}
+                  {(() => {
+                    const maxSubscriber = Math.max(...subscriberData.map(d => d.subscriber));
+                    const minSubscriber = Math.min(...subscriberData.map(d => d.subscriber));
+                    const range = maxSubscriber - minSubscriber;
+                    const padding = range * 0.1;
+                    const yRange = 280; // 320 - 40 (위쪽 여백 줄임)
+                    
+                    // Y축 값 계산 (5개 구간)
+                    const yAxisValues = [];
+                    for (let i = 0; i <= 4; i++) {
+                      const value = minSubscriber - padding + ((range + padding * 2) * i / 4);
+                      const y = 320 - (i * yRange / 4);
+                      yAxisValues.push({ value: Math.round(value), y });
+                    }
+                    
+                    return (
+                      <>
+                        {/* 그리드 라인과 Y축 라벨 */}
+                        {yAxisValues.map((item, index) => (
+                          <g key={index}>
+                            <line 
+                              x1="0" 
+                              y1={item.y} 
+                              x2="840" 
+                              y2={item.y} 
+                              stroke="rgba(255,255,255,0.1)" 
+                              strokeWidth="1" 
+                            />
+                                                         <text
+                               x="10"
+                               y={item.y + 4}
+                               fill="rgba(255,255,255,0.6)"
+                               fontSize="18"
+                               textAnchor="start"
+                             >
+                               {formatSubscriberNumber(item.value)}
+                             </text>
+                          </g>
+                        ))}
+                      </>
+                    );
+                  })()}
+                  
+                  {/* 데이터 포인트 계산 */}
+                  {(() => {
+                    const maxSubscriber = Math.max(...subscriberData.map(d => d.subscriber));
+                    const minSubscriber = Math.min(...subscriberData.map(d => d.subscriber));
+                    const range = maxSubscriber - minSubscriber;
+                    const padding = range * 0.1;
+                    const yRange = 280; // 320 - 40 (위쪽 여백 줄임)
+                    
+                    const points = subscriberData.map((data, index) => {
+                      const x = 80 + (index * (680 / (subscriberData.length - 1)));
+                      const y = 320 - ((data.subscriber - minSubscriber + padding) / (range + padding * 2)) * yRange;
+                      return { x, y, data };
+                    });
+                    
+                    const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+                    
+                    return (
+                      <>
+                        {/* 라인 */}
+                        <polyline
+                          fill="none"
+                          stroke="url(#lineGradient)"
+                          strokeWidth="3"
+                          points={polylinePoints}
+                        />
+                        
+                        {/* 데이터 포인트 */}
+                        {points.map((point, index) => (
+                          <g key={index}>
+                            <circle
+                              cx={point.x}
+                              cy={point.y}
+                              r="5"
+                              fill="#ef4444"
+                              style={{ cursor: 'pointer' }}
+                              onMouseEnter={(e) => {
+                                const tooltip = document.createElement('div');
+                                tooltip.id = `tooltip-${index}`;
+                                tooltip.className = 'fixed bg-black bg-opacity-90 text-white text-sm px-3 py-2 rounded-xl pointer-events-none z-10 text-center';
+                                tooltip.style.left = `${e.clientX - 40}px`;
+                                tooltip.style.top = `${e.clientY - 70}px`;
+                                tooltip.innerHTML = `
+                                  <div>${new Date(point.data.date).toLocaleDateString()}</div>
+                                  <div class="font-bold">${formatSubscriberNumber(point.data.subscriber)}명</div>
+                                `;
+                                document.body.appendChild(tooltip);
+                              }}
+                              onMouseLeave={() => {
+                                const tooltip = document.getElementById(`tooltip-${index}`);
+                                if (tooltip) {
+                                  tooltip.remove();
+                                }
+                              }}
+                            />
+                          </g>
+                        ))}
+                        
+                                                 {/* X축 라벨 */}
+                         {points.map((point, index) => (
+                           <text
+                             key={`label-${index}`}
+                             x={point.x}
+                             y="370"
+                             fill="rgba(255,255,255,0.6)"
+                             fontSize="18"
+                             textAnchor="middle"
+                           >
+                             {formatWeekLabel(point.data.date)}
+                           </text>
+                         ))}
+                        
 
-              <div
-                className="absolute bg-black bg-opacity-80 rounded"
-                style={{
-                  right: "15%",
-                  top: "15%",
-                  padding: "0.7vw",
-                  fontSize: "0.75vw",
-                }}
-              >
-                <span className="text-gray-300">2025/03/28</span>
-                <br />
-                <span className="text-white font-bold">30,456명</span>
-              </div>
+                      </>
+                    );
+                  })()}
+                </svg>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-gray-400">구독자 데이터가 없습니다</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* 오른쪽: 최근 영상들 - 50% */}
+        {/* 오른쪽: 조회수 순위 1,2,3등 영상들 - 50% */}
         <div className="flex flex-col" style={{ width: "48%", gap: "2%" }}>
-          {videos.map((video, index) => (
-            <div
-              key={index}
-              className="relative flex rounded-2xl"
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
-                padding: "2%",
-                gap: "3%",
-                height: "32%",
-              }}
-            >
-              {/* 메달 이미지 */}
-              <img
-                src={`/${
-                  index === 0 ? "first" : index === 1 ? "second" : "third"
-                }.png`}
-                alt={`${index + 1}st place medal`}
-                className="absolute z-10"
-                style={{
-                  width: "2vw",
-                  height: "2vw",
-                  top: "0vw",
-                  left: "2%",
-                }}
-              />
-
-              <img
-                src="/thumbnail.png"
-                alt="Video thumbnail"
-                className="rounded-xl object-cover"
-                style={{
-                  width: "25%",
-                  height: "100%",
-                }}
-              />
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-gray-400">로딩 중...</p>
+            </div>
+          ) : (
+            topVideos.map((video, index) => (
               <div
-                className="flex-1 flex flex-col justify-between"
-                style={{ paddingTop: "1%", paddingBottom: "1%" }}
+                key={video.id}
+                className="relative flex rounded-2xl"
+                style={{
+                  backgroundColor: "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  padding: "3%",
+                  gap: "3%",
+                  height: "32%",
+                }}
               >
-                <div>
-                  <h4
-                    className="text-white font-medium truncate"
-                    style={{ fontSize: "1vw", marginBottom: "3%" }}
-                  >
-                    {video.title}
-                  </h4>
-                  <p className="text-gray-500" style={{ fontSize: "0.85vw" }}>
-                    {video.date}
-                  </p>
-                </div>
-                <div className="flex flex-col" style={{ gap: "5%" }}>
-                  <div className="flex justify-between items-center">
-                    <p className="text-gray-500" style={{ fontSize: "0.95vw" }}>
-                      조회수
-                    </p>
-                    <p className="text-gray-300" style={{ fontSize: "0.95vw" }}>
-                      {video.views}
+                {/* 메달 이미지 */}
+                <img
+                  src={`/${
+                    index === 0 ? "first" : index === 1 ? "second" : "third"
+                  }.png`}
+                  alt={`${index + 1}st place medal`}
+                  className="absolute z-10"
+                  style={{
+                    width: "3vw",
+                    height: "3vw",
+                    top: "1.1vw",
+                    left: "4.2%",
+                  }}
+                />
+
+                <img
+                  src={video.thumbnail_url || "/thumbnail.png"}
+                  alt="Video thumbnail"
+                  className="rounded-xl object-cover"
+                  style={{
+                    width: "40%",
+                    height: "100%",
+                  }}
+                />
+                <div
+                  className="flex-1 flex flex-col justify-between"
+                  style={{ paddingTop: "1%" }}
+                >
+                  <div>
+                    <h4
+                      className="text-white font-medium truncate"
+                      style={{ fontSize: "1.4vw" }}
+                    >
+                      {video.title}
+                    </h4>
+                    <p className="text-gray-500" style={{ fontSize: "1.3vw" }}>
+                      {formatDate(video.upload_date)}
                     </p>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <p className="text-gray-500" style={{ fontSize: "0.95vw" }}>
-                      댓글 참여율
-                    </p>
-                    <p className="text-gray-300" style={{ fontSize: "0.95vw" }}>
-                      {video.viewRate}
-                    </p>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <p className="text-gray-500" style={{ fontSize: "0.95vw" }}>
-                      좋아요 참여율
-                    </p>
-                    <p className="text-gray-300" style={{ fontSize: "0.95vw" }}>
-                      {video.likeRate}
-                    </p>
+                  <div className="flex flex-col" style={{ gap: "5%" }}>
+                    <div className="flex justify-between items-center">
+                      <p className="text-gray-500" style={{ fontSize: "1.1vw" }}>
+                        조회수
+                      </p>
+                      <p className="text-gray-300" style={{ fontSize: "1.1vw" }}>
+                        {formatNumber(video.views)}회
+                      </p>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <p className="text-gray-500" style={{ fontSize: "1.1vw" }}>
+                        댓글 참여율
+                      </p>
+                      <p className="text-gray-300" style={{ fontSize: "1.1vw" }}>
+                        {calculateEngagementRate(video.comments, video.views)}
+                      </p>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <p className="text-gray-500" style={{ fontSize: "1.1vw" }}>
+                        좋아요 참여율
+                      </p>
+                      <p className="text-gray-300" style={{ fontSize: "1.1vw" }}>
+                        {calculateEngagementRate(video.likes, video.views)}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

@@ -109,7 +109,7 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
-        },
+    },
       });
 
       if (response.ok) {
@@ -260,15 +260,15 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
               for (let i = 0; i <= maxValue; i += step) {
                 const y = 300 - (i / maxValue) * 250;
                 lines.push(
-                  <line
-                    key={i}
-                    x1="100"
+              <line
+                key={i}
+                x1="100"
                     y1={y}
-                    x2="1100"
+                x2="1100"
                     y2={y}
-                    stroke="rgba(255,255,255,0.15)"
-                    strokeWidth="1"
-                  />
+                stroke="rgba(255,255,255,0.15)"
+                strokeWidth="1"
+              />
                 );
               }
               return lines;
@@ -276,14 +276,14 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
 
             {/* 데이터 라인 */}
             {chartData.map((channel, idx) => {
-                              const points = channel.data
-                  .map((value, i) => {
-                    const x = 100 + (i * 1000) / (channel.data.length - 1);
+              const points = channel.data
+                .map((value, i) => {
+                  const x = 100 + (i * 1000) / (channel.data.length - 1);
                     // 동적 최대값으로 스케일링
                     const y = 300 - (value / maxValue) * 250;
-                    return `${x},${y}`;
-                  })
-                  .join(" ");
+                  return `${x},${y}`;
+                })
+                .join(" ");
 
               return (
                 <polyline
@@ -304,27 +304,33 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
                   const y = 300 - (value / maxValue) * 250;
                   return (
                     <g key={i}>
-                      <circle
-                        cx={x}
-                        cy={y}
-                        r="8"
-                        fill={channel.color}
-                        stroke="#1C2023"
-                        strokeWidth="3"
+                    <circle
+                      cx={x}
+                      cy={y}
+                      r="8"
+                      fill={channel.color}
+                      stroke="#1C2023"
+                      strokeWidth="3"
                         style={{ cursor: 'pointer' }}
                         onMouseEnter={(e) => {
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          setTooltip({
-                            show: true,
-                            value: value,
-                            x: rect.left + rect.width / 2,
-                            y: rect.top - 10
-                          });
+                          const tooltip = document.createElement('div');
+                          tooltip.id = `tooltip-${i}`;
+                          tooltip.className = 'fixed bg-black bg-opacity-90 text-white text-ml px-3 py-2 rounded-xl pointer-events-none z-10 text-center';
+                          tooltip.style.left = `${e.clientX - 40}px`;
+                          tooltip.style.top = `${e.clientY - 80}px`;
+                          tooltip.innerHTML = `
+                            <div>${xLabels[i]}</div>
+                            <div class="font-bold">${value}개</div>
+                          `;
+                          document.body.appendChild(tooltip);
                         }}
                         onMouseLeave={() => {
-                          setTooltip({ show: false, value: 0, x: 0, y: 0 });
+                          const tooltip = document.getElementById(`tooltip-${i}`);
+                          if (tooltip) {
+                            tooltip.remove();
+                          }
                         }}
-                      />
+                    />
                     </g>
                   );
                 })}
