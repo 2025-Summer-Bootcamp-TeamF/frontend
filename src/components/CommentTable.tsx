@@ -32,6 +32,20 @@ const CommentTable: React.FC<CommentTableProps> = ({
   renderHeader
 }) => (
   <div className="flex flex-col bg-[#1c2023] w-full h-full pt-4 pb-2 pr-2 pl-2 rounded-[10px] overflow-y-auto">
+    <style dangerouslySetInnerHTML={{
+      __html: `
+        .comment-text {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          word-break: break-word;
+          max-height: 3em;
+          line-height: 1.5em;
+        }
+      `
+    }} />
     {/* 테이블 헤더 */}
     <div className="flex flex-row text-[#a3a3a3] text-[17px] font-medium border-b border-[#606265] pb-2 min-w-0">
       <div className="w-[60px] flex justify-center items-center">
@@ -83,7 +97,7 @@ const CommentTable: React.FC<CommentTableProps> = ({
               </div>
               <div className="flex-[3] flex justify-start items-center ml-16 min-w-0">
                 <span
-                  className="text-[#d9d9d9] text-[15px] truncate block min-w-0 w-full"
+                  className="text-[#d9d9d9] text-[15px] block min-w-0 w-full comment-text"
                   title={comment.comment}
                 >
                   {comment.comment}

@@ -8,7 +8,7 @@ export default function AuthCallbackPage() {
     // URL에서 토큰과 YouTube 액세스 토큰 추출
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
-    const youtubeAccessToken = params.get("youtube_access_token");
+    const youtubeAccessToken = params.get("youtube_token");
 
     console.log("OAuth 콜백 URL 파라미터:", {
       token: token ? "있음" : "없음",

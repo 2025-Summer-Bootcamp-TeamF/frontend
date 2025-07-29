@@ -36,11 +36,14 @@ export default function ReplyAnalysis() {
   // 비디오 정보
   const videoInfo: VideoInfo = location.state?.videoInfo || {
     thumbnail: thumbnail,
-    date: "2025. 07. 10",
-    title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-    views: "38,665회",
-    commentRate: "0.007%",
-    likeRate: "0.7%",
+
+
+    date: location.state?.videoInfo?.upload_date || location.state?.summaryData?.upload_date || "",
+    title: "",
+    views: "",
+    commentRate: "",
+    likeRate: ""
+
   };
 
   // 분석 데이터 로딩
@@ -135,12 +138,12 @@ export default function ReplyAnalysis() {
           {/* 범례 */}
           <div className="flex gap-6 mt-6">
             <div className="flex items-center">
-              <div className="w-4 h-4 bg-[#278eff] rounded-full mr-2"></div>
-              <span className="text-white">긍정 ({positivePercentage}%)</span>
+              <div className="w-4 h-4 bg-[#278eff] rounded-full mr-1"></div>
+              <span className="text-white">긍정 ({Math.round(positivePercentage * 100) / 100}%)</span>
             </div>
             <div className="flex items-center">
-              <div className="w-4 h-4 bg-[#ff0000] rounded-full mr-2"></div>
-              <span className="text-white">부정 ({negativePercentage}%)</span>
+              <div className="w-4 h-4 bg-[#ff0000] rounded-full mr-1"></div>
+              <span className="text-white">부정 ({Math.round(negativePercentage * 100) / 100}%)</span>
             </div>
           </div>
         </div>
@@ -193,19 +196,52 @@ export default function ReplyAnalysis() {
       />
       <Sidebar />
       <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full">
-        {/* 왼쪽 (영상정보, 도넛차트) */}
-        <div className="flex flex-col flex-3 w-full rounded-2xl bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)] p-10">
-          <div className="relative flex flex-col">
-            {/* 뒤로가기 */}
-            <div>
-              <button
-                className="rounded-full items-center justify-center cursor-pointer"
-                onClick={() => navigate("/reply_analysis_list")}
-                style={{ transform: "scaleX(-1)" }}
-                aria-label="뒤로가기"
-              >
-                <img src={arrow} alt="뒤로가기" className="w-[36px] h-[28px]" />
-              </button>
+
+
+
+        {/* 왼쪽 컨테이너 - 영상 정보 및 탭 */}
+        <div
+          className="
+            flex flex-col flex-3 w-full rounded-2xl
+            bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
+            p-10
+            "
+        >
+          <div>
+            {/* 영상 썸네일 및 정보 - VideoInfoBox 컴포넌트로 대체 */}
+            <div className="relative flex flex-col ">
+              {/* 뒤로가기 버튼을 썸네일 위가 아닌 바깥쪽에 배치 */}
+              <div>
+                <button
+                  className="rounded-full items-center justify-center cursor-pointer"
+                  onClick={() => {
+                    // 현재 영상 정보를 Reply_AnalysisList로 전달
+                    const currentVideoInfo = location.state?.videoInfo || videoInfo;
+                    const videoId = location.state?.videoId || location.state?.summaryData?.video_id;
+                    
+                    navigate("/reply_analysis_list", {
+                      state: {
+                        videoId: videoId,
+                        videoInfo: currentVideoInfo
+                      }
+                    });
+                  }}
+                  style={{ transform: "scaleX(-1)" }}
+                  aria-label="뒤로가기"
+                >
+                  <img src={arrow} alt="뒤로가기" className="w-[36px] h-[28px]" />
+                </button>
+              </div>
+              <VideoInfoBox
+                thumbnail={videoInfo.thumbnail}
+                date={videoInfo.date}
+                title={videoInfo.title}
+                views={videoInfo.views}
+                commentRate={videoInfo.commentRate}
+                likeRate={videoInfo.likeRate}
+                className=""
+              />
+
             </div>
             <VideoInfoBox
               thumbnail={videoInfo.thumbnail}
