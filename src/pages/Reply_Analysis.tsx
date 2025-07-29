@@ -41,11 +41,11 @@ export default function ReplyAnalysis() {
   // 전달받은 영상 정보 또는 기본값 사용
   const videoInfo: VideoInfo = location.state?.videoInfo || {
     thumbnail: thumbnail,
-    date: "2025. 07. 10",
-    title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-    views: "38,665회",
-    commentRate: "0.007%",
-    likeRate: "0.7%"
+    date: location.state?.videoInfo?.upload_date || location.state?.summaryData?.upload_date || "",
+    title: "",
+    views: "",
+    commentRate: "",
+    likeRate: ""
   };
 
   // 분석 데이터 로딩
@@ -148,12 +148,12 @@ export default function ReplyAnalysis() {
           {/* 범례 */}
           <div className="flex gap-6 mt-6">
             <div className="flex items-center">
-              <div className="w-4 h-4 bg-[#278eff] rounded-full mr-2"></div>
-              <span className="text-white">긍정 ({positivePercentage}%)</span>
+              <div className="w-4 h-4 bg-[#278eff] rounded-full mr-1"></div>
+              <span className="text-white">긍정 ({Math.round(positivePercentage * 100) / 100}%)</span>
             </div>
             <div className="flex items-center">
-              <div className="w-4 h-4 bg-[#ff0000] rounded-full mr-2"></div>
-              <span className="text-white">부정 ({negativePercentage}%)</span>
+              <div className="w-4 h-4 bg-[#ff0000] rounded-full mr-1"></div>
+              <span className="text-white">부정 ({Math.round(negativePercentage * 100) / 100}%)</span>
             </div>
           </div>
         </div>
@@ -224,7 +224,18 @@ export default function ReplyAnalysis() {
               <div>
                 <button
                   className="rounded-full items-center justify-center cursor-pointer"
-                  onClick={() => navigate("/reply_analysis_list")}
+                  onClick={() => {
+                    // 현재 영상 정보를 Reply_AnalysisList로 전달
+                    const currentVideoInfo = location.state?.videoInfo || videoInfo;
+                    const videoId = location.state?.videoId || location.state?.summaryData?.video_id;
+                    
+                    navigate("/reply_analysis_list", {
+                      state: {
+                        videoId: videoId,
+                        videoInfo: currentVideoInfo
+                      }
+                    });
+                  }}
                   style={{ transform: "scaleX(-1)" }}
                   aria-label="뒤로가기"
                 >

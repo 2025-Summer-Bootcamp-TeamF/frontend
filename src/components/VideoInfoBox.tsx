@@ -10,6 +10,15 @@ interface VideoInfoBoxProps {
   className?: string;
 }
 
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return "";
+  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+    const [y, m, d] = dateStr.split("T")[0].split("-");
+    return `${y}. ${m}. ${d}`;
+  }
+  return dateStr;
+};
+
 const VideoInfoBox: React.FC<VideoInfoBoxProps> = ({
   thumbnail,
   date,
@@ -29,7 +38,7 @@ const VideoInfoBox: React.FC<VideoInfoBoxProps> = ({
       />
     </div>
     <div className="text-white mt-2 mb-10 pt-3 w-full">
-      <div className="text-[#848485] text-[20px] font-regular">{date}</div>
+      <div className="text-[#848485] text-[20px] font-regular">{formatDate(date)}</div>
       <div className="text-[22px] font-regular mb-2">{title}</div>
       <div className="text-[#848485] text-[20px] font-regular">조회수 {views}</div>
       <div className="text-[#848485] text-[20px] font-regular">댓글 참여율 {commentRate}</div>

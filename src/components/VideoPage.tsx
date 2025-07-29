@@ -6,7 +6,7 @@ interface VideoData {
   video_id: string; // YouTube video ID 추가
   title: string;
   thumbnail: string;
-  publishedAt: string;
+  upload_date: string; // ← 추가
   viewCount: number;
   commentRate: string;
   likeRate: string;
@@ -164,7 +164,7 @@ const VideoPage: React.FC<VideoPageProps> = ({
       <div className="flex-1 flex flex-col px-3 pb-3 min-h-0">
         <div className="flex-shrink-0">
           <p className="text-gray-400 mb-2" style={{ fontSize: "20px" }}>
-            {formatDate(video.publishedAt)}
+            {formatDate(video.upload_date)}
           </p>
           <h3
             className="text-white mb-3 truncate"
@@ -210,7 +210,7 @@ const VideoPage: React.FC<VideoPageProps> = ({
                   videoId: video.videoId, // 실제 YouTube video ID 전달 (video.id와 동일)
                   videoInfo: {
                     thumbnail: video.thumbnail,
-                    date: formatDate(video.publishedAt),
+                    date: formatDate(video.upload_date),
                     title: video.title,
                     views: formatNumber(video.viewCount) + "회",
                     commentRate: video.commentRate,
@@ -253,7 +253,7 @@ const VideoPage: React.FC<VideoPageProps> = ({
                     state: {
                       videoInfo: {
                         thumbnail: video.thumbnail,
-                        date: formatDate(video.publishedAt),
+                        date: formatDate(video.upload_date),
                         title: video.title,
                         views: formatNumber(video.viewCount) + "회",
                         commentRate: video.commentRate,
@@ -268,7 +268,7 @@ const VideoPage: React.FC<VideoPageProps> = ({
                     state: {
                       videoInfo: {
                         thumbnail: video.thumbnail,
-                        date: formatDate(video.publishedAt),
+                        date: formatDate(video.upload_date),
                         title: video.title,
                         views: formatNumber(video.viewCount) + "회",
                         commentRate: video.commentRate,

@@ -15,6 +15,8 @@ interface CommentSummary {
   positive_ratio: number;
   is_deleted: boolean;
   created_at: string;
+  upload_date?: string; // ← 추가
+  title?: string; // ← 추가
 }
 
 // API 응답 타입 정의
@@ -32,6 +34,15 @@ interface VideoInfo {
   commentRate: string;
   likeRate: string;
 }
+
+// Reaction 문구 및 색상 함수
+const getReactionLabel = (ratio: number) => {
+  if (ratio >= 80) return { label: '매우 긍정적', color: '#278eff' };
+  if (ratio >= 60) return { label: '긍정적', color: '#278eff' };
+  if (ratio >= 40) return { label: '복합적', color: '#ffd600' };
+  if (ratio >= 20) return { label: '부정적', color: '#ff0000' };
+  return { label: '매우 부정적', color: '#ff0000' };
+};
 
 // 댓글 관리 페이지 컴포넌트
 export default function ReplyManagement() {
@@ -136,12 +147,17 @@ export default function ReplyManagement() {
   // 전달받은 영상 정보 또는 기본값 사용
   const videoInfo: VideoInfo = location.state?.videoInfo || {
     thumbnail: thumbnail,
-    date: "2025. 07. 10",
-    title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
-    views: "38,665회",
-    commentRate: "0.007%",
-    likeRate: "0.7%"
+    date: summaryData[0]?.upload_date || location.state?.upload_date || "",
+    title: summaryData[0]?.title || "",
+    views: "",
+    commentRate: "",
+    likeRate: ""
   };
+
+  // 디버깅: 전달받은 데이터 확인
+  console.log('[DEBUG] Reply_AnalysisList - location.state:', location.state);
+  console.log('[DEBUG] Reply_AnalysisList - videoInfo:', videoInfo);
+  console.log('[DEBUG] Reply_AnalysisList - videoId:', location.state?.videoId);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
@@ -306,56 +322,43 @@ export default function ReplyManagement() {
                 onPageChange={setCurrentPage}
                 renderHeader={() => (
                   <>
-                    <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
-                      Reaction
-                    </div>
-                    <div className="flex-3 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
-                      Title
-                    </div>
-                    <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
-                      Date
-                    </div>
+                    <div className="flex-1 flex justify-center items-center">Reaction</div>
+                    <div className="flex-3 flex justify-center items-center">Title</div>
+                    <div className="flex-1 flex justify-center items-center">Date</div>
                   </>
                 )}
-                renderRow={(summary, checked, onCheck) => (
-                  <div key={summary.id} className="flex flex-col border-b border-[#606265] min-w-0">
-                    <div 
-                      className="flex flex-row items-center py-2 hover:bg-[#232335] transition min-w-0 cursor-pointer"
-                      onClick={() => navigate('/reply_analysis', { 
-                        state: { 
-                          videoInfo: videoInfo,
-                          summaryData: summary
-                        }
-                      })}
+                renderRow={(summary, checked, onCheck) => {
+                  const { label, color } = getReactionLabel(summary.positive_ratio);
+                  return (
+                    <div
+                      key={summary.id}
+                      className="flex flex-row items-center py-2 border-b border-[#606265] min-w-0 hover:bg-[#232335] transition cursor-pointer"
+                      onClick={() => navigate('/reply_analysis', { state: { videoInfo, summaryData: summary } })}
                     >
-                      <div className="w-[60px] flex-shrink-0 flex items-center justify-center">
+                      <div className="w-[60px] flex-shrink-0 flex items-center justify-center" onClick={e => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           className="w-5 h-5 accent-[#ff0000]"
                           checked={checked}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            onCheck(summary.id);
-                          }}
+                          onChange={() => onCheck(summary.id)}
                         />
                       </div>
-                      <div className="flex-1 flex justify-center items-center gap-3">
-                        <div className="text-[#3b82f6] text-[15px] font-regular truncate pl-1">
-                          긍정
-                        </div>
-                        <div className="text-[#3b82f6] text-[15px] font-regular truncate">
-                          {summary.positive_ratio}%
-                        </div>
+                      <div className="flex-1 flex justify-center items-center min-w-0">
+                        <span style={{ color, fontWeight: 600 }}>{label}</span>
                       </div>
-                      <div className="flex-3 flex justify-left items-center text-[#d9d9d9] text-[15px] font-regular truncate ml-12" title={summary.summary_title}>
-                        {summary.summary_title}
+                      <div className="flex-3 flex justify-start items-center ml-16 min-w-0">
+                        <span className="text-[#d9d9d9] text-[15px] block min-w-0 w-full comment-text" title={summary.summary_title}>
+                          {summary.summary_title}
+                        </span>
                       </div>
-                      <div className="flex-1 flex justify-center items-center text-[#d9d9d9] text-[15px] font-regular">
-                        {new Date(summary.created_at).toLocaleDateString()}
+                      <div className="flex-1 flex justify-center items-center min-w-0">
+                        <span className="text-[#d9d9d9] text-[15px]">
+                          {summary.created_at ? summary.created_at.slice(0, 10) : ''}
+                        </span>
                       </div>
                     </div>
-                  </div>
-                )}
+                  );
+                }}
               />
             )}
 

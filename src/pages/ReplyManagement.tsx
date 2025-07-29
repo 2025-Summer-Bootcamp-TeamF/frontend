@@ -62,6 +62,12 @@ export default function ReplyManagement() {
   const isClassifyingRef = useRef(false);
   const classifyJobIdRef = useRef<string | null>(null);
 
+  // 페이지 변경 시 상태 유지
+  useEffect(() => {
+    // 페이지가 변경되어도 검색어와 탭 상태는 유지
+    // 체크박스 상태도 유지 (필요한 경우에만 초기화)
+  }, [currentPage]);
+
   // 체크박스 상태 관리
   const [checkedComments, setCheckedComments] = useState<Set<number>>(
     new Set()
@@ -246,6 +252,8 @@ export default function ReplyManagement() {
       const endpoint = `${baseUrl}/api/videos/${currentVideoId}/comments/negative`;
       const token = localStorage.getItem("token");
 
+      console.log("부정 댓글 API 호출:", endpoint);
+
       const response = await fetch(endpoint, {
         method: "GET",
         headers: {
@@ -254,11 +262,14 @@ export default function ReplyManagement() {
         },
       });
 
+      console.log("부정 댓글 API 응답 상태:", response.status);
+
       if (!response.ok) {
         throw new Error(`부정 댓글 API 요청 실패: ${response.status}`);
       }
 
       const responseData = await response.json();
+      console.log("부정 댓글 API 응답 데이터:", responseData);
 
       if (responseData.data && Array.isArray(responseData.data)) {
         const formattedComments: Comment[] = responseData.data.map(
@@ -272,22 +283,16 @@ export default function ReplyManagement() {
             checked: false,
           })
         );
+        console.log("부정 댓글 포맷팅 완료:", formattedComments.length, "개");
         setNegativeComments(formattedComments);
       } else {
+        console.log("부정 댓글 데이터 없음");
         setNegativeComments([]);
       }
     } catch (error) {
       console.error("❌ 부정 댓글 API 오류:", error);
-      // 에러 시 임시 데이터 사용
-      setNegativeComments(
-        Array.from({ length: 100 }, (_, index) => ({
-          id: index + 1,
-          account: "Kim Hanjooo_",
-          comment: "부정적인 댓글 예시입니다",
-          date: "2019-08-21",
-          checked: false,
-        }))
-      );
+      setError("부정 댓글을 불러오는데 실패했습니다.");
+      setNegativeComments([]);
     } finally {
       setIsLoading(false);
     }
@@ -307,7 +312,7 @@ export default function ReplyManagement() {
     }
   }, [videoId]);
 
-  // 탭 변경 시 체크된 댓글 초기화
+  // 탭 변경 시에만 체크된 댓글 초기화
   useEffect(() => {
     setCheckedComments(new Set());
     setCurrentPage(1);
@@ -346,11 +351,37 @@ export default function ReplyManagement() {
           } 댓글로 이동되었습니다.`
         );
 
-        // 댓글 목록 새로고침
+        // 선택된 댓글들을 현재 탭에서 제거
+        const selectedComments = currentComments.filter(comment => 
+          selectedIds.includes(comment.id)
+        );
+
         if (activeTab === "positive") {
-          fetchPositiveComments(false);
+          // 긍정 → 부정 이동: 긍정 댓글에서 제거
+          setPositiveComments(prev => 
+            prev.filter(comment => !selectedIds.includes(comment.id))
+          );
+          // 부정 댓글에 추가 (comment_type을 2로 변경)
+          setNegativeComments(prev => [
+            ...selectedComments.map(comment => ({
+              ...comment,
+              comment_type: 2
+            })),
+            ...prev
+          ]);
         } else {
-          fetchNegativeComments();
+          // 부정 → 긍정 이동: 부정 댓글에서 제거
+          setNegativeComments(prev => 
+            prev.filter(comment => !selectedIds.includes(comment.id))
+          );
+          // 긍정 댓글에 추가 (comment_type을 1로 변경)
+          setPositiveComments(prev => [
+            ...selectedComments.map(comment => ({
+              ...comment,
+              comment_type: 1
+            })),
+            ...prev
+          ]);
         }
 
         setCheckedComments(new Set());
@@ -423,12 +454,16 @@ export default function ReplyManagement() {
 
       if (response.ok) {
         const result = await response.json();
-        alert(
-          `${result.deleted || selectedIds.length}개의 댓글이 삭제되었습니다.`
-        );
+        const message = result.message || `${result.dbDeleted || selectedIds.length}개의 댓글이 삭제되었습니다.`;
+        alert(message);
 
-        // 부정 댓글 목록 새로고침
-        fetchNegativeComments();
+        // 선택된 댓글들을 현재 탭에서 즉시 제거
+        if (activeTab === "negative") {
+          setNegativeComments(prev => 
+            prev.filter(comment => !selectedIds.includes(comment.id))
+          );
+        }
+
         setCheckedComments(new Set());
       } else {
         const errorData = await response.json().catch(() => ({}));
@@ -451,18 +486,64 @@ export default function ReplyManagement() {
     setCheckedComments(new Set());
   };
 
-  // 현재 활성 탭의 댓글 데이터
-  const currentComments =
-    activeTab === "positive" ? positiveComments : negativeComments;
+  // 페이지 변경 핸들러
+  const handlePageChange = (page: number) => {
+    // 유효한 페이지 범위인지 확인
+    const maxPage = Math.ceil(currentComments.length / COMMENTS_PER_PAGE);
+    if (page >= 1 && page <= maxPage) {
+      setCurrentPage(page);
+      console.log(`페이지 변경: ${page} (최대: ${maxPage})`);
+    } else {
+      console.log(`잘못된 페이지 번호: ${page} (최대: ${maxPage})`);
+    }
+  };
 
-  // 현재 페이지의 댓글들
-  const pagedComments = currentComments.slice(
-    (currentPage - 1) * COMMENTS_PER_PAGE,
-    currentPage * COMMENTS_PER_PAGE
-  );
+  // 현재 활성 탭의 댓글 데이터 (최신순 정렬)
+  const currentComments = (activeTab === "positive" ? positiveComments : negativeComments)
+    .sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return dateB - dateA; // 최신순 정렬
+    });
+
+  // 현재 페이지의 댓글들 (페이지 범위 계산 수정)
+  const startIndex = (currentPage - 1) * COMMENTS_PER_PAGE;
+  const endIndex = startIndex + COMMENTS_PER_PAGE;
+  const pagedComments = currentComments.slice(startIndex, endIndex);
+
+  // 디버깅을 위한 로그
+  console.log("페이지네이션 디버그:", {
+    currentPage,
+    totalComments: currentComments.length,
+    startIndex,
+    endIndex,
+    pagedCommentsLength: pagedComments.length,
+    activeTab
+  });
 
   // 전체 페이지 수 계산
   const totalPages = Math.ceil(currentComments.length / COMMENTS_PER_PAGE);
+
+  // 페이지 유효성 검사 및 자동 리셋
+  useEffect(() => {
+    if (currentComments.length > 0 && currentPage > totalPages && totalPages > 0) {
+      console.log(`페이지 범위 초과, 1페이지로 리셋 (현재: ${currentPage}, 최대: ${totalPages})`);
+      setCurrentPage(1);
+    }
+  }, [currentComments.length, currentPage, totalPages]);
+
+  // 데이터 상태 디버깅
+  useEffect(() => {
+    console.log("데이터 상태 업데이트:", {
+      positiveCommentsLength: positiveComments.length,
+      negativeCommentsLength: negativeComments.length,
+      currentTab: activeTab,
+      currentCommentsLength: currentComments.length,
+      pagedCommentsLength: pagedComments.length,
+      currentPage,
+      totalPages
+    });
+  }, [positiveComments, negativeComments, activeTab, currentComments, pagedComments, currentPage, totalPages]);
 
   // 개별 체크박스 토글
   const handleCheck = (commentId: number) => {
@@ -477,16 +558,29 @@ export default function ReplyManagement() {
 
   // 전체 체크박스 토글
   const handleCheckAll = () => {
-    if (checkedComments.size === pagedComments.length) {
-      setCheckedComments(new Set());
+    const currentPageCommentIds = new Set(pagedComments.map((c) => c.id));
+    const allCurrentPageChecked = pagedComments.every((comment) =>
+      checkedComments.has(comment.id)
+    );
+
+    if (allCurrentPageChecked) {
+      // 현재 페이지의 모든 댓글 체크 해제
+      const newChecked = new Set(checkedComments);
+      currentPageCommentIds.forEach((id) => newChecked.delete(id));
+      setCheckedComments(newChecked);
     } else {
-      setCheckedComments(new Set(pagedComments.map((c) => c.id)));
+      // 현재 페이지의 모든 댓글 체크
+      const newChecked = new Set(checkedComments);
+      currentPageCommentIds.forEach((id) => newChecked.add(id));
+      setCheckedComments(newChecked);
     }
   };
 
-  // 전체 체크 상태 확인
+  // 전체 체크 상태 확인 (현재 페이지의 모든 댓글이 체크되어 있는지)
   const allChecked =
-    pagedComments.length > 0 && checkedComments.size === pagedComments.length;
+    pagedComments.length > 0 && pagedComments.every((comment) =>
+      checkedComments.has(comment.id)
+    );
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
@@ -685,17 +779,27 @@ export default function ReplyManagement() {
 
             {/* 댓글 테이블 */}
             {!isLoading && !error && (
-              <CommentTable
-                comments={pagedComments}
-                checkedComments={checkedComments}
-                onCheck={handleCheck}
-                allChecked={allChecked}
-                onCheckAll={handleCheckAll}
-                avatar={avatar}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
+              <>
+                {currentComments.length > 0 ? (
+                  <CommentTable
+                    comments={pagedComments}
+                    checkedComments={checkedComments}
+                    onCheck={handleCheck}
+                    allChecked={allChecked}
+                    onCheckAll={handleCheckAll}
+                    avatar={avatar}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                ) : (
+                  <div className="flex justify-center items-center py-20">
+                    <div className="text-[#d9d9d9] text-[18px]">
+                      {activeTab === "positive" ? "긍정" : "부정"} 댓글이 없습니다.
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
