@@ -6,7 +6,7 @@ interface CommentTableProps {
   onCheck: (commentId: number) => void;
   allChecked: boolean;
   onCheckAll: () => void;
-  avatar: string;
+  avatar?: string;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -24,7 +24,7 @@ const CommentTable: React.FC<CommentTableProps> = ({
   onCheck,
   allChecked,
   onCheckAll,
-  avatar,
+  avatar = "",
   currentPage,
   totalPages,
   onPageChange,

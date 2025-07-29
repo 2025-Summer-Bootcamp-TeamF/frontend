@@ -295,9 +295,9 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
       }
     });
   }
-  const maxDislikes = allIndividualDislikes.length > 0 ? Math.max(...allIndividualDislikes) : 0;
+//  const maxDislikes = allIndividualDislikes.length > 0 ? Math.max(...allIndividualDislikes) : 0;
   // 실제 최대값에 약간의 여유를 주어 Y축 설정 (최대값의 120%로 설정)
-  const maxValue = maxDislikes > 0 ? Math.ceil(maxDislikes * 1.2) : 100;
+ // const maxValue = maxDislikes > 0 ? Math.ceil(maxDislikes * 1.2) : 100;
 
   return (
     <div
