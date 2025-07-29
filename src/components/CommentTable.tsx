@@ -12,6 +12,7 @@ interface CommentTableProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   renderRow?: (comment: any, checked: boolean, onCheck: (id: number) => void) => React.ReactNode;
+  renderHeader?: () => React.ReactNode;
 }
 
 const CommentTable: React.FC<CommentTableProps> = ({
@@ -24,7 +25,8 @@ const CommentTable: React.FC<CommentTableProps> = ({
   currentPage,
   totalPages,
   onPageChange,
-  renderRow
+  renderRow,
+  renderHeader
 }) => (
   <div
     className="flex flex-col bg-[#1c2023] w-full h-full pt-4 pb-2 pr-2 pl-2 rounded-[10px] overflow-y-auto"
@@ -41,16 +43,19 @@ const CommentTable: React.FC<CommentTableProps> = ({
           onChange={onCheckAll}
         />
       </div>
-      {/* 헤더 커스텀: renderRow가 있으면 children에서 헤더를 직접 그리도록 유도할 수도 있음 */}
-      <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
-        Account
-      </div>
-      <div className="flex-3 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
-        Comment
-      </div>
-      <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
-        Date
-      </div>
+      {renderHeader ? renderHeader() : (
+        <>
+          <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
+            Account
+          </div>
+          <div className="flex-3 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
+            Comment
+          </div>
+          <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
+            Date
+          </div>
+        </>
+      )}
     </div>
 
     {/* 댓글 목록 */}

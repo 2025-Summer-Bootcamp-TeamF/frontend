@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import thumbnail from "../assets/thumbnail1.png";
 import arrow from "../assets/arrow.png";
@@ -14,9 +15,28 @@ interface VideoInfo {
   likeRate: string;
 }
 
+// AI 분석 결과 타입 정의
+interface AnalysisResult {
+  summary_title: string;
+  overall_summary_one_line: string;
+  positive_summary_one_line: string;
+  positive_keywords: Array<{
+    keyword: string;
+    description: string;
+  }>;
+  negative_summary_one_line: string;
+  negative_keywords: Array<{
+    keyword: string;
+    description: string;
+  }>;
+}
+
 export default function ReplyAnalysis() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // 전달받은 영상 정보 또는 기본값 사용
   const videoInfo: VideoInfo = location.state?.videoInfo || {
@@ -27,12 +47,146 @@ export default function ReplyAnalysis() {
     commentRate: "0.007%",
     likeRate: "0.7%"
   };
-  
-  // 감정 분석 결과 (긍정 84%, 부정 16%)
-  const positivePercentage = 84;
-  const negativePercentage = 16;
+
+  // 분석 데이터 로딩
+  useEffect(() => {
+    const fetchAnalysisData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // summaryData에서 분석 결과 추출
+        const summaryData = location.state?.summaryData;
+        if (summaryData && summaryData.summary) {
+          const parsedResult = JSON.parse(summaryData.summary);
+          setAnalysisData(parsedResult);
+        } else {
+          setError('분석 데이터가 없습니다.');
+        }
+      } catch (err) {
+        console.error('분석 데이터 로딩 실패:', err);
+        setError('분석 데이터를 불러오는데 실패했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalysisData();
+  }, [location.state?.summaryData]);
+
+  // 긍정/부정 비율 계산 (기본값 또는 분석 데이터에서 계산)
+  const getSentimentPercentages = () => {
+    if (!analysisData) {
+      return { positive: 84, negative: 16 };
+    }
+    
+    // summaryData에서 positive_ratio 사용
+    const summaryData = location.state?.summaryData;
+    if (summaryData && summaryData.positive_ratio !== undefined) {
+      const positive = summaryData.positive_ratio;
+      const negative = 100 - positive;
+      return { positive, negative };
+    }
+    
+    // fallback: positive_keywords와 negative_keywords의 개수로 비율 계산
+    const positiveCount = analysisData.positive_keywords.length;
+    const negativeCount = analysisData.negative_keywords.length;
+    const total = positiveCount + negativeCount;
+    
+    if (total === 0) return { positive: 50, negative: 50 };
+    
+    const positive = Math.round((positiveCount / total) * 100);
+    const negative = 100 - positive;
+    
+    return { positive, negative };
+  };
+
+  const { positive: positivePercentage, negative: negativePercentage } = getSentimentPercentages();
   const isPositiveDominant = positivePercentage > negativePercentage;
-  
+
+  // 도넛 차트 렌더링
+  const renderDonutChart = () => {
+    const radius = 80;
+    const strokeWidth = 20;
+    const circumference = 2 * Math.PI * radius;
+    
+    const positiveOffset = circumference - (positivePercentage / 100) * circumference;
+    
+    return (
+      <div className="flex flex-col justify-center items-center w-full h-[370px]">
+        <div className="z-0 w-full h-full rounded-2xl bg-[#1c2023] p-8 flex flex-col items-center justify-center">
+          <div className="relative">
+            <svg width="200" height="200" className="transform -rotate-90">
+              {/* 배경 원 */}
+              <circle
+                cx="100"
+                cy="100"
+                r={radius}
+                fill="none"
+                stroke="#ff0000"
+                strokeWidth={strokeWidth}
+              />
+              {/* 긍정적 반응 */}
+              <circle
+                cx="100"
+                cy="100"
+                r={radius}
+                fill="none"
+                stroke="#278eff"
+                strokeWidth={strokeWidth}
+                strokeDasharray={circumference}
+                strokeDashoffset={positiveOffset}
+                strokeLinecap="round"
+              />
+            </svg>
+            {/* 중앙 텍스트 */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className="text-[32px] font-bold text-white">{positivePercentage}%</div>
+              <div className="text-[16px] text-gray-400">긍정</div>
+            </div>
+          </div>
+          {/* 범례 */}
+          <div className="flex gap-6 mt-6">
+            <div className="flex items-center">
+              <div className="w-4 h-4 bg-[#278eff] rounded-full mr-2"></div>
+              <span className="text-white">긍정 ({positivePercentage}%)</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-4 h-4 bg-[#ff0000] rounded-full mr-2"></div>
+              <span className="text-white">부정 ({negativePercentage}%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
+        <Sidebar />
+        <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full">
+          <div className="flex items-center justify-center w-full">
+            <div className="text-[24px] text-white">분석 데이터를 불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
+        <Sidebar />
+        <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full">
+          <div className="flex items-center justify-center w-full">
+            <div className="text-[24px] text-red-500">오류: {error}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
       <style
@@ -89,9 +243,7 @@ export default function ReplyAnalysis() {
             </div>
 
             {/* 감정 분석 도넛 차트 */}
-            <div className="flex flex-col justify-center items-center w-full h-[370px]">
-              <div className="z-0 w-full h-full rounded-2xl bg-[#1c2023]"></div>
-            </div>
+            {renderDonutChart()}
           </div>
         </div>
 
@@ -114,10 +266,7 @@ export default function ReplyAnalysis() {
                   ? 'text-[#278eff]' 
                   : 'text-[#ff0000]'
               }`}>
-                → {isPositiveDominant 
-                  ? '자극적 연출이라는 지적과 함께 언론 신뢰도 하락 우려가 있음.'
-                  : '부정적인 반응이 우세하여 즉시 대응이 필요한 상황입니다.'
-                }
+                → {analysisData?.overall_summary_one_line || '분석 데이터가 없습니다.'}
               </div>
             </div>
 
@@ -128,67 +277,45 @@ export default function ReplyAnalysis() {
                 긍정적인 반응
               </div>
               
-              {/* First Point */}
-              <div className="flex justify-between items-center mb-6">
-                <span className="text-[#d9d9d9] text-[15px] font-thin mr-2 items-center text-right">
-                  기존 뉴스 형식에서 벗어난 새로운 보도 방식이라는 평가
-                </span>
-                {/* '미학적 연출' 태그와 연결된 듯한 원 장식 */}
-                <div className="relative flex items-center w-[12vw] h-[5vh]">
-                  {/* 메인 태그(미학적 연출) 위치 기준으로 원 배치 */}
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#278eff] rounded-full shadow-lg"></span>
-                  <span className="absolute left-8 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#60a5fa] rounded-full opacity-80"></span>
-                  <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#93c5fd] rounded-full opacity-60"></span>
-                  <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#bae6fd] rounded-full opacity-40"></span>
-                </div>
-                <div className="flex gap-4">
-                  <span className="bg-[#278eff] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 미학적 연출</span>
-                  <span className="bg-[#278eff] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 감정적 몰입</span>
-                </div>
-                <div className="relative flex items-center w-[12vw] h-[5vh]" style={{scale: "-1"}}>
-                  {/* 메인 태그(미학적 연출) 위치 기준으로 원 배치 */}
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#278eff] rounded-full shadow-lg"></span>
-                  <span className="absolute left-8 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#60a5fa] rounded-full opacity-80"></span>
-                  <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#93c5fd] rounded-full opacity-60"></span>
-                  <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#bae6fd] rounded-full opacity-40"></span>
-                </div>
-                <span className="text-[#d9d9d9] text-[15px] font-thin ml-2 items-center text-left">
-                  시청자가 보도 내용에 감정적으로 이입하거나 몰입함을 느낌
-                </span>
+              {/* Positive Keywords */}
+              <div className="flex flex-row">
+              <div className="grid gap-4 mb-6">
+                {analysisData?.positive_keywords.slice(0, 2).map((item, index) => (
+                  <div key={index} className="flex justify-between items-center">
+                    <span className="text-[#d9d9d9] text-[12px] font-thin mr-2 items-center text-right">
+                      {item.description}
+                    </span>
+                    <div className="relative flex items-center w-[4vw] h-[4vh]">
+                      <span className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#278eff] rounded-full shadow-lg"></span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#60a5fa] rounded-full opacity-80"></span>
+                      <span className="absolute left-7 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#93c5fd] rounded-full opacity-60"></span>
+                      <span className="absolute left-10 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#bae6fd] rounded-full opacity-40"></span>
+                    </div>
+                    <span className="bg-[#278eff] text-[#ffffff] rounded-xl w-[6vw] text-[14px] p-1 font-regular text-center"># {item.keyword}</span>
+                  </div>
+                ))}
               </div>
-              
-              {/* Second Point */}
-              <div className="flex items-center mb-6">
-                <span className="text-[#d9d9d9] text-[15px] font-thin mr-2 items-center text-right">
-                  단순한 사실 전달이 아닌 이야기 구조로 사건을 전달함
-                </span>
-                <div className="relative flex items-center w-[12vw] h-[5vh]">
-                  {/* 메인 태그(미학적 연출) 위치 기준으로 원 배치 */}
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#278eff] rounded-full shadow-lg"></span>
-                  <span className="absolute left-8 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#60a5fa] rounded-full opacity-80"></span>
-                  <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#93c5fd] rounded-full opacity-60"></span>
-                  <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#bae6fd] rounded-full opacity-40"></span>
-                </div>
-                <div className="flex gap-4">
-                  <span className="bg-[#278eff] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 창의적 보도</span>
-                  <span className="bg-[#278eff] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 스토리텔링</span>
-                </div>
-                <div className="relative flex items-center w-[12vw] h-[5vh]" style={{scale: "-1"}}>
-                  {/* 메인 태그(미학적 연출) 위치 기준으로 원 배치 */}
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#278eff] rounded-full shadow-lg"></span>
-                  <span className="absolute left-8 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#60a5fa] rounded-full opacity-80"></span>
-                  <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#93c5fd] rounded-full opacity-60"></span>
-                  <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#bae6fd] rounded-full opacity-40"></span>
-                </div>
-                <span className="text-[#d9d9d9] text-[15px] font-thin ml-2 items-center text-left">
-                  시각적, 음악적 연출이 예술적으로 구성되어 있다는 반응
-                </span>
+              <div className="grid gap-4 mb-6">
+                {analysisData?.positive_keywords.slice(2, 4).map((item, index) => (
+                  <div key={index} className="flex justify-between items-center">
+                    <span className="bg-[#278eff] text-[#ffffff] rounded-xl w-[6vw] text-[14px] p-1 font-regular text-center"># {item.keyword}</span>
+                    <div className="relative flex items-center w-[4vw] h-[4vh]" style={{scale: "-1"}}>
+                      <span className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#278eff] rounded-full shadow-lg"></span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#60a5fa] rounded-full opacity-80"></span>
+                      <span className="absolute left-7 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#93c5fd] rounded-full opacity-60"></span>
+                      <span className="absolute left-10 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#bae6fd] rounded-full opacity-40"></span>
+                    </div>
+                    <span className="text-[#d9d9d9] text-[12px] font-thin mr-2 items-center text-left">
+                      {item.description}
+                    </span>
+                  </div>
+                ))}
+              </div>
               </div>
               
               {/* Summary */}
               <div className="text-[#d9d9d9] text-[23px] font-medium mt-8 text-right">
-                캐릭터 중심의 보도 방식을 감정 몰입과 창의적 접근으로 긍정적으로 평가함.<br />
-                기존 뉴스보다 전달력이 뛰어났다는 반응도 있음.
+                {analysisData?.positive_summary_one_line || '긍정적 반응에 대한 요약이 없습니다.'}
               </div>
             </div>
 
@@ -199,66 +326,36 @@ export default function ReplyAnalysis() {
                 부정적인 반응
               </div>
               
-              {/* First Point */}
-              <div className="flex items-center mb-6">
-                <span className="text-[#d9d9d9] text-[15px] font-thin mr-2 items-center text-right">
-                  기존 뉴스 형식에서 벗어난 새로운 보도 방식이라는 평가
-                </span>
-                <div className="relative flex items-center w-[12vw] h-[5vh]">
-                  {/* 메인 태그(미학적 연출) 위치 기준으로 원 배치 */}
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff0000] rounded-full shadow-lg"></span>
-                  <span className="absolute left-8 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff4d4f] rounded-full opacity-80"></span>
-                  <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff7a7a] rounded-full opacity-60"></span>
-                  <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ffb3b3] rounded-full opacity-40"></span>
-                </div>
-                <div className="flex gap-4">
-                  <span className="bg-[#ff0000] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 미학적 연출</span>
-                  <span className="bg-[#ff0000] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 감정적 몰입</span>
-                </div>
-                <div className="relative flex items-center w-[12vw] h-[5vh]" style={{scale: "-1"}}>
-                  {/* 메인 태그(미학적 연출) 위치 기준으로 원 배치 */}
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff0000] rounded-full shadow-lg"></span>
-                  <span className="absolute left-8 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff4d4f] rounded-full opacity-80"></span>
-                  <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff7a7a] rounded-full opacity-60"></span>
-                  <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ffb3b3] rounded-full opacity-40"></span>
-                </div>
-                <span className="text-[#d9d9d9] text-[15px] font-thin ml-2 items-center text-left">
-                  시청자가 보도 내용에 감정적으로 이입하거나 몰입함을 느낌
-                </span>
-              </div>
-              
-              {/* Second Point */}
-              <div className="flex items-center mb-6">
-                <span className="text-[#d9d9d9] text-[15px] font-thin mr-2 items-center text-right">
-                  단순한 사실 전달이 아닌 이야기 구조로 사건을 전달함
-                </span>
-                <div className="relative flex items-center w-[12vw] h-[5vh]">
-                  {/* 메인 태그(미학적 연출) 위치 기준으로 원 배치 */}
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff0000] rounded-full shadow-lg"></span>
-                  <span className="absolute left-8 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff4d4f] rounded-full opacity-80"></span>
-                  <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff7a7a] rounded-full opacity-60"></span>
-                  <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ffb3b3] rounded-full opacity-40"></span>
-                </div>
-                <div className="flex gap-4">
-                  <span className="bg-[#ff0000] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 창의적 보도</span>
-                  <span className="bg-[#ff0000] text-[#ffffff] rounded-xl w-[8vw] text-[20px] p-1 font-regular text-center"># 스토리텔링</span>
-                </div>
-                <div className="relative flex items-center w-[12vw] h-[5vh]" style={{scale: "-1"}}>
-                  {/* 메인 태그(미학적 연출) 위치 기준으로 원 배치 */}
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff0000] rounded-full shadow-lg"></span>
-                  <span className="absolute left-8 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff4d4f] rounded-full opacity-80"></span>
-                  <span className="absolute left-14 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ff7a7a] rounded-full opacity-60"></span>
-                  <span className="absolute left-20 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#ffb3b3] rounded-full opacity-40"></span>
-                </div>
-                <span className="text-[#d9d9d9] text-[15px] font-thin ml-2 items-center text-left">
-                  시각적, 음악적 연출이 예술적으로 구성되어 있다는 반응
-                </span>
+              {/* Negative Keywords */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                {analysisData?.negative_keywords.slice(0, 4).map((item, index) => (
+                  <div key={index} className="flex justify-between items-center">
+                    <span className="text-[#d9d9d9] text-[12px] font-thin mr-2 items-center text-right">
+                      {item.description}
+                    </span>
+                    <div className="relative flex items-center w-[8vw] h-[4vh]">
+                      <span className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ff0000] rounded-full shadow-lg"></span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ff4d4f] rounded-full opacity-80"></span>
+                      <span className="absolute left-7 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ff7a7a] rounded-full opacity-60"></span>
+                      <span className="absolute left-10 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ffb3b3] rounded-full opacity-40"></span>
+                    </div>
+                    <span className="bg-[#ff0000] text-[#ffffff] rounded-xl w-[6vw] text-[14px] p-1 font-regular text-center"># {item.keyword}</span>
+                    <div className="relative flex items-center w-[8vw] h-[4vh]" style={{scale: "-1"}}>
+                      <span className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ff0000] rounded-full shadow-lg"></span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ff4d4f] rounded-full opacity-80"></span>
+                      <span className="absolute left-7 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ff7a7a] rounded-full opacity-60"></span>
+                      <span className="absolute left-10 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ffb3b3] rounded-full opacity-40"></span>
+                    </div>
+                    <span className="text-[#d9d9d9] text-[12px] font-thin ml-2 items-center text-left">
+                      {item.description}
+                    </span>
+                  </div>
+                ))}
               </div>
               
               {/* Summary */}
               <div className="text-[#d9d9d9] text-[23px] font-medium mt-8 text-right">
-                캐릭터 중심의 보도 방식을 감정 몰입과 창의적 접근으로 긍정적으로 평가함.<br />
-                기존 뉴스보다 전달력이 뛰어났다는 반응도 있음.
+                {analysisData?.negative_summary_one_line || '부정적 반응에 대한 요약이 없습니다.'}
               </div>
             </div>
           </div>

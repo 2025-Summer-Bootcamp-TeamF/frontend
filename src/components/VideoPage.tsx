@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 interface VideoData {
   videoId: string;
+  video_id: string; // YouTube video ID 추가
   title: string;
   thumbnail: string;
   publishedAt: string;
@@ -192,6 +193,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ searchTitle: propSearchTitle }) =
             <button
               onClick={() => navigate('/reply_analysis_list', { 
                 state: { 
+                  videoId: video.videoId, // 실제 YouTube video ID 전달 (video.id와 동일)
                   videoInfo: {
                     thumbnail: video.thumbnail,
                     date: formatDate(video.publishedAt),
