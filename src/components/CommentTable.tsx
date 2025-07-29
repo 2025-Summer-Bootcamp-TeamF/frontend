@@ -15,6 +15,7 @@ interface CommentTableProps {
     checked: boolean,
     onCheck: (id: number) => void
   ) => React.ReactNode;
+  renderHeader?: () => React.ReactNode;
 }
 
 const CommentTable: React.FC<CommentTableProps> = ({
