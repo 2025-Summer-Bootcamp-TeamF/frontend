@@ -293,7 +293,7 @@ export default function CategorySegmentation() {
             >
               {/* 카드 컨테이너 */}
               <div className="flex gap-4 pb-4">
-                {category.videos.map((video, index) => (
+                {category.videos.map((video, _index) => (
                   <div
                     key={video.id}
                     className="bg-[#1c2023] rounded-2xl p-5 border-2 border-[rgba(255,255,255,0.3)]"

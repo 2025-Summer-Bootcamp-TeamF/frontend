@@ -24,7 +24,7 @@ const CommentTable: React.FC<CommentTableProps> = ({
   onCheck,
   allChecked,
   onCheckAll,
-  avatar = "",
+  //avatar
   currentPage,
   totalPages,
   onPageChange,
