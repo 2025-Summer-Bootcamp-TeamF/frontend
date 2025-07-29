@@ -159,6 +159,108 @@ export default function ReplyManagement() {
   console.log('[DEBUG] Reply_AnalysisList - videoInfo:', videoInfo);
   console.log('[DEBUG] Reply_AnalysisList - videoId:', location.state?.videoId);
 
+  // 댓글 분석 요약 삭제 함수
+  const handleDeleteSummary = async (summaryId: number) => {
+    if (!confirm('이 분석 결과를 삭제하시겠습니까?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const videoId = location.state?.videoId;
+      if (!videoId) {
+        alert('영상 정보가 없습니다.');
+        return;
+      }
+
+      const response = await fetch(
+        `http://localhost:8000/api/videos/${videoId}/comments/summary/${summaryId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        }
+      );
+
+      if (response.ok) {
+        // 성공적으로 삭제되면 목록에서 제거
+        setSummaryData(prev => prev.filter(summary => summary.id !== summaryId));
+        alert("분석 결과가 삭제되었습니다.");
+      } else {
+        const errorData = await response.json();
+        alert(`삭제 실패: ${errorData.message || "알 수 없는 오류"}`);
+      }
+    } catch (error) {
+      console.error("분석 결과 삭제 중 오류:", error);
+      alert("분석 결과 삭제 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 선택된 항목들 일괄 삭제 함수
+  const handleDeleteSelected = async () => {
+    const selectedIds = Array.from(checkedComments);
+    if (selectedIds.length === 0) {
+      alert('삭제할 항목을 선택해주세요.');
+      return;
+    }
+
+    if (!confirm(`선택한 ${selectedIds.length}개의 분석 결과를 삭제하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const videoId = location.state?.videoId;
+      if (!videoId) {
+        alert('영상 정보가 없습니다.');
+        return;
+      }
+
+      let successCount = 0;
+      let failCount = 0;
+
+      // 각 선택된 항목을 순차적으로 삭제
+      for (const summaryId of selectedIds) {
+        try {
+          const response = await fetch(
+            `http://localhost:8000/api/videos/${videoId}/comments/summary/${summaryId}`,
+            {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: token ? `Bearer ${token}` : "",
+              },
+            }
+          );
+
+          if (response.ok) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch (error) {
+          console.error(`분석 결과 ${summaryId} 삭제 중 오류:`, error);
+          failCount++;
+        }
+      }
+
+      // 성공적으로 삭제된 항목들을 목록에서 제거
+      setSummaryData(prev => prev.filter(summary => !selectedIds.includes(summary.id)));
+      setCheckedComments(new Set());
+
+      if (failCount === 0) {
+        alert(`${successCount}개의 분석 결과가 삭제되었습니다.`);
+      } else {
+        alert(`${successCount}개 삭제 성공, ${failCount}개 삭제 실패`);
+      }
+    } catch (error) {
+      console.error("일괄 삭제 중 오류:", error);
+      alert("일괄 삭제 중 오류가 발생했습니다.");
+    }
+  };
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
       <style
@@ -285,7 +387,11 @@ export default function ReplyManagement() {
               
               {/* 액션 버튼들 */}
               <div className="flex">
-                <button className="w-[120px] h-[55px] px-6 py-3 bg-[#555] text-white rounded-[10px] text-[18px] font-semibold hover:bg-[#333] transition-colors flex justify-center items-center gap-2">
+                <button 
+                  onClick={handleDeleteSelected}
+                  disabled={checkedComments.size === 0}
+                  className="w-[120px] h-[55px] px-6 py-3 bg-[#555] text-white rounded-[10px] text-[18px] font-semibold hover:bg-[#333] transition-colors flex justify-center items-center gap-2 disabled:bg-[#333] disabled:cursor-not-allowed"
+                >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>

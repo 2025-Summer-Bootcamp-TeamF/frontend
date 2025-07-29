@@ -113,13 +113,13 @@ export default function CategoryPage() {
         <Sidebar />
         <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full">
           <div
-            className="rounded-2xl overflow-hidden h-full px-8"
+            className="rounded-2xl w-full h-full px-8"
             style={{
               backgroundColor: "rgba(255, 255, 255, 0.15)",
               border: "1px solid rgba(255, 255, 255, 0.6)",
             }}
           >
-            <div className="flex items-center justify-center h-64">
+            <div className="flex items-center justify-center h-full">
               <div className="text-white text-xl">AI가 썸네일을 분류하고 있습니다...</div>
             </div>
           </div>

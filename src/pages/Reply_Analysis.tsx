@@ -232,16 +232,6 @@ export default function ReplyAnalysis() {
                   <img src={arrow} alt="뒤로가기" className="w-[36px] h-[28px]" />
                 </button>
               </div>
-              <VideoInfoBox
-                thumbnail={videoInfo.thumbnail}
-                date={videoInfo.date}
-                title={videoInfo.title}
-                views={videoInfo.views}
-                commentRate={videoInfo.commentRate}
-                likeRate={videoInfo.likeRate}
-                className=""
-              />
-
             </div>
             <VideoInfoBox
               thumbnail={videoInfo.thumbnail}
