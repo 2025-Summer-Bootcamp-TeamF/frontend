@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import avatar from "../assets/avatar.png";
 import thumbnail from "../assets/thumbnail1.png";
@@ -30,6 +30,7 @@ interface VideoInfo {
 export default function ReplyManagement() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { videoId } = useParams<{ videoId: string }>();
 
   // 전달받은 영상 정보 또는 기본값 사용
   const videoInfo: VideoInfo = location.state?.videoInfo || {
@@ -38,43 +39,419 @@ export default function ReplyManagement() {
     title: "[Teaser] 실리카겔 (Silica Gel) - 南宮FEFERE",
     views: "38,665회",
     commentRate: "0.007%",
-    likeRate: "0.7%"
+    likeRate: "0.7%",
   };
 
-  // 현재 활성화된 탭 상태 (긍정/부정) - 긍정적인 댓글을 기본으로 설정
+  // 현재 활성화된 탭 상태
   const [activeTab, setActiveTab] = useState<"positive" | "negative">(
     "positive"
   );
 
-  // 페이지네이션 상태 - 1페이지로 시작
+  // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
   const COMMENTS_PER_PAGE = 13;
 
-  // 긍정적인 댓글 데이터
-  const positiveComments: Comment[] = Array.from(
-    { length: 100 },
-    (_, index) => ({
-      id: index + 1,
-      account: "Kim Hanjooo_",
-      comment: "와 영상 너무 멋져요 기대됩니다",
-      date: "2019-08-21",
-      checked: index % 2 === 0,
-    })
+  // 댓글 데이터 상태
+  const [positiveComments, setPositiveComments] = useState<Comment[]>([]);
+  const [negativeComments, setNegativeComments] = useState<Comment[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // 데이터 로드 상태 추적
+  const hasInitialLoadRef = useRef(false);
+  const isClassifyingRef = useRef(false);
+  const classifyJobIdRef = useRef<string | null>(null);
+
+  // 체크박스 상태 관리
+  const [checkedComments, setCheckedComments] = useState<Set<number>>(
+    new Set()
   );
 
-  // 부정적인 댓글 데이터
-  const negativeComments: Comment[] = Array.from(
-    { length: 100 },
-    (_, index) => ({
-      id: index + 1,
-      account: "Kim Hanjooo_",
-      comment: "와 영상 너무 멋져요 기대됩니다",
-      date: "2019-08-21",
-      checked: index % 2 === 0,
-    })
-  );
+  // API에서 긍정 댓글 데이터 가져오기
+  const fetchPositiveComments = async (shouldClassify = false) => {
+    console.log("=== fetchPositiveComments 호출됨 ===");
+    console.log("videoId:", videoId);
+    console.log("shouldClassify:", shouldClassify);
+    console.log("isClassifyingRef.current:", isClassifyingRef.current);
+    console.log("호출 스택:", new Error().stack);
 
-  // 현재 활성화된 댓글 데이터
+    const currentVideoId = videoId;
+    if (!currentVideoId) {
+      setError("비디오 ID가 없습니다.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const baseUrl = "http://localhost:8000";
+      const endpoint = `${baseUrl}/api/videos/${currentVideoId}/comments/positive`;
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
+
+      console.log("API 응답 상태:", response.status);
+
+      if (!response.ok) {
+        throw new Error(`API 요청 실패: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      console.log("API 응답 데이터:", responseData);
+
+      // 댓글이 있으면 표시
+      if (responseData.data && responseData.data.length > 0) {
+        console.log("댓글이 이미 있음:", responseData.data.length, "개");
+        const formattedComments: Comment[] = responseData.data.map(
+          (comment: any, index: number) => ({
+            id: comment.youtube_comment_id || comment.id, // youtube_comment_id 사용
+            account: comment.author_name || `User_${index + 1}`,
+            comment: comment.comment || "댓글 내용 없음",
+            date: comment.comment_date
+              ? new Date(comment.comment_date).toLocaleDateString("ko-KR")
+              : "날짜 없음",
+            checked: false,
+          })
+        );
+        setPositiveComments(formattedComments);
+        setIsLoading(false);
+        return;
+      }
+
+      // 댓글이 없고 classify를 해야 하는 경우
+      console.log(
+        "댓글이 없음, shouldClassify:",
+        shouldClassify,
+        "isClassifyingRef:",
+        isClassifyingRef.current
+      );
+      if (shouldClassify && !isClassifyingRef.current) {
+        console.log("댓글이 없어서 classify API 호출");
+        isClassifyingRef.current = true;
+
+        try {
+          const classifyRes = await fetch(
+            `${baseUrl}/api/videos/${currentVideoId}/comments/classify`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: token ? `Bearer ${token}` : "",
+              },
+            }
+          );
+
+          if (classifyRes.ok) {
+            const classifyData = await classifyRes.json();
+            console.log("classify 작업 시작됨, job_id:", classifyData.job_id);
+            classifyJobIdRef.current = classifyData.job_id;
+            // 상태 확인 시작
+            checkClassifyStatus(classifyData.job_id);
+          } else {
+            throw new Error(`댓글 분류 API 실패: ${classifyRes.status}`);
+          }
+        } catch (classifyErr) {
+          console.error("classify 실패:", classifyErr);
+          isClassifyingRef.current = false;
+          setError("댓글 분류 중 오류가 발생했습니다.");
+          setIsLoading(false);
+        }
+      } else {
+        // 댓글이 없고 classify도 안 하는 경우
+        setPositiveComments([]);
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("❌ API 오류:", error);
+      setError("댓글 데이터를 불러오는데 실패했습니다.");
+      setPositiveComments([]);
+      setIsLoading(false);
+    }
+  };
+
+  // classify 작업 상태 확인 함수
+  const checkClassifyStatus = async (jobId: string) => {
+    // 현재 job이 아니면 무시
+    if (classifyJobIdRef.current !== jobId) {
+      console.log("다른 job ID, 무시함");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    const statusEndpoint = `http://localhost:8000/api/videos/${videoId}/comments/classify/status/${jobId}`;
+
+    try {
+      const response = await fetch(statusEndpoint, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
+
+      if (response.ok) {
+        const statusData = await response.json();
+        console.log("classify 작업 상태:", statusData.status);
+
+        if (statusData.status === "completed") {
+          console.log("classify 작업 완료, 댓글 다시 불러오기");
+          isClassifyingRef.current = false;
+          // 댓글 다시 불러오기 (classify 없이)
+          fetchPositiveComments(false);
+        } else if (statusData.status === "failed") {
+          console.error("classify 작업 실패");
+          isClassifyingRef.current = false;
+          setError("댓글 분류 작업이 실패했습니다.");
+          setIsLoading(false);
+        } else {
+          // waiting, active 상태면 2초 후 다시 확인
+          setTimeout(() => {
+            checkClassifyStatus(jobId);
+          }, 2000);
+        }
+      } else {
+        console.error("상태 확인 실패:", response.status);
+        isClassifyingRef.current = false;
+        setError("작업 상태 확인 실패");
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("상태 확인 중 오류:", error);
+      isClassifyingRef.current = false;
+      setError("작업 상태 확인 중 오류 발생");
+      setIsLoading(false);
+    }
+  };
+
+  // API에서 부정 댓글 데이터 가져오기
+  const fetchNegativeComments = async () => {
+    const currentVideoId = videoId;
+    if (!currentVideoId) {
+      setError("비디오 ID가 없습니다.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const baseUrl = "http://localhost:8000";
+      const endpoint = `${baseUrl}/api/videos/${currentVideoId}/comments/negative`;
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`부정 댓글 API 요청 실패: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+
+      if (responseData.data && Array.isArray(responseData.data)) {
+        const formattedComments: Comment[] = responseData.data.map(
+          (comment: any, index: number) => ({
+            id: comment.youtube_comment_id || comment.id, // youtube_comment_id 사용
+            account: comment.author_name || `User_${index + 1}`,
+            comment: comment.comment || "댓글 내용 없음",
+            date: comment.comment_date
+              ? new Date(comment.comment_date).toLocaleDateString("ko-KR")
+              : "날짜 없음",
+            checked: false,
+          })
+        );
+        setNegativeComments(formattedComments);
+      } else {
+        setNegativeComments([]);
+      }
+    } catch (error) {
+      console.error("❌ 부정 댓글 API 오류:", error);
+      // 에러 시 임시 데이터 사용
+      setNegativeComments(
+        Array.from({ length: 100 }, (_, index) => ({
+          id: index + 1,
+          account: "Kim Hanjooo_",
+          comment: "부정적인 댓글 예시입니다",
+          date: "2019-08-21",
+          checked: false,
+        }))
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 컴포넌트 마운트 시 댓글 데이터 로드 (한 번만)
+  useEffect(() => {
+    if (videoId && !hasInitialLoadRef.current) {
+      hasInitialLoadRef.current = true;
+      console.log("초기 데이터 로드");
+
+      // 긍정 댓글 로드 (처음에는 classify 시도)
+      fetchPositiveComments(true);
+
+      // 부정 댓글 로드
+      fetchNegativeComments();
+    }
+  }, [videoId]);
+
+  // 탭 변경 시 체크된 댓글 초기화
+  useEffect(() => {
+    setCheckedComments(new Set());
+    setCurrentPage(1);
+  }, [activeTab]);
+
+  // 댓글 분류 변경
+  // 댓글 분류 변경 API 연동
+  const moveComments = async () => {
+    const selectedIds = Array.from(checkedComments);
+    if (selectedIds.length === 0) {
+      alert("이동할 댓글을 선택해주세요.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:8000/api/videos/${videoId}/comments`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+          body: JSON.stringify({
+            comment_ids: selectedIds,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(
+          `${result.updated}개의 댓글이 ${
+            activeTab === "positive" ? "부정" : "긍정"
+          } 댓글로 이동되었습니다.`
+        );
+
+        // 댓글 목록 새로고침
+        if (activeTab === "positive") {
+          fetchPositiveComments(false);
+        } else {
+          fetchNegativeComments();
+        }
+
+        setCheckedComments(new Set());
+      } else {
+        const errorData = await response.json();
+        alert(`댓글 이동 실패: ${errorData.error || "알 수 없는 오류"}`);
+      }
+    } catch (error) {
+      console.error("댓글 이동 중 오류:", error);
+      alert("댓글 이동 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 댓글 삭제 API 연동
+  const deleteComments = async () => {
+    const selectedIds = Array.from(checkedComments);
+    if (selectedIds.length === 0) {
+      alert("삭제할 댓글을 선택해주세요.");
+      return;
+    }
+
+    if (!confirm(`선택한 ${selectedIds.length}개의 댓글을 삭제하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      // 토큰이 없으면 로그인 페이지로
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        navigate("/login");
+        return;
+      }
+
+      const youtubeAccessToken = localStorage.getItem("youtube_access_token");
+      console.log("YouTube 액세스 토큰:", youtubeAccessToken ? "있음" : "없음");
+      console.log("localStorage 전체 확인:", {
+        token: localStorage.getItem("token"),
+        isLoggedIn: localStorage.getItem("isLoggedIn"),
+        youtube_access_token: localStorage.getItem("youtube_access_token"),
+      });
+
+      const requestBody = {
+        comment_ids: selectedIds,
+        youtube_access_token: youtubeAccessToken, // YouTube 액세스 토큰 전송
+      };
+      console.log("삭제 요청 데이터:", requestBody);
+
+      const response = await fetch(
+        `http://localhost:8000/api/videos/${videoId}/comments`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      // 401 에러 처리
+      if (response.status === 401) {
+        // 토큰 제거
+        localStorage.removeItem("token");
+        alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+        navigate("/login");
+        return;
+      }
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(
+          `${result.deleted || selectedIds.length}개의 댓글이 삭제되었습니다.`
+        );
+
+        // 부정 댓글 목록 새로고침
+        fetchNegativeComments();
+        setCheckedComments(new Set());
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        alert(
+          `댓글 삭제 실패: ${
+            errorData.error || errorData.detail || "알 수 없는 오류"
+          }`
+        );
+      }
+    } catch (error) {
+      console.error("댓글 삭제 중 오류:", error);
+      alert("댓글 삭제 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 탭 전환 핸들러
+  const handleTabChange = (tab: "positive" | "negative") => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+    setCheckedComments(new Set());
+  };
+
+  // 현재 활성 탭의 댓글 데이터
   const currentComments =
     activeTab === "positive" ? positiveComments : negativeComments;
 
@@ -86,11 +463,6 @@ export default function ReplyManagement() {
 
   // 전체 페이지 수 계산
   const totalPages = Math.ceil(currentComments.length / COMMENTS_PER_PAGE);
-
-  // 체크박스 상태 관리
-  const [checkedComments, setCheckedComments] = useState<Set<number>>(
-    new Set()
-  );
 
   // 개별 체크박스 토글
   const handleCheck = (commentId: number) => {
@@ -139,17 +511,10 @@ export default function ReplyManagement() {
       {/* 메인 컨텐츠 영역 */}
       <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full">
         {/* 왼쪽 컨테이너 - 영상 정보 및 탭 */}
-        <div
-          className="
-            flex flex-col flex-3 w-full rounded-2xl
-            bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
-            p-10
-            "
-        >
+        <div className="flex flex-col flex-3 w-full rounded-2xl bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)] p-10">
           <div>
-            {/* 영상 썸네일 및 정보 - VideoInfoBox 컴포넌트로 대체 */}
-            <div className="relative flex flex-col ">
-              {/* 뒤로가기 버튼을 썸네일 위가 아닌 바깥쪽에 배치 */}
+            {/* 영상 썸네일 및 정보 */}
+            <div className="relative flex flex-col">
               <div>
                 <button
                   className="rounded-full items-center justify-center cursor-pointer"
@@ -184,9 +549,8 @@ export default function ReplyManagement() {
                     activeTab === "positive"
                       ? "border-[#ff0000] bg-white"
                       : "border-transparent bg-[#ffffff]"
-                  }
-                `}
-                onClick={() => setActiveTab("positive")}
+                  }`}
+                onClick={() => handleTabChange("positive")}
               >
                 <span
                   className={`text-[18.5px] font-semibold mb-1 ${
@@ -210,9 +574,8 @@ export default function ReplyManagement() {
                     activeTab === "negative"
                       ? "border-[#ff0000] bg-white"
                       : "border-transparent bg-[#ffffff]"
-                  }
-                `}
-                onClick={() => setActiveTab("negative")}
+                  }`}
+                onClick={() => handleTabChange("negative")}
               >
                 <span
                   className={`text-[18.5px] font-semibold mb-1 ${
@@ -234,13 +597,7 @@ export default function ReplyManagement() {
         </div>
 
         {/* 오른쪽 컨테이너 - 댓글 목록 */}
-        <div
-          className="
-            flex flex-col flex-7 w-full rounded-2xl 
-            bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
-            h-full min-h-0
-          "
-        >
+        <div className="flex flex-col flex-7 w-full rounded-2xl bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)] h-full min-h-0">
           <div className="p-8 flex flex-col">
             {/* 헤더 영역 */}
             <div className="flex flex-row items-center justify-between mb-6">
@@ -275,8 +632,9 @@ export default function ReplyManagement() {
               {/* 액션 버튼들 */}
               <div className="flex gap-3">
                 <button
-                  className="w-[200px] h-[55px] px-6 py-3 bg-[#555] text-white rounded-[10px] text-[18px] font-semibold hover:bg-[#333] transition-colors
-                "
+                  className="w-[200px] h-[55px] px-6 py-3 bg-[#555] text-white rounded-[10px] text-[18px] font-semibold hover:bg-[#333] transition-colors"
+                  onClick={moveComments}
+                  disabled={isLoading || checkedComments.size === 0}
                 >
                   {activeTab === "positive"
                     ? "악성 댓글로 이동"
@@ -284,8 +642,9 @@ export default function ReplyManagement() {
                 </button>
                 {activeTab === "negative" && (
                   <button
-                    className="w-[170px] h-[55px] px-6 py-3 bg-[#ff0000] text-white rounded-[10px] text-[18px] font-semibold hover:bg-[#b31217] transition-colors flex justify-center items-center gap-2
-                  "
+                    className="w-[170px] h-[55px] px-6 py-3 bg-[#ff0000] text-white rounded-[10px] text-[18px] font-semibold hover:bg-[#b31217] transition-colors flex justify-center items-center gap-2"
+                    onClick={deleteComments}
+                    disabled={isLoading || checkedComments.size === 0}
                   >
                     <svg
                       className="w-5 h-5"
@@ -306,18 +665,38 @@ export default function ReplyManagement() {
               </div>
             </div>
 
+            {/* 로딩 상태 */}
+            {isLoading && (
+              <div className="flex justify-center items-center py-20">
+                <div className="text-[#d9d9d9] text-[18px]">
+                  {activeTab === "positive" ? "긍정" : "부정"} 댓글을 불러오는
+                  중...
+                  {isClassifyingRef.current && " (댓글 분류 작업 진행 중)"}
+                </div>
+              </div>
+            )}
+
+            {/* 에러 상태 */}
+            {error && !isLoading && (
+              <div className="flex justify-center items-center py-20">
+                <div className="text-[#ff0000] text-[18px]">{error}</div>
+              </div>
+            )}
+
             {/* 댓글 테이블 */}
-            <CommentTable
-              comments={pagedComments}
-              checkedComments={checkedComments}
-              onCheck={handleCheck}
-              allChecked={allChecked}
-              onCheckAll={handleCheckAll}
-              avatar={avatar}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
+            {!isLoading && !error && (
+              <CommentTable
+                comments={pagedComments}
+                checkedComments={checkedComments}
+                onCheck={handleCheck}
+                allChecked={allChecked}
+                onCheckAll={handleCheckAll}
+                avatar={avatar}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
           </div>
         </div>
       </div>

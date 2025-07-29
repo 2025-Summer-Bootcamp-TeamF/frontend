@@ -16,7 +16,9 @@ interface VideoPageProps {
   searchTitle?: string;
 }
 
-const VideoPage: React.FC<VideoPageProps> = ({ searchTitle: propSearchTitle }) => {
+const VideoPage: React.FC<VideoPageProps> = ({
+  searchTitle: propSearchTitle,
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [videos, setVideos] = useState<VideoData[]>([]);
@@ -39,31 +41,40 @@ const VideoPage: React.FC<VideoPageProps> = ({ searchTitle: propSearchTitle }) =
           return;
         }
 
-        console.log("Fetching videos from:", "http://localhost:8000/api/channel/videos");
+        console.log(
+          "Fetching videos from:",
+          "http://localhost:8000/api/channel/videos"
+        );
 
-        const response = await fetch("http://localhost:8000/api/channel/videos", {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          "http://localhost:8000/api/channel/videos",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         console.log("Response status:", response.status);
 
         if (response.ok) {
           const data = await response.json();
           console.log("Videos data received:", data);
-          
+
           // 검색어가 있으면 필터링
           let filteredVideos = data.data || [];
           if (searchTitle) {
             filteredVideos = filteredVideos.filter((video: VideoData) =>
               video.title.toLowerCase().includes(searchTitle.toLowerCase())
             );
-            console.log(`검색어 "${searchTitle}"로 필터링된 영상 수:`, filteredVideos.length);
+            console.log(
+              `검색어 "${searchTitle}"로 필터링된 영상 수:`,
+              filteredVideos.length
+            );
           }
-          
+
           setVideos(filteredVideos);
         } else {
           const errorText = await response.text();
@@ -73,7 +84,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ searchTitle: propSearchTitle }) =
         }
       } catch (error) {
         console.error("Error fetching videos:", error);
-        if (error instanceof TypeError && error.message.includes('fetch')) {
+        if (error instanceof TypeError && error.message.includes("fetch")) {
           setError("네트워크 오류 - 백엔드 서버가 실행 중인지 확인하세요");
         } else {
           setError("비디오 데이터를 불러오는데 오류가 발생했습니다.");
@@ -95,11 +106,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ searchTitle: propSearchTitle }) =
   const formatDate = (dateString: string) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    }).replace(/\. /g, '. ').replace(/\.$/, '');
+    return date
+      .toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+      .replace(/\. /g, ". ")
+      .replace(/\.$/, "");
   };
 
   // 숫자 포맷팅 함수
@@ -210,18 +224,60 @@ const VideoPage: React.FC<VideoPageProps> = ({ searchTitle: propSearchTitle }) =
               댓글 분석
             </button>
             <button
-              onClick={() => navigate('/reply_management', { 
-                state: { 
-                  videoInfo: {
-                    thumbnail: video.thumbnail,
-                    date: formatDate(video.publishedAt),
-                    title: video.title,
-                    views: formatNumber(video.viewCount) + "회",
-                    commentRate: video.commentRate,
-                    likeRate: video.likeRate
+              onClick={async () => {
+                try {
+                  // 1. 먼저 classify API 호출
+                  const token = localStorage.getItem("token");
+                  const classifyResponse = await fetch(
+                    `http://localhost:8000/api/videos/${video.videoId}/comments/classify`,
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: token ? `Bearer ${token}` : "",
+                      },
+                    }
+                  );
+
+                  if (classifyResponse.ok) {
+                    console.log("✅ classify API 호출 성공");
+                  } else {
+                    console.error(
+                      "❌ classify API 호출 실패:",
+                      classifyResponse.status
+                    );
                   }
+
+                  // 2. ReplyManagement 페이지로 이동
+                  navigate(`/reply_management/${video.videoId}`, {
+                    state: {
+                      videoInfo: {
+                        thumbnail: video.thumbnail,
+                        date: formatDate(video.publishedAt),
+                        title: video.title,
+                        views: formatNumber(video.viewCount) + "회",
+                        commentRate: video.commentRate,
+                        likeRate: video.likeRate,
+                      },
+                    },
+                  });
+                } catch (error) {
+                  console.error("classify API 호출 중 오류:", error);
+                  // 에러가 있어도 페이지는 이동
+                  navigate(`/reply_management/${video.videoId}`, {
+                    state: {
+                      videoInfo: {
+                        thumbnail: video.thumbnail,
+                        date: formatDate(video.publishedAt),
+                        title: video.title,
+                        views: formatNumber(video.viewCount) + "회",
+                        commentRate: video.commentRate,
+                        likeRate: video.likeRate,
+                      },
+                    },
+                  });
                 }
-              })}
+              }}
               className="flex-1 bg-white hover:bg-red-50 text-red-500 py-2 rounded-lg font-medium transition-colors border border-red-500 hover:border-red-600"
               style={{ fontSize: "16px" }}
             >
@@ -236,7 +292,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ searchTitle: propSearchTitle }) =
   if (loading) {
     return (
       <div className="p-6 flex justify-center items-center min-h-96">
-        <div className="text-white text-2xl">비디오 데이터를 불러오는 중...</div>
+        <div className="text-white text-2xl">
+          비디오 데이터를 불러오는 중...
+        </div>
       </div>
     );
   }
@@ -253,10 +311,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ searchTitle: propSearchTitle }) =
     return (
       <div className="p-6 flex justify-center items-center min-h-96">
         <div className="text-gray-400 text-xl">
-          {searchTitle 
-            ? `"${searchTitle}" 검색 결과가 없습니다.` 
-            : "등록된 비디오가 없습니다."
-          }
+          {searchTitle
+            ? `"${searchTitle}" 검색 결과가 없습니다.`
+            : "등록된 비디오가 없습니다."}
         </div>
       </div>
     );
@@ -290,31 +347,35 @@ const VideoPage: React.FC<VideoPageProps> = ({ searchTitle: propSearchTitle }) =
         <div className="flex justify-center items-center mt-8 mb-6">
           <div className="flex gap-2">
             <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
               className="px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded-lg transition-colors"
             >
               이전
             </button>
-            
+
             <div className="flex gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-2 rounded-lg transition-colors ${
-                    currentPage === page
-                      ? 'bg-red-600 text-white'
-                      : 'bg-gray-600 hover:bg-gray-700 text-white'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 rounded-lg transition-colors ${
+                      currentPage === page
+                        ? "bg-red-600 text-white"
+                        : "bg-gray-600 hover:bg-gray-700 text-white"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
             </div>
-            
+
             <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               disabled={currentPage === totalPages}
               className="px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded-lg transition-colors"
             >
@@ -326,7 +387,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ searchTitle: propSearchTitle }) =
 
       {/* 전체 영상 수 표시 */}
       <div className="text-center text-gray-400 text-lg">
-        총 {videos.length}개의 영상 중 {startIndex + 1}-{Math.min(endIndex, videos.length)}번째 영상
+        총 {videos.length}개의 영상 중 {startIndex + 1}-
+        {Math.min(endIndex, videos.length)}번째 영상
       </div>
     </div>
   );
