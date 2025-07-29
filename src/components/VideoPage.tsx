@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 interface VideoData {
   videoId: string;
+  video_id: string; // YouTube video ID 추가
   title: string;
   thumbnail: string;
   publishedAt: string;
@@ -204,20 +205,19 @@ const VideoPage: React.FC<VideoPageProps> = ({
         <div className="mt-auto pt-2">
           <div className="flex gap-2">
             <button
-              onClick={() =>
-                navigate("/reply_analysis_list", {
-                  state: {
-                    videoInfo: {
-                      thumbnail: video.thumbnail,
-                      date: formatDate(video.publishedAt),
-                      title: video.title,
-                      views: formatNumber(video.viewCount) + "회",
-                      commentRate: video.commentRate,
-                      likeRate: video.likeRate,
-                    },
-                  },
-                })
-              }
+              onClick={() => navigate('/reply_analysis_list', { 
+                state: { 
+                  videoId: video.videoId, // 실제 YouTube video ID 전달 (video.id와 동일)
+                  videoInfo: {
+                    thumbnail: video.thumbnail,
+                    date: formatDate(video.publishedAt),
+                    title: video.title,
+                    views: formatNumber(video.viewCount) + "회",
+                    commentRate: video.commentRate,
+                    likeRate: video.likeRate
+                  }
+                }
+              })}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium transition-colors"
               style={{ fontSize: "16px" }}
             >

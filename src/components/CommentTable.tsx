@@ -28,6 +28,7 @@ const CommentTable: React.FC<CommentTableProps> = ({
   totalPages,
   onPageChange,
   renderRow,
+  renderHeader
 }) => (
   <div className="flex flex-col bg-[#1c2023] w-full h-full pt-4 pb-2 pr-2 pl-2 rounded-[10px] overflow-y-auto">
     {/* 테이블 헤더 */}
@@ -40,9 +41,19 @@ const CommentTable: React.FC<CommentTableProps> = ({
           onChange={onCheckAll}
         />
       </div>
-      <div className="flex-1 flex justify-center items-center">Account</div>
-      <div className="flex-[3] flex justify-center items-center">Comment</div>
-      <div className="flex-1 flex justify-center items-center">Date</div>
+      {renderHeader ? renderHeader() : (
+        <>
+          <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
+            Account
+          </div>
+          <div className="flex-3 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
+            Comment
+          </div>
+          <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
+            Date
+          </div>
+        </>
+      )}
     </div>
 
     {/* 댓글 목록 */}

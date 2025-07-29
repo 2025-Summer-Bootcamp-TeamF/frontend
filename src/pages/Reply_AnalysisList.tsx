@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import thumbnail from "../assets/thumbnail1.png";
@@ -6,14 +6,21 @@ import arrow from "../assets/arrow.png";
 import VideoInfoBox from "../components/VideoInfoBox";
 import CommentTable from "../components/CommentTable";
 
-// 댓글 데이터 타입 정의
-interface Comment {
+// 댓글 요약 데이터 타입 정의
+interface CommentSummary {
   id: number;
-  reaction: string;
-  reaction_percent: number;
-  comment: string;
-  date: string;
-  checked: boolean;
+  video_id: string;
+  summary: string;
+  summary_title: string;
+  positive_ratio: number;
+  is_deleted: boolean;
+  created_at: string;
+}
+
+// API 응답 타입 정의
+interface SummaryResponse {
+  success: boolean;
+  data: CommentSummary[];
 }
 
 // 영상 정보 타입 정의
@@ -35,27 +42,73 @@ export default function ReplyManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const COMMENTS_PER_PAGE = 13;
   
-  // 댓글 데이터
-  const currentComments: Comment[] = Array.from({ length: 100 }, (_, index) => ({
-    id: index + 1,
-    reaction: "긍정",
-    reaction_percent: 84,
-    comment: "와 영상 너무 멋져요 기대됩니다",
-    date: "2019-08-21",
-    checked: index % 2 === 0
-  }));
+  // API 데이터 상태
+  const [summaryData, setSummaryData] = useState<CommentSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // 현재 페이지의 댓글들
-  const pagedComments = currentComments.slice(
+  // 현재 페이지의 요약 데이터들
+  const pagedSummaries = summaryData.slice(
     (currentPage - 1) * COMMENTS_PER_PAGE,
     currentPage * COMMENTS_PER_PAGE
   );
 
   // 전체 페이지 수 계산
-  const totalPages = Math.ceil(currentComments.length / COMMENTS_PER_PAGE);
+  const totalPages = Math.ceil(summaryData.length / COMMENTS_PER_PAGE);
 
   // 체크박스 상태 관리
   const [checkedComments, setCheckedComments] = useState<Set<number>>(new Set());
+
+  // API 데이터 로딩
+  useEffect(() => {
+    const fetchSummaryData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // video_id는 location.state에서 가져와야 함
+        const videoId = location.state?.videoId;
+        
+        console.log('[DEBUG] location.state:', location.state);
+        
+        console.log('[DEBUG] 사용할 video_id:', videoId);
+        
+        if (!videoId) {
+          setError('영상 정보가 없습니다.');
+          setLoading(false);
+          return;
+        }
+        
+        const response = await fetch(`http://localhost:8000/api/videos/${videoId}/comments/summary`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('API 요청 실패');
+        }
+        
+        const result: SummaryResponse = await response.json();
+        
+        if (result.success) {
+          console.log('[DEBUG] API 응답 데이터:', result.data);
+          setSummaryData(result.data);
+        } else {
+          throw new Error('데이터 로딩 실패');
+        }
+      } catch (err) {
+        console.error('요약 데이터 로딩 실패:', err);
+        setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchSummaryData();
+  }, [location.state?.videoId]);
 
   // 개별 체크박스 토글
   const handleCheck = (commentId: number) => {
@@ -70,15 +123,15 @@ export default function ReplyManagement() {
 
   // 전체 체크박스 토글
   const handleCheckAll = () => {
-    if (checkedComments.size === pagedComments.length) {
+    if (checkedComments.size === pagedSummaries.length) {
       setCheckedComments(new Set());
     } else {
-      setCheckedComments(new Set(pagedComments.map(c => c.id)));
+      setCheckedComments(new Set(pagedSummaries.map(s => s.id)));
     }
   };
 
   // 전체 체크 상태 확인
-  const allChecked = pagedComments.length > 0 && checkedComments.size === pagedComments.length;
+  const allChecked = pagedSummaries.length > 0 && checkedComments.size === pagedSummaries.length;
 
   // 전달받은 영상 정보 또는 기본값 사용
   const videoInfo: VideoInfo = location.state?.videoInfo || {
@@ -145,11 +198,44 @@ export default function ReplyManagement() {
             {/* 댓글 분석하기 버튼 */}
             <div className="flex flex-1 items-end mt-auto">
               <button
-                onClick={() => navigate('/reply_analysis', { 
-                  state: { 
-                    videoInfo: videoInfo
+                onClick={async () => {
+                  try {
+                    // AI 분석 요청
+                    const videoId = location.state?.videoId;
+                    console.log('[DEBUG] AI 분석 요청 video_id:', videoId);
+                    
+                    if (!videoId) {
+                      alert('영상 정보가 없습니다.');
+                      return;
+                    }
+                    
+                    const response = await fetch(`http://localhost:8000/api/videos/${videoId}/comments/analysis`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                      }
+                    });
+                    
+                    if (!response.ok) {
+                      throw new Error('AI 분석 요청 실패');
+                    }
+                    
+                    const result = await response.json();
+                    console.log('[DEBUG] AI 분석 요청 결과:', result);
+                    
+                    if (result.success) {
+                      alert('댓글 분석이 시작되었습니다. 잠시 후 새로고침하여 결과를 확인하세요.');
+                      // 페이지 새로고침
+                      window.location.reload();
+                    } else {
+                      throw new Error('AI 분석 요청 실패');
+                    }
+                  } catch (err) {
+                    console.error('AI 분석 요청 실패:', err);
+                    alert('댓글 분석 요청 중 오류가 발생했습니다.');
                   }
-                })}
+                }}
                 className="w-full rounded-xl bg-[#ff0000] text-white text-[20px] font-semibold my-5 py-3 transition-colors hover:bg-[#b31217]"
                 type="button"
               >
@@ -172,12 +258,12 @@ export default function ReplyManagement() {
             <div className="flex flex-row justify-between items-center mb-6">
               <div>
                 <div className="text-[22px] font-semibold text-[#ff0000] mb-2">
-                  댓글 분석하기
+                  댓글 분석 이력
                 </div>
                 <div className="text-[#d9d9d9] text-[15px] font-extralight">
-                  해당 페이지에서는 긍정적인 댓글로 분류된 댓글들을 모아볼 수 있으며,<br />
-                  잘못 분류된 악성 댓글은 긍정 댓글에서 제외할 수 있습니다.<br />
-                  올바른 분류를 통해 더 정확한 분석이 가능해집니다.
+                  해당 페이지에서는 이전에 분석한 댓글 요약들을 확인할 수 있으며,<br />
+                  각 요약을 클릭하여 상세한 분석 결과를 볼 수 있습니다.<br />
+                  분석 이력을 통해 댓글 트렌드 변화를 파악할 수 있습니다.
                 </div>
               </div>
               
@@ -192,55 +278,93 @@ export default function ReplyManagement() {
               </div>
             </div>
 
-            {/* 댓글 테이블 */}
-            <CommentTable
-              comments={pagedComments}
-              checkedComments={checkedComments}
-              onCheck={handleCheck}
-              allChecked={allChecked}
-              onCheckAll={handleCheckAll}
-              avatar={thumbnail} // avatar가 없으므로 임시로 썸네일 전달
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              renderRow={(comment, checked, onCheck) => (
-                <div key={comment.id} className="flex flex-col border-b border-[#606265] min-w-0">
-                  <div className="flex flex-row items-center py-2 hover:bg-[#232335] transition min-w-0">
-                    <div className="w-[60px] flex-shrink-0 flex items-center justify-center">
-                      <input
-                        type="checkbox"
-                        className="w-5 h-5 accent-[#ff0000]"
-                        checked={checked}
-                        onChange={() => onCheck(comment.id)}
-                      />
+            {/* 로딩 상태 */}
+            {loading && (
+              <div className="flex justify-center items-center h-32">
+                <div className="text-[#d9d9d9] text-[18px]">데이터를 불러오는 중...</div>
+              </div>
+            )}
+
+            {/* 에러 상태 */}
+            {error && (
+              <div className="flex justify-center items-center h-32">
+                <div className="text-[#ff0000] text-[18px]">오류: {error}</div>
+              </div>
+            )}
+
+            {/* 데이터가 있을 때만 테이블 표시 */}
+            {!loading && !error && summaryData.length > 0 && (
+              <CommentTable
+                comments={pagedSummaries}
+                checkedComments={checkedComments}
+                onCheck={handleCheck}
+                allChecked={allChecked}
+                onCheckAll={handleCheckAll}
+                avatar={thumbnail}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                renderHeader={() => (
+                  <>
+                    <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
+                      Reaction
                     </div>
-                    <div className="flex-1 flex justify-center items-center gap-3">
-                      {(() => {
-                        let color = "text-[#d9d9d9]";
-                        if (comment.reaction === "긍정") color = "text-[#3b82f6]";
-                        else if (comment.reaction === "부정") color = "text-[#ff0000]";
-                        return (
-                          <>
-                            <div className={`justify-center items-center text-[15px] font-regular truncate pl-1 ${color}`}>
-                              {comment.reaction}
-                            </div>
-                            <div className={`justify-center items-center text-[15px] font-regular truncate ${color}`}>
-                              {comment.reaction_percent}%
-                            </div>
-                          </>
-                        );
-                      })()}
+                    <div className="flex-3 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
+                      Title
                     </div>
-                    <div className="flex-3 flex justify-left items-center text-[#d9d9d9] text-[15px] font-regular truncate ml-12" title={comment.comment}>
-                      {comment.comment}
+                    <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
+                      Date
                     </div>
-                    <div className="flex-1 flex justify-center items-center text-[#d9d9d9] text-[15px] font-regular">
-                      {comment.date}
+                  </>
+                )}
+                renderRow={(summary, checked, onCheck) => (
+                  <div key={summary.id} className="flex flex-col border-b border-[#606265] min-w-0">
+                    <div 
+                      className="flex flex-row items-center py-2 hover:bg-[#232335] transition min-w-0 cursor-pointer"
+                      onClick={() => navigate('/reply_analysis', { 
+                        state: { 
+                          videoInfo: videoInfo,
+                          summaryData: summary
+                        }
+                      })}
+                    >
+                      <div className="w-[60px] flex-shrink-0 flex items-center justify-center">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 accent-[#ff0000]"
+                          checked={checked}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            onCheck(summary.id);
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 flex justify-center items-center gap-3">
+                        <div className="text-[#3b82f6] text-[15px] font-regular truncate pl-1">
+                          긍정
+                        </div>
+                        <div className="text-[#3b82f6] text-[15px] font-regular truncate">
+                          {summary.positive_ratio}%
+                        </div>
+                      </div>
+                      <div className="flex-3 flex justify-left items-center text-[#d9d9d9] text-[15px] font-regular truncate ml-12" title={summary.summary_title}>
+                        {summary.summary_title}
+                      </div>
+                      <div className="flex-1 flex justify-center items-center text-[#d9d9d9] text-[15px] font-regular">
+                        {new Date(summary.created_at).toLocaleDateString()}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            />
+                )}
+              />
+            )}
+
+            {/* 데이터가 없을 때 */}
+            {!loading && !error && summaryData.length === 0 && (
+              <div className="flex justify-center items-center h-32">
+                <div className="text-[#d9d9d9] text-[18px]">댓글 분석 목록이 존재하지 않습니다.</div>
+              </div>
+            )}
           </div>
         </div>
       </div>
