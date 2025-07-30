@@ -538,6 +538,9 @@ export default function ReplyManagement() {
       fetchVideoInfo();
       // 모든 댓글 로드 (처음에는 classify 시도)
       fetchAllComments();
+      // 긍정/부정 댓글도 함께 로드
+      fetchPositiveComments();
+      fetchNegativeComments();
     }
   }, [videoId]);
 
@@ -820,13 +823,15 @@ export default function ReplyManagement() {
   useEffect(() => {
     console.log("데이터 상태 업데이트:", {
       allCommentsLength: allComments.length,
+      positiveCommentsLength: positiveComments.length,
+      negativeCommentsLength: negativeComments.length,
       currentTab: activeTab,
       currentCommentsLength: currentComments.length,
       pagedCommentsLength: pagedComments.length,
       currentPage,
       totalPages
     });
-  }, [allComments, activeTab, currentComments, pagedComments, currentPage, totalPages]);
+  }, [allComments, positiveComments, negativeComments, activeTab, currentComments, pagedComments, currentPage, totalPages]);
 
   // 개별 체크박스 토글
   const handleCheck = (commentId: number) => {
