@@ -911,6 +911,30 @@ export default function ReplyManagement() {
           .animate-spin-reverse {
             animation: spin-reverse 1s linear infinite;
           }
+          
+          @keyframes donut-loading {
+            0% {
+              stroke-dasharray: 0 283;
+              stroke-dashoffset: 0;
+            }
+            50% {
+              stroke-dasharray: 283 0;
+              stroke-dashoffset: 0;
+            }
+            100% {
+              stroke-dasharray: 0 283;
+              stroke-dashoffset: 0;
+            }
+          }
+          
+          .donut-loading {
+            animation: donut-loading 2s ease-out infinite;
+            transform-origin: center;
+          }
+          
+          .donut-container {
+            animation: spin-reverse 3s linear infinite;
+          }
         `,
         }}
       />
@@ -1219,7 +1243,7 @@ export default function ReplyManagement() {
                                       <div className="flex-1 flex justify-center items-center">
                                         <div className="flex flex-col items-center gap-3">
                                           {/* 도넛형식 로딩 애니메이션 */}
-                                                                                      <div className="w-[100px] h-[100px] relative">
+                                          <div className="w-[100px] h-[100px] relative donut-container">
                                               <svg
                                                 className="w-full h-full"
                                                 viewBox="0 0 100 100"

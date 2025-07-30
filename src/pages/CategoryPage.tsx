@@ -122,7 +122,7 @@ export default function CategoryPage() {
             <div className="flex items-center justify-center h-full">
               <div className="flex flex-col items-center gap-4">
                 {/* 도넛형식 로딩 애니메이션 */}
-                <div className="w-[100px] h-[100px] relative">
+                <div className="w-[100px] h-[100px] relative donut-container">
                   <svg
                     className="w-full h-full"
                     viewBox="0 0 100 100"
@@ -193,6 +193,39 @@ export default function CategoryPage() {
             overflow-y: scroll;
             scrollbar-width: none;
             -ms-overflow-style: none;
+          }
+          
+          @keyframes donut-loading {
+            0% {
+              stroke-dasharray: 0 283 !important;
+              stroke-dashoffset: 0 !important;
+            }
+            50% {
+              stroke-dasharray: 283 0 !important;
+              stroke-dashoffset: 0 !important;
+            }
+            100% {
+              stroke-dasharray: 0 283 !important;
+              stroke-dashoffset: 0 !important;
+            }
+          }
+          
+          .donut-loading {
+            animation: donut-loading 2s ease-out infinite !important;
+            transform-origin: center !important;
+          }
+          
+          .donut-container {
+            animation: spin-reverse 3s linear infinite !important;
+          }
+          
+          @keyframes spin-reverse {
+            from {
+              transform: rotate(0deg) !important;
+            }
+            to {
+              transform: rotate(-360deg) !important;
+            }
           }
         `,
         }}
