@@ -4,10 +4,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // 현재 페이지 경로 확인
   const currentPath = location.pathname;
-  
+
   return (
     <div
       className="fixed left-0 top-0 h-full flex flex-col items-center z-50 bg-black"
@@ -17,7 +17,7 @@ const Sidebar: React.FC = () => {
         <img
           src="/logo.png"
           alt="Logo"
-          className="w-auto h-auto cursor-pointer"
+          className="w-12 h-12 cursor-pointer" // 크기를 48px x 48px로 설정
           onClick={() => navigate("/main")}
         />
       </div>
@@ -61,4 +61,4 @@ const Sidebar: React.FC = () => {
   );
 };
 
-export default Sidebar; 
+export default Sidebar;
