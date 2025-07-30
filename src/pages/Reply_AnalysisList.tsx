@@ -160,43 +160,43 @@ export default function ReplyManagement() {
   console.log('[DEBUG] Reply_AnalysisList - videoId:', location.state?.videoId);
 
   // 댓글 분석 요약 삭제 함수
-  const handleDeleteSummary = async (summaryId: number) => {
-    if (!confirm('이 분석 결과를 삭제하시겠습니까?')) {
-      return;
-    }
+  // const handleDeleteSummary = async (summaryId: number) => {
+  //   if (!confirm('이 분석 결과를 삭제하시겠습니까?')) {
+  //     return;
+  //   }
 
-    try {
-      const token = localStorage.getItem("token");
-      const videoId = location.state?.videoId;
-      if (!videoId) {
-        alert('영상 정보가 없습니다.');
-        return;
-      }
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     const videoId = location.state?.videoId;
+  //     if (!videoId) {
+  //       alert('영상 정보가 없습니다.');
+  //       return;
+  //     }
 
-      const response = await fetch(
-        `http://localhost:8000/api/videos/${videoId}/comments/summary/${summaryId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-        }
-      );
+  //     const response = await fetch(
+  //       `http://localhost:8000/api/videos/${videoId}/comments/summary/${summaryId}`,
+  //       {
+  //         method: "DELETE",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: token ? `Bearer ${token}` : "",
+  //         },
+  //       }
+  //     );
 
-      if (response.ok) {
-        // 성공적으로 삭제되면 목록에서 제거
-        setSummaryData(prev => prev.filter(summary => summary.id !== summaryId));
-        alert("분석 결과가 삭제되었습니다.");
-      } else {
-        const errorData = await response.json();
-        alert(`삭제 실패: ${errorData.message || "알 수 없는 오류"}`);
-      }
-    } catch (error) {
-      console.error("분석 결과 삭제 중 오류:", error);
-      alert("분석 결과 삭제 중 오류가 발생했습니다.");
-    }
-  };
+  //     if (response.ok) {
+  //       // 성공적으로 삭제되면 목록에서 제거
+  //       setSummaryData(prev => prev.filter(summary => summary.id !== summaryId));
+  //       alert("분석 결과가 삭제되었습니다.");
+  //     } else {
+  //       const errorData = await response.json();
+  //       alert(`삭제 실패: ${errorData.message || "알 수 없는 오류"}`);
+  //     }
+  //   } catch (error) {
+  //     console.error("분석 결과 삭제 중 오류:", error);
+  //     alert("분석 결과 삭제 중 오류가 발생했습니다.");
+  //   }
+  // };
 
   // 선택된 항목들 일괄 삭제 함수
   const handleDeleteSelected = async () => {

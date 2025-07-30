@@ -313,6 +313,13 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
                       strokeWidth="3"
                         style={{ cursor: 'pointer' }}
                         onMouseEnter={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setTooltip({
+                            show: true,
+                            value: value,
+                            x: rect.left + rect.width / 2,
+                            y: rect.top - 10
+                          });
                           const tooltip = document.createElement('div');
                           tooltip.id = `tooltip-${i}`;
                           tooltip.className = 'fixed bg-black bg-opacity-90 text-white text-ml px-3 py-2 rounded-xl pointer-events-none z-10 text-center';
@@ -325,6 +332,7 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
                           document.body.appendChild(tooltip);
                         }}
                         onMouseLeave={() => {
+                          setTooltip({ show: false, value: 0, x: 0, y: 0 });
                           const tooltip = document.getElementById(`tooltip-${i}`);
                           if (tooltip) {
                             tooltip.remove();
