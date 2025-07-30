@@ -46,9 +46,9 @@ export default function CategoryPage() {
         return;
       }
 
-      console.log('[DEBUG] CategoryPage - API URL:', 'http://localhost:8000/api/videos/thumbnail-categories');
+      console.log('[DEBUG] CategoryPage - API URL:', 'http://34.47.88.56/api/videos/thumbnail-categories');
 
-      const response = await fetch('http://localhost:8000/api/videos/thumbnail-categories', {
+      const response = await fetch('http://34.47.88.56/api/videos/thumbnail-categories', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

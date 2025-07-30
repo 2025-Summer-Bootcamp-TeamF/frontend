@@ -28,7 +28,7 @@ const CompetitorInsightPage: React.FC = () => {
       }
 
       console.log("Fetching competitors...");
-      const response = await fetch("http://localhost:8000/api/others", {
+      const response = await fetch("http://34.47.88.56/api/others", {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -76,7 +76,7 @@ const CompetitorInsightPage: React.FC = () => {
 
       console.log("Adding competitor channel:", newChannelUrl);
 
-      const response = await fetch("http://localhost:8000/api/others", {
+      const response = await fetch("http://34.47.88.56/api/others", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,

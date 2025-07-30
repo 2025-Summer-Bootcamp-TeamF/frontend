@@ -105,7 +105,7 @@ export default function ReplyManagement() {
     setError(null);
 
     try {
-      const baseUrl = "http://localhost:8000";
+      const baseUrl = "http://34.47.88.56";
       const endpoint = `${baseUrl}/api/videos/${currentVideoId}/comments/positive`;
       const token = localStorage.getItem("token");
 
@@ -220,7 +220,7 @@ export default function ReplyManagement() {
     }
 
     const token = localStorage.getItem("token");
-    const statusEndpoint = `http://localhost:8000/api/videos/${videoId}/comments/classify/status/${jobId}`;
+    const statusEndpoint = `http://34.47.88.56/api/videos/${videoId}/comments/classify/status/${jobId}`;
 
     try {
       const response = await fetch(statusEndpoint, {
@@ -277,7 +277,7 @@ export default function ReplyManagement() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8000/api/videos/${videoId}/comments/filter`,
+        `http://34.47.88.56/api/videos/${videoId}/comments/filter`,
         {
           method: "POST",
           headers: {
@@ -308,7 +308,7 @@ export default function ReplyManagement() {
     if (!videoId || !jobId) return;
 
     const token = localStorage.getItem("token");
-    const statusEndpoint = `http://localhost:8000/api/videos/${videoId}/comments/filter/status/${jobId}`;
+    const statusEndpoint = `http://34.47.88.56/api/videos/${videoId}/comments/filter/status/${jobId}`;
 
     try {
       const response = await fetch(statusEndpoint, {
@@ -373,7 +373,7 @@ export default function ReplyManagement() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8000/api/videos/${videoId}/comments`,
+        `http://34.47.88.56/api/videos/${videoId}/comments`,
         {
           method: "GET",
           headers: {
@@ -414,7 +414,7 @@ export default function ReplyManagement() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8000/api/videos/${videoId}`,
+        `http://34.47.88.56/api/videos/${videoId}`,
         {
           method: "GET",
           headers: {
@@ -463,7 +463,7 @@ export default function ReplyManagement() {
     setError(null);
 
     try {
-      const baseUrl = "http://localhost:8000";
+      const baseUrl = "http://34.47.88.56";
       const endpoint = `${baseUrl}/api/videos/${currentVideoId}/comments/negative`;
       const token = localStorage.getItem("token");
 
@@ -563,7 +563,7 @@ export default function ReplyManagement() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:8000/api/videos/${videoId}/comments`,
+        `http://34.47.88.56/api/videos/${videoId}/comments`,
         {
           method: "PUT",
           headers: {
@@ -636,10 +636,10 @@ export default function ReplyManagement() {
         youtube_access_token: youtubeAccessToken, // YouTube 액세스 토큰 전송
       };
       console.log("삭제 요청 데이터:", requestBody);
-      console.log("삭제 API URL:", `http://localhost:8000/api/videos/${videoId}/comments`);
+      console.log("삭제 API URL:", `http://34.47.88.56/api/videos/${videoId}/comments`);
 
       const response = await fetch(
-        `http://localhost:8000/api/videos/${videoId}/comments`,
+        `http://34.47.88.56/api/videos/${videoId}/comments`,
         {
           method: "DELETE",
           headers: {

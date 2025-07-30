@@ -37,7 +37,7 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ dailyView, averageView }) =
           return;
         }
 
-        const response = await fetch("http://localhost:8000/api/videos/top-views", {
+        const response = await fetch("http://34.47.88.56/api/videos/top-views", {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -72,7 +72,7 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ dailyView, averageView }) =
         }
 
         console.log("[DEBUG] 구독자 데이터 요청 시작");
-        const response = await fetch("http://localhost:8000/api/channel/subscriber-change", {
+        const response = await fetch("http://34.47.88.56/api/channel/subscriber-change", {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,

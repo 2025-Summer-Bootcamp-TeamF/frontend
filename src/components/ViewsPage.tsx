@@ -57,7 +57,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
       }
 
       console.log("Fetching competitors...");
-      const response = await fetch("http://localhost:8000/api/others", {
+      const response = await fetch("http://34.47.88.56/api/others", {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -88,7 +88,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
       }
 
       console.log("Fetching channel views...");
-      const response = await fetch("http://localhost:8000/api/others/videos/views", {
+      const response = await fetch("http://34.47.88.56/api/others/videos/views", {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -120,7 +120,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
 
       console.log("Deleting competitor with other_channel id:", otherChannelId);
 
-      const response = await fetch(`http://localhost:8000/api/others/${otherChannelId}`, {
+      const response = await fetch(`http://34.47.88.56/api/others/${otherChannelId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,

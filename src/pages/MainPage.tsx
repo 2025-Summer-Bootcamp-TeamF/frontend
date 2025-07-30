@@ -60,7 +60,7 @@ export default function MainPage() {
       const token = localStorage.getItem("token");
       
       // 1. 백엔드에 로그아웃 API 호출 (카테고리 데이터 삭제 포함)
-      await fetch("http://localhost:8000/auth/logout", { 
+      await fetch("http://34.47.88.56/auth/logout", { 
         method: "POST", 
         headers: {
           'Authorization': `Bearer ${token}`,
