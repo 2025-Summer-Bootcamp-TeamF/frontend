@@ -49,7 +49,7 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
       }
 
       console.log("Fetching competitors...");
-      const response = await fetch("http://localhost:8000/api/others", {
+      const response = await fetch("http://34.47.88.56/api/others", {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -77,7 +77,7 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
       }
 
       console.log("Fetching upload frequency...");
-      const response = await fetch("http://localhost:8000/api/others/videos/upload-frequency", {
+      const response = await fetch("http://34.47.88.56/api/others/videos/upload-frequency", {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -106,7 +106,7 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
 
       console.log("Deleting competitor with other_channel id:", otherChannelId);
 
-      const response = await fetch(`http://localhost:8000/api/others/${otherChannelId}`, {
+      const response = await fetch(`http://34.47.88.56/api/others/${otherChannelId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,

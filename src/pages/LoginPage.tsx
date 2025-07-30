@@ -16,7 +16,7 @@ export default function LoginPage() {
 
   // 구글 로그인 버튼 클릭 시 실행
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8000/auth/google";
+    window.location.href = "http://34.47.88.56/auth/google";
   };
 
   return (
