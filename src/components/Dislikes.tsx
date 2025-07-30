@@ -172,7 +172,7 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
       
       // 내 채널 데이터
       if (channelDislikes.myChannel.individualDislikes) {
-        channelDislikes.myChannel.individualDislikes.forEach((dislike, index) => {
+        channelDislikes.myChannel.individualDislikes.forEach((_, index) => {
           animationData[`my-${index}`] = 0;
         });
       }
@@ -181,7 +181,7 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
       if (channelDislikes.competitors) {
         channelDislikes.competitors.forEach((competitor, compIndex) => {
           if (competitor.individualDislikes) {
-            competitor.individualDislikes.forEach((dislike, index) => {
+            competitor.individualDislikes.forEach((_, index) => {
               animationData[`competitor${compIndex}-${index}`] = 0;
             });
           }
@@ -419,20 +419,20 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
               const effectiveMaxDislikes = maxDislikes > 0 ? maxDislikes : 100;
               
               // Y축 간격을 동적으로 계산
-              let step = 5;
+              // let step = 5;
               
               // 최대값에 따라 간격 조정
-              if (effectiveMaxDislikes <= 10) {
-                step = 2;
-              } else if (effectiveMaxDislikes <= 50) {
-                step = 10;
-              } else if (effectiveMaxDislikes <= 200) {
-                step = 50;
-              } else if (effectiveMaxDislikes <= 1000) {
-                step = 200;
-              } else {
-                step = 500;
-              }
+              // if (effectiveMaxDislikes <= 10) {
+              //   step = 2;
+              // } else if (effectiveMaxDislikes <= 50) {
+              //   step = 10;
+              // } else if (effectiveMaxDislikes <= 200) {
+              //   step = 50;
+              // } else if (effectiveMaxDislikes <= 1000) {
+              //   step = 200;
+              // } else {
+              //   step = 500;
+              // }
               
               // Y축 라벨 생성 (업로드 주기 그래프와 동일한 방식)
               const maxValue = Math.ceil(effectiveMaxDislikes * 1.2); // 20% 여유 추가
@@ -498,18 +498,18 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
               const effectiveMaxDislikes = maxDislikes > 0 ? maxDislikes : 20; // 최소값을 20으로 설정
               
               // Y축 간격을 동적으로 계산
-              let step = 5;
-              if (effectiveMaxDislikes <= 10) {
-                step = 2;
-              } else if (effectiveMaxDislikes <= 50) {
-                step = 10;
-              } else if (effectiveMaxDislikes <= 200) {
-                step = 50;
-              } else if (effectiveMaxDislikes <= 1000) {
-                step = 200;
-              } else {
-                step = 500;
-              }
+              // let step = 5;
+              // if (effectiveMaxDislikes <= 10) {
+              //   step = 2;
+              // } else if (effectiveMaxDislikes <= 50) {
+              //   step = 10;
+              // } else if (effectiveMaxDislikes <= 200) {
+              //   step = 50;
+              // } else if (effectiveMaxDislikes <= 1000) {
+              //   step = 200;
+              // } else {
+              //   step = 500;
+              // }
               
               // Y축의 실제 최대값 (업로드 주기 그래프와 동일한 방식)
               const actualMaxValue = Math.ceil(effectiveMaxDislikes * 1.2); // 20% 여유 추가

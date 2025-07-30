@@ -180,23 +180,23 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
     if (channelViews) {
       const animationData: { [key: string]: number } = {};
       
-      // 내 채널 데이터
-      if (channelViews.myChannel.individualViews) {
-        channelViews.myChannel.individualViews.forEach((view, index) => {
-          animationData[`my-${index}`] = 0;
-        });
-      }
+              // 내 채널 데이터
+        if (channelViews.myChannel.individualViews) {
+          channelViews.myChannel.individualViews.forEach((_, index) => {
+            animationData[`my-${index}`] = 0;
+          });
+        }
       
-      // 경쟁 채널 데이터
-      if (channelViews.competitors) {
-        channelViews.competitors.forEach((competitor, compIndex) => {
-          if (competitor.individualViews) {
-            competitor.individualViews.forEach((view, index) => {
-              animationData[`competitor${compIndex}-${index}`] = 0;
-            });
-          }
-        });
-      }
+              // 경쟁 채널 데이터
+        if (channelViews.competitors) {
+          channelViews.competitors.forEach((competitor, compIndex) => {
+            if (competitor.individualViews) {
+              competitor.individualViews.forEach((_, index) => {
+                animationData[`competitor${compIndex}-${index}`] = 0;
+              });
+            }
+          });
+        }
       
       setAnimationValues(animationData);
       
