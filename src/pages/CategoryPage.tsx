@@ -326,10 +326,10 @@ export default function CategoryPage() {
                   )}
 
                   {/* 텍스트/설명 */}
-                  <div className="flex flex-col ml-4">
+                  <div className="flex flex-col w-full ml-4">
                     <div className="text-[1.8rem] text-white font-semibold mb-2">{category.name}</div>
                     <div className="text-[1.3rem] text-rgba(255,255,255,0.6) font-thin mb-4">{category.description}</div>
-                    <div className="flex flex-row justify-between text-[#ffffff] text-[1.5rem] font-medium pr-2 mt-10">
+                    <div className="flex flex-row justify-between text-[#ffffff] text-[1.5rem] font-medium pr-30 mt-10">
                         <div>전체 영상 수 : <span>{category.videoCount}개</span></div>
                         <div>평균 조회수 : <span>{formatNumber(category.averageViews)}회</span></div>
                         <div>평균 좋아요 수 : <span>{category.averageLikes}개</span></div>
