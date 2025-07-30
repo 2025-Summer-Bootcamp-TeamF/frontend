@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import youtubeLogo from "../assets/youtubelogo.png";
+import youtubeLogo from "../assets/youtool.png";
 import analysisIcon from "../assets/video_analysis.png";
 import categoryIcon from "../assets/category.png";
 import replyIcon from "../assets/reply.png";
@@ -119,6 +119,7 @@ export default function MainPage() {
           <div
             className="flex items-center cursor-pointer select-none"
             onClick={() => navigate("/login")}
+            style={{ width: "10rem" }}
           >
             <img src={loginIcon} alt="로그인" className="h-[2rem] w-[6rem]" />
           </div>

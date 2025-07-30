@@ -45,6 +45,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [animationValues, setAnimationValues] = useState<{ [key: string]: number }>({});
 
   // 경쟁 채널 목록 가져오기
   const fetchCompetitors = async () => {
@@ -173,6 +174,73 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
       fetchChannelViews();
     }
   }, [propCompetitors]);
+
+  // 애니메이션 효과
+  useEffect(() => {
+    if (channelViews) {
+      const animationData: { [key: string]: number } = {};
+      
+      // 내 채널 데이터
+      if (channelViews.myChannel.individualViews) {
+        channelViews.myChannel.individualViews.forEach((view, index) => {
+          animationData[`my-${index}`] = 0;
+        });
+      }
+      
+      // 경쟁 채널 데이터
+      if (channelViews.competitors) {
+        channelViews.competitors.forEach((competitor, compIndex) => {
+          if (competitor.individualViews) {
+            competitor.individualViews.forEach((view, index) => {
+              animationData[`competitor${compIndex}-${index}`] = 0;
+            });
+          }
+        });
+      }
+      
+      setAnimationValues(animationData);
+      
+      // 애니메이션 시작
+      const startTime = Date.now();
+      const duration = 700; // 1초
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // ease out 함수
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        
+        const newAnimationValues: { [key: string]: number } = {};
+        
+        // 내 채널 애니메이션
+        if (channelViews.myChannel.individualViews) {
+          channelViews.myChannel.individualViews.forEach((view, index) => {
+            newAnimationValues[`my-${index}`] = view.views * easeOut;
+          });
+        }
+        
+        // 경쟁 채널 애니메이션
+        if (channelViews.competitors) {
+          channelViews.competitors.forEach((competitor, compIndex) => {
+            if (competitor.individualViews) {
+              competitor.individualViews.forEach((view, index) => {
+                newAnimationValues[`competitor${compIndex}-${index}`] = view.views * easeOut;
+              });
+            }
+          });
+        }
+        
+        setAnimationValues(newAnimationValues);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    }
+  }, [channelViews]);
 
   // refreshData 함수를 window 객체에 등록 (외부에서 호출 가능하도록)
   useEffect(() => {
@@ -315,15 +383,17 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
   const maxViews = allIndividualViews.length > 0 ? Math.max(...allIndividualViews) : 0;
   const effectiveMaxViews = maxViews > 0 ? maxViews : 1000;
 
-  return (
-    <div
-      style={{
-        padding: "40px",
-        backgroundColor: "#1C2023",
-        minHeight: "600px",
-        width: "100%",
-      }}
-    >
+     return (
+     <div
+       style={{
+         padding: "40px",
+         backgroundColor: "#1a1b1c",
+         border: "1px solid #000000",
+         borderRadius: "12px",
+         minHeight: "600px",
+         width: "100%",
+       }}
+     >
       <h2 className="text-gray-400 mb-8" style={{ fontSize: "20px" }}>
         최신 영상 3개 기준
       </h2>
@@ -345,127 +415,172 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
             preserveAspectRatio="xMidYMid meet"
             style={{ width: "100%", height: "100%" }}
           >
-            {/* Y축 눈금과 라벨 */}
-            {[0, 1, 2, 3, 4, 5].map((i) => {
-              const y = 50 + i * 60;
-              const percentage = (5 - i) * 20; // 100%, 80%, 60%, 40%, 20%, 0%
-              const rawViewCount = Math.round((percentage / 100) * effectiveMaxViews);
-              
-                              // 깔끔하게 올림 (500 단위로)
-                const viewCount = Math.ceil(rawViewCount / 500) * 500;
-                
-                return (
-                  <g key={i}>
-              <line
-                x1="100"
-                      y1={y}
-                x2="1100"
-                      y2={y}
-                stroke="rgba(255,255,255,0.15)"
-                strokeWidth="1"
-              />
-                    {/* Y축 라벨 */}
-                    <text
-                      x="90"
-                      y={y + 5}
-                      textAnchor="end"
-                      fill="#666"
-                      fontSize="12"
-                      fontFamily="sans-serif"
-                    >
-                      {formatNumber(viewCount)}
-                    </text>
-                  </g>
-                );
-              })}
+                         {/* Y축 눈금과 라벨 */}
+             {(() => {
+               // 실제 최대값에 맞춰 Y축 계산
+               const maxValue = Math.max(effectiveMaxViews, 100);
+               const yStep = maxValue <= 100 ? 20 : 
+                            maxValue <= 500 ? 100 : 
+                            maxValue <= 2000 ? 500 : 
+                            maxValue <= 10000 ? 2000 : 5000;
+               
+               const maxLabel = Math.ceil(maxValue / yStep) * yStep;
+               const labels = [];
+               
+               // 6개의 라벨 생성 (0, 20%, 40%, 60%, 80%, 100%)
+               for (let i = 0; i < 6; i++) {
+                 const value = Math.round((i / 5) * maxLabel);
+                 labels.push(value);
+               }
+               
+                               return labels.map((viewCount, i) => {
+                  const y = 350 - i * 60; // 순서를 거꾸로 (위에서 아래로)
+                 
+                 return (
+                   <g key={i}>
+                     <line
+                       x1="100"
+                       y1={y}
+                       x2="1100"
+                       y2={y}
+                       stroke="rgba(255,255,255,0.15)"
+                       strokeWidth="1"
+                     />
+                     {/* Y축 라벨 */}
+                     <text
+                       x="90"
+                       y={y + 5}
+                       textAnchor="end"
+                       fill="#666"
+                       fontSize="12"
+                       fontFamily="sans-serif"
+                     >
+                       {formatNumber(viewCount)}
+                     </text>
+                   </g>
+                 );
+               });
+             })()}
 
             {/* 막대 그래프 */}
             {data.map((item, idx) => {
               const groupX = 300 + idx * 300;
-              const barWidth = 60;
-              const gap = 20;
+              const barWidth = 35; // 막대 두께를 60에서 35로 줄임
+              const gap = 8; // 간격을 20에서 8로 줄임
+
+              // 애니메이션 값 가져오기
+              const myAnimatedValue = animationValues[`my-${2-idx}`] || 0; // 최신-2, 최신-1, 최신 순서
+              const competitor1AnimatedValue = animationValues[`competitor0-${2-idx}`] || 0;
+              const competitor2AnimatedValue = animationValues[`competitor1-${2-idx}`] || 0;
 
               return (
                 <g key={idx}>
-                  {/* 내 채널 막대 */}
-                  <rect
-                    x={groupX - barWidth - gap}
-                    y={350 - (item.my / effectiveMaxViews) * 300}
-                    width={barWidth}
-                    height={(item.my / effectiveMaxViews) * 300}
-                    fill="#ef4444"
-                  />
-
-                  {/* 내 채널 조회수 텍스트 */}
-                  <text
-                    x={groupX - barWidth - gap + barWidth / 2}
-                    y={350 - (item.my / effectiveMaxViews) * 300 - 10}
-                    textAnchor="middle"
-                    fill="#ef4444"
-                    fontSize="14"
-                    fontFamily="sans-serif"
-                    fontWeight="bold"
-                  >
-                    {formatNumber(item.myViews)}
-                  </text>
-                  
-                  {/* 내 채널 변화율 텍스트 */}
-                  <text
-                    x={groupX - barWidth - gap + barWidth / 2}
-                    y={350 - (item.my / effectiveMaxViews) * 300 - 25}
-                    textAnchor="middle"
-                    fill="#ef4444"
-                    fontSize="12"
-                    fontFamily="sans-serif"
-                  >
-                    {item.myRate > 0 ? '+' : ''}{item.myRate.toFixed(1)}%
-                  </text>
-
-                  {/* 경쟁 채널 막대들 */}
-                  {competitors.map((_, channelIdx) => {
-                    const competitorKey = `competitor${channelIdx + 1}` as keyof typeof item;
-                    const competitorValue = item[competitorKey] as number;
+                  {/* Y축 최대값 계산 */}
+                  {(() => {
+                    const maxValue = Math.max(effectiveMaxViews, 100);
+                    const yStep = maxValue <= 100 ? 20 : 
+                                 maxValue <= 500 ? 100 : 
+                                 maxValue <= 2000 ? 500 : 
+                                 maxValue <= 10000 ? 2000 : 5000;
+                    const maxLabel = Math.ceil(maxValue / yStep) * yStep;
+                    const actualMaxValue = maxLabel;
                     
                     return (
-                      <g key={channelIdx}>
-                  <rect
-                          x={groupX + (channelIdx * (barWidth + gap))}
-                          y={350 - (competitorValue / effectiveMaxViews) * 300}
-                    width={barWidth}
-                          height={(competitorValue / effectiveMaxViews) * 300}
-                          fill={colors[channelIdx + 1] || colors[0]}
-                  />
+                      <>
+                        {/* 내 채널 막대 */}
+                        <rect
+                          x={groupX - barWidth - gap}
+                          y={350 - (myAnimatedValue / actualMaxValue) * 300}
+                          width={barWidth}
+                          height={(myAnimatedValue / actualMaxValue) * 300}
+                          fill="#ef4444"
+                          rx="4" // 상단을 둥근 사각형으로 만듦
+                        />
 
-                        {/* 경쟁 채널 조회수 텍스트 */}
+                        {/* 내 채널 조회수 텍스트 */}
                         <text
-                          x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
-                          y={350 - (competitorValue / effectiveMaxViews) * 300 - 10}
+                          x={groupX - barWidth - gap + barWidth / 2}
+                          y={350 - (myAnimatedValue / actualMaxValue) * 300 - 10}
                           textAnchor="middle"
-                          fill={colors[channelIdx + 1] || colors[0]}
+                          fill="#ef4444"
                           fontSize="14"
                           fontFamily="sans-serif"
                           fontWeight="bold"
                         >
-                          {channelIdx === 0 
-                            ? formatNumber(item.competitor1Views)
-                            : formatNumber(item.competitor2Views)
-                          }
+                          {formatNumber(Math.round(myAnimatedValue))}
                         </text>
                         
-                        {/* 경쟁 채널 변화율 텍스트 */}
+                        {/* 내 채널 변화율 텍스트 */}
                         <text
-                          x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
-                          y={350 - (competitorValue / effectiveMaxViews) * 300 - 25}
+                          x={groupX - barWidth - gap + barWidth / 2}
+                          y={350 - (myAnimatedValue / actualMaxValue) * 300 - 25}
                           textAnchor="middle"
-                          fill={colors[channelIdx + 1] || colors[0]}
+                          fill="#ef4444"
                           fontSize="12"
                           fontFamily="sans-serif"
                         >
-                          {channelIdx === 0 
-                            ? (item.competitor1Rate > 0 ? '+' : '') + item.competitor1Rate.toFixed(1) + '%'
-                            : (item.competitor2Rate > 0 ? '+' : '') + item.competitor2Rate.toFixed(1) + '%'
-                          }
+                          {item.myRate > 0 ? '+' : ''}{item.myRate.toFixed(1)}%
                         </text>
+                      </>
+                    );
+                  })()}
+
+                  {/* 경쟁 채널 막대들 */}
+                  {competitors.map((_, channelIdx) => {
+                    const animatedValue = channelIdx === 0 ? competitor1AnimatedValue : competitor2AnimatedValue;
+                    
+                    return (
+                      <g key={channelIdx}>
+                        {(() => {
+                          const maxValue = Math.max(effectiveMaxViews, 100);
+                          const yStep = maxValue <= 100 ? 20 : 
+                                       maxValue <= 500 ? 100 : 
+                                       maxValue <= 2000 ? 500 : 
+                                       maxValue <= 10000 ? 2000 : 5000;
+                          const maxLabel = Math.ceil(maxValue / yStep) * yStep;
+                          const actualMaxValue = maxLabel;
+                          
+                          return (
+                            <>
+                              <rect
+                                x={groupX + (channelIdx * (barWidth + gap))}
+                                y={350 - (animatedValue / actualMaxValue) * 300}
+                                width={barWidth}
+                                height={(animatedValue / actualMaxValue) * 300}
+                                fill={colors[channelIdx + 1] || colors[0]}
+                                rx="4" // 상단을 둥근 사각형으로 만듦
+                              />
+
+                              {/* 경쟁 채널 조회수 텍스트 */}
+                              <text
+                                x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
+                                y={350 - (animatedValue / actualMaxValue) * 300 - 10}
+                                textAnchor="middle"
+                                fill={colors[channelIdx + 1] || colors[0]}
+                                fontSize="14"
+                                fontFamily="sans-serif"
+                                fontWeight="bold"
+                              >
+                                {formatNumber(Math.round(animatedValue))}
+                              </text>
+                              
+                              {/* 경쟁 채널 변화율 텍스트 */}
+                              <text
+                                x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
+                                y={350 - (animatedValue / actualMaxValue) * 300 - 25}
+                                textAnchor="middle"
+                                fill={colors[channelIdx + 1] || colors[0]}
+                                fontSize="12"
+                                fontFamily="sans-serif"
+                              >
+                                {channelIdx === 0 
+                                  ? (item.competitor1Rate > 0 ? '+' : '') + item.competitor1Rate.toFixed(1) + '%'
+                                  : (item.competitor2Rate > 0 ? '+' : '') + item.competitor2Rate.toFixed(1) + '%'
+                                }
+                              </text>
+                            </>
+                          );
+                        })()}
                       </g>
                     );
                   })}

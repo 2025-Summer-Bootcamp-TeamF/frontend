@@ -13,6 +13,7 @@ export interface Comment {
   account: string;
   comment: string;
   date: string;
+  originalDate?: string; // 원본 날짜 시간 정보
   checked: boolean;
   comment_type?: number;
   is_filtered?: boolean;
@@ -59,6 +60,8 @@ export default function ReplyManagement() {
   // 댓글 데이터 상태
   const [allComments, setAllComments] = useState<Comment[]>([]);
   const [filteredComments, setFilteredComments] = useState<Comment[]>([]);
+  const [positiveComments, setPositiveComments] = useState<Comment[]>([]);
+  const [negativeComments, setNegativeComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -68,6 +71,7 @@ export default function ReplyManagement() {
   const [filterKeyword, setFilterKeyword] = useState("");
   const [hasFilter, setHasFilter] = useState(false);
   const [videoFilterKeyword, setVideoFilterKeyword] = useState<string>("");
+  const [isFilterManuallyCleared, setIsFilterManuallyCleared] = useState(false);
 
   // 데이터 로드 상태 추적
   const hasInitialLoadRef = useRef(false);
@@ -135,10 +139,25 @@ export default function ReplyManagement() {
             date: comment.comment_date
               ? new Date(comment.comment_date).toLocaleDateString("ko-KR")
               : "날짜 없음",
+            originalDate: comment.comment_date, // 원본 날짜 시간 정보 저장
             checked: false,
           })
         );
-        setAllComments(formattedComments);
+        
+        // 원본 날짜 시간 기준으로 정렬 (최신순)
+        const sortedComments = formattedComments.sort((a, b) => {
+          if (!a.originalDate || !b.originalDate) {
+            return 0; // 날짜 정보가 없으면 순서 변경 안함
+          }
+          
+          const dateA = new Date(a.originalDate);
+          const dateB = new Date(b.originalDate);
+          
+          return dateB.getTime() - dateA.getTime(); // 최신순
+        });
+        
+        console.log('긍정 댓글 정렬 완료:', sortedComments.length, '개');
+        setPositiveComments(sortedComments);
         setIsLoading(false);
         return;
       }
@@ -255,6 +274,7 @@ export default function ReplyManagement() {
     setIsFiltering(true);
     setFilterKeyword(keyword);
     setError(null);
+    setIsFilterManuallyCleared(false); // 새 필터 요청 시 수동 초기화 상태 해제
     
     try {
       const token = localStorage.getItem("token");
@@ -309,9 +329,20 @@ export default function ReplyManagement() {
           console.log("필터링 작업 완료, 모든 댓글 다시 불러오기");
           setIsFiltering(false);
           setFilterJobId(null);
+          
+          // 비디오 정보 먼저 가져와서 키워드 저장
+          const keyword = await fetchVideoInfo();
+          console.log("필터링 완료 후 키워드:", keyword);
+          
           // 모든 댓글 다시 불러오기 (필터링 상태 포함)
-          fetchAllComments();
-          setHasFilter(true);
+          await fetchAllComments();
+          
+          // 필터 상태 설정 (키워드가 있으면 필터 활성화)
+          if (keyword) {
+            setHasFilter(true);
+            setFilterKeyword(keyword);
+            setVideoFilterKeyword(keyword);
+          }
         } else if (statusData.status === "failed") {
           console.error("필터링 작업 실패");
           setIsFiltering(false);
@@ -397,13 +428,17 @@ export default function ReplyManagement() {
 
       if (response.ok) {
         const result = await response.json();
+        console.log("비디오 정보 조회 결과:", result);
         if (result.data && result.data.filtering_keyword) {
+          console.log("filtering_keyword 설정:", result.data.filtering_keyword);
           setVideoFilterKeyword(result.data.filtering_keyword);
+          return result.data.filtering_keyword;
         }
       }
     } catch (error) {
       console.error("비디오 정보 조회 실패:", error);
     }
+    return null;
   };
 
   // 필터 초기화
@@ -412,6 +447,10 @@ export default function ReplyManagement() {
     setFilterKeyword("");
     setVideoFilterKeyword("");
     setFilteredComments([]);
+    // 필터링 상태도 초기화
+    setIsFiltering(false);
+    setFilterJobId(null);
+    setIsFilterManuallyCleared(true); // 수동 초기화 상태 표시
   };
 
   // API에서 부정 댓글 데이터 가져오기
@@ -458,11 +497,25 @@ export default function ReplyManagement() {
             date: comment.comment_date
               ? new Date(comment.comment_date).toLocaleDateString("ko-KR")
               : "날짜 없음",
+            originalDate: comment.comment_date, // 원본 날짜 시간 정보 저장
             checked: false,
           })
         );
-        console.log("부정 댓글 포맷팅 완료:", formattedComments.length, "개");
-        // 부정 댓글은 allComments에서 필터링하여 사용
+        
+        // 원본 날짜 시간 기준으로 정렬 (최신순)
+        const sortedComments = formattedComments.sort((a, b) => {
+          if (!a.originalDate || !b.originalDate) {
+            return 0; // 날짜 정보가 없으면 순서 변경 안함
+          }
+          
+          const dateA = new Date(a.originalDate);
+          const dateB = new Date(b.originalDate);
+          
+          return dateB.getTime() - dateA.getTime(); // 최신순
+        });
+        
+        console.log("부정 댓글 정렬 완료:", sortedComments.length, "개");
+        setNegativeComments(sortedComments);
       } else {
         console.log("부정 댓글 데이터 없음");
         // 부정 댓글은 allComments에서 필터링하여 사용
@@ -488,18 +541,14 @@ export default function ReplyManagement() {
     }
   }, [videoId]);
 
-  // 탭 변경 시에만 체크된 댓글 초기화
-  useEffect(() => {
-    setCheckedComments(new Set());
-    setCurrentPage(1);
-  }, [activeTab]);
+
 
   // 댓글 데이터 업데이트 시 AI 탭에서 필터링된 댓글 확인
   useEffect(() => {
     if (activeTab === "ai" && allComments.length > 0) {
       checkAndSetFilteredComments();
     }
-  }, [allComments, activeTab, videoFilterKeyword]);
+  }, [allComments, activeTab, videoFilterKeyword, isFilterManuallyCleared]);
 
   // 댓글 분류 변경
   // 댓글 분류 변경 API 연동
@@ -541,7 +590,7 @@ export default function ReplyManagement() {
 
         // 댓글 이동 후 모든 댓글 다시 불러오기
         fetchAllComments();
-
+        
         setCheckedComments(new Set());
       } else {
         const errorData = await response.json();
@@ -634,39 +683,61 @@ export default function ReplyManagement() {
   };
 
   // AI 탭에서 필터링된 댓글 확인 및 처리
-  const checkAndSetFilteredComments = () => {
-    const filteredComments = allComments.filter(comment => comment.is_filtered);
-    
-    if (filteredComments.length > 0) {
-      // 필터링된 댓글이 있으면 비디오의 filtering_keyword를 사용
-      setHasFilter(true);
-      setFilterKeyword(videoFilterKeyword);
-    } else {
-      // 필터링된 댓글이 없으면 필터 초기화
+  const checkAndSetFilteredComments = async () => {
+    // 사용자가 수동으로 필터를 초기화한 경우, 백엔드 키워드와 관계없이 필터 상태 유지
+    if (isFilterManuallyCleared) {
       setHasFilter(false);
       setFilterKeyword("");
+      setVideoFilterKeyword("");
+      return; // 조기 종료
+    }
+    
+    const filteredComments = allComments.filter(comment => comment.is_filtered);
+    
+    // 비디오의 filtering_keyword를 먼저 확인
+    const keyword = await fetchVideoInfo();
+    
+    if (filteredComments.length > 0) {
+      // 필터링된 댓글이 있으면 필터 활성화
+      if (keyword) {
+        setHasFilter(true);
+        setFilterKeyword(keyword);
+        setVideoFilterKeyword(keyword);
+      }
+    } else if (keyword) {
+      // 필터링된 댓글이 없지만 키워드가 있으면 (0개 결과) 필터 상태 유지
+      setHasFilter(true);
+      setFilterKeyword(keyword);
+      setVideoFilterKeyword(keyword);
+    } else {
+      // 키워드도 없으면 필터 초기화
+      setHasFilter(false);
+      setFilterKeyword("");
+      setVideoFilterKeyword("");
     }
   };
 
   // 탭 전환 핸들러
-  const handleTabChange = (tab: "positive" | "negative" | "ai") => {
+  const handleTabChange = async (tab: "positive" | "negative" | "ai") => {
     if (tab === activeTab) return; // 같은 탭 클릭 시 무시
     
     setIsTransitioning(true);
     
     // 애니메이션 완료 후 탭 변경
-    setTimeout(() => {
+    setTimeout(async () => {
       setActiveTab(tab);
       setCurrentPage(1);
       setCheckedComments(new Set());
       
       // AI 탭으로 변경 시 필터링된 댓글 확인
       if (tab === "ai") {
-        checkAndSetFilteredComments();
+        await checkAndSetFilteredComments();
       } else {
         // 다른 탭으로 변경 시 필터 초기화
         setHasFilter(false);
         setFilterKeyword("");
+        setVideoFilterKeyword("");
+        setIsFilterManuallyCleared(false); // 다른 탭으로 이동 시 수동 초기화 상태 해제
       }
       
       setIsTransitioning(false);
@@ -690,13 +761,15 @@ export default function ReplyManagement() {
     if (activeTab === "ai") {
       // AI 탭에서는 필터링된 댓글이 있으면 그것만, 없으면 전체 댓글 표시
       const filteredComments = allComments.filter(comment => comment.is_filtered);
-      if (filteredComments.length > 0) {
+      if (hasFilter) {
+        // 필터가 활성화되어 있으면 필터링된 댓글만 표시 (0개여도)
         return filteredComments.sort((a, b) => {
           const dateA = new Date(a.date).getTime();
           const dateB = new Date(b.date).getTime();
           return dateB - dateA;
         });
       } else {
+        // 필터가 없으면 전체 댓글 표시
         return allComments.sort((a, b) => {
           const dateA = new Date(a.date).getTime();
           const dateB = new Date(b.date).getTime();
@@ -704,17 +777,9 @@ export default function ReplyManagement() {
         });
       }
     } else if (activeTab === "positive") {
-      return allComments.filter(comment => comment.comment_type === 0 || comment.comment_type === 1).sort((a, b) => {
-        const dateA = new Date(a.date).getTime();
-        const dateB = new Date(b.date).getTime();
-        return dateB - dateA;
-      });
+      return positiveComments;
     } else {
-      return allComments.filter(comment => comment.comment_type === 2).sort((a, b) => {
-        const dateA = new Date(a.date).getTime();
-        const dateB = new Date(b.date).getTime();
-        return dateB - dateA;
-      });
+      return negativeComments;
     }
   })();
 
@@ -743,6 +808,13 @@ export default function ReplyManagement() {
       setCurrentPage(1);
     }
   }, [currentComments.length, currentPage, totalPages]);
+
+  // 탭 변경 시 체크된 댓글 초기화
+  useEffect(() => {
+    setCheckedComments(new Set());
+    setCurrentPage(1);
+    console.log(`탭 변경됨: ${activeTab}`);
+  }, [activeTab]);
 
   // 데이터 상태 디버깅
   useEffect(() => {
@@ -820,6 +892,19 @@ export default function ReplyManagement() {
           
           .animate-fadeIn {
             animation: fadeIn 0.3s ease-out;
+          }
+          
+          @keyframes spin-reverse {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(-360deg);
+            }
+          }
+          
+          .animate-spin-reverse {
+            animation: spin-reverse 1s linear infinite;
           }
         `,
         }}
@@ -1027,26 +1112,38 @@ export default function ReplyManagement() {
             {activeTab === "ai" && (
               <div className="mb-2 animate-fadeIn">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="flex-1">
+                  <div className="relative flex items-center flex-1">
                     <input
                       type="text"
-                      placeholder="예: 어머니의 사랑에 대한 댓글"
-                      value={filterKeyword}
+                      placeholder="예: 영상 주제와 관련 없는 댓글"
                       onChange={(e) => setFilterKeyword(e.target.value)}
-                      className="w-full px-4 py-3 bg-[#171818] text-white rounded-[8px] focus:border-[#ff0000] focus:outline-none text-[16px] placeholder-[#6a6a6a] transition-all duration-300 ease-in-out hover:bg-[#1a1b1a] focus:bg-[#1a1b1a]"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          requestFiltering(filterKeyword);
+                        }
+                      }}
+                      className="w-full bg-[#1a1b1c] border border-gray-600 rounded-l-lg px-4 py-3 text-white focus:outline-none focus:border-red-500 transition pr-12 border-r-0"
                     />
+                                <button
+              onClick={() => requestFiltering(filterKeyword)}
+              disabled={isFiltering || !filterKeyword.trim()}
+              className="absolute -right-2 top-0 h-full px-4 bg-[#ff0000] text-white rounded-r-lg hover:bg-[#b31217] transition flex items-center justify-center border-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                      {isFiltering ? (
+                        <svg className="w-5 h-5 animate-spin-reverse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => requestFiltering(filterKeyword)}
-                    disabled={isFiltering || !filterKeyword.trim()}
-                    className="px-6 py-3 bg-[#ff0000] text-white rounded-[8px] text-[16px] font-semibold hover:bg-[#b31217] transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isFiltering ? "필터링 중..." : "필터링"}
-                  </button>
                 </div>
                 
                 {/* 현재 필터 표시 - 조건부 렌더링 */}
-                {hasFilter && (
+                {hasFilter && !isFiltering && (
                   <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#212226] rounded-full border border-[#606265] animate-fadeIn transition-all duration-300 ease-in-out hover:bg-[#2a2e31] hover:border-[#707275] transform hover:scale-105">
                     <div className="flex items-center gap-2">
                       <svg 
@@ -1077,15 +1174,6 @@ export default function ReplyManagement() {
               </div>
             )}
 
-            {/* AI 필터링 중 상태 */}
-            {activeTab === "ai" && isFiltering && (
-              <div className="flex justify-center items-center py-20">
-                <div className="text-[#d9d9d9] text-[18px]">
-                  AI가 일치하는 댓글을 찾고 있어요.
-                </div>
-              </div>
-            )}
-
             {/* 에러 상태 */}
             {error && !isLoading && (
               <div className="flex justify-center items-center py-20">
@@ -1094,11 +1182,74 @@ export default function ReplyManagement() {
             )}
 
             {/* 댓글 테이블 */}
-            {!isLoading && !error && !(activeTab === "ai" && isFiltering) && (
+            {!isLoading && !error && (
               <div className={`flex-1 min-h-0 flex flex-col transition-all duration-300 ease-in-out ${
                 isTransitioning ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
               }`}>
-                {currentComments.length > 0 ? (
+                {/* AI 필터링 중일 때 로딩 메시지 표시 */}
+                {activeTab === "ai" && isFiltering ? (
+                  <div className="flex-1 min-h-0 flex flex-col bg-[#171818] w-full rounded-[10px] overflow-y-auto">
+                    {/* 테이블 헤더 */}
+                    <div className="flex flex-row text-[#a3a3a3] text-[17px] font-medium border-b border-[#303235] pb-2 min-w-0 pt-4 px-2">
+                      <div className="w-[60px] flex justify-center items-center">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 accent-[#ff0000]"
+                          checked={false}
+                          disabled
+                        />
+                      </div>
+                      <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
+                        Account
+                      </div>
+                      <div className="flex-3 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
+                        Comment
+                      </div>
+                      <div className="flex-1 text-[#a3a3a3] text-[17px] font-medium flex justify-center items-center">
+                        Date
+                      </div>
+                    </div>
+                    
+                                                          {/* AI 필터링 중 메시지 */}
+                                      <div className="flex-1 flex justify-center items-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                          {/* 도넛형식 로딩 애니메이션 */}
+                                                                                      <div className="w-[100px] h-[100px] relative">
+                                              <svg
+                                                className="w-full h-full"
+                                                viewBox="0 0 100 100"
+                                              >
+                                                {/* 배경 원 */}
+                                                <circle
+                                                  cx="50"
+                                                  cy="50"
+                                                  r="45"
+                                                  fill="none"
+                                                  stroke="#303235"
+                                                  strokeWidth="8"
+                                                />
+                                                {/* 애니메이션 원 */}
+                                                <circle
+                                                  cx="50"
+                                                  cy="50"
+                                                  r="45"
+                                                  fill="none"
+                                                  stroke="#f0f0f0"
+                                                  strokeWidth="8"
+                                                  strokeLinecap="round"
+                                                  className="donut-loading"
+                                                  strokeDasharray="283"
+                                                  strokeDashoffset="0"
+                                                />
+                                              </svg>
+                                            </div>
+                                          <div className="text-[#d9d9d9] text-[18px]">
+                                            AI가 일치하는 댓글을 찾고 있어요.
+                                          </div>
+                                        </div>
+                                      </div>
+                  </div>
+                ) : currentComments.length > 0 ? (
                   <div className="flex-1 min-h-0">
                     <CommentTable
                       comments={pagedComments}
@@ -1138,7 +1289,10 @@ export default function ReplyManagement() {
                     {/* 빈 상태 메시지 */}
                     <div className="flex-1 flex justify-center items-center">
                       <div className="text-[#d9d9d9] text-[18px]">
-                        {activeTab === "positive" ? "긍정적인" : activeTab === "negative" ? "부정적인" : activeTab === "ai" ? (hasFilter ? "필터링된" : "전체") : ""} 댓글이 없습니다.
+                        {activeTab === "ai" && hasFilter 
+                          ? "일치하는 댓글을 찾지 못했어요."
+                          : `${activeTab === "positive" ? "긍정적인" : activeTab === "negative" ? "부정적인" : activeTab === "ai" ? "전체" : ""} 댓글이 없습니다.`
+                        }
                       </div>
                     </div>
                   </div>

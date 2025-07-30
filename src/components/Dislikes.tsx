@@ -42,6 +42,7 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
   const [channelDislikes, setChannelDislikes] = useState<{ myChannel: ChannelDislikes; competitors: ChannelDislikes[]; } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [animationValues, setAnimationValues] = useState<{ [key: string]: number }>({});
 
   const fetchCompetitors = async () => {
     try {
@@ -163,6 +164,73 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
       fetchChannelDislikes();
     }
   }, [propCompetitors]);
+
+  // 애니메이션 효과
+  useEffect(() => {
+    if (channelDislikes) {
+      const animationData: { [key: string]: number } = {};
+      
+      // 내 채널 데이터
+      if (channelDislikes.myChannel.individualDislikes) {
+        channelDislikes.myChannel.individualDislikes.forEach((dislike, index) => {
+          animationData[`my-${index}`] = 0;
+        });
+      }
+      
+      // 경쟁 채널 데이터
+      if (channelDislikes.competitors) {
+        channelDislikes.competitors.forEach((competitor, compIndex) => {
+          if (competitor.individualDislikes) {
+            competitor.individualDislikes.forEach((dislike, index) => {
+              animationData[`competitor${compIndex}-${index}`] = 0;
+            });
+          }
+        });
+      }
+      
+      setAnimationValues(animationData);
+      
+      // 애니메이션 시작
+      const startTime = Date.now();
+      const duration = 1000; // 1초
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // ease out 함수
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        
+        const newAnimationValues: { [key: string]: number } = {};
+        
+        // 내 채널 애니메이션
+        if (channelDislikes.myChannel.individualDislikes) {
+          channelDislikes.myChannel.individualDislikes.forEach((dislike, index) => {
+            newAnimationValues[`my-${index}`] = dislike.dislikes * easeOut;
+          });
+        }
+        
+        // 경쟁 채널 애니메이션
+        if (channelDislikes.competitors) {
+          channelDislikes.competitors.forEach((competitor, compIndex) => {
+            if (competitor.individualDislikes) {
+              competitor.individualDislikes.forEach((dislike, index) => {
+                newAnimationValues[`competitor${compIndex}-${index}`] = dislike.dislikes * easeOut;
+              });
+            }
+          });
+        }
+        
+        setAnimationValues(newAnimationValues);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    }
+  }, [channelDislikes]);
 
   // 차트 데이터 (개별 영상 싫어요 기반)
   const getChartData = (): ChartDataItem[] => {
@@ -299,15 +367,17 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
   // 실제 최대값에 약간의 여유를 주어 Y축 설정 (최대값의 120%로 설정)
  // const maxValue = maxDislikes > 0 ? Math.ceil(maxDislikes * 1.2) : 100;
 
-  return (
-    <div
-      style={{
-        padding: "40px",
-        backgroundColor: "#1C2023",
-        minHeight: "600px",
-        width: "100%",
-      }}
-    >
+     return (
+     <div
+       style={{
+         padding: "40px",
+         backgroundColor: "#1a1b1c",
+         border: "1px solid #000000",
+         borderRadius: "12px",
+         minHeight: "600px",
+         width: "100%",
+       }}
+     >
       <h2 className="text-gray-400 mb-8" style={{ fontSize: "20px" }}>
         최신 영상 3개 기준
       </h2>
@@ -364,18 +434,16 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                 step = 500;
               }
               
-              // Y축 레이블 개수 계산 (최대 6개)
-              const maxLabel = Math.ceil(effectiveMaxDislikes / step) * step;
-              const labelCount = Math.min(6, Math.ceil(effectiveMaxDislikes / step) + 1);
+              // Y축 라벨 생성 (업로드 주기 그래프와 동일한 방식)
+              const maxValue = Math.ceil(effectiveMaxDislikes * 1.2); // 20% 여유 추가
               const labels = [];
-              
-              for (let i = 0; i < labelCount; i++) {
-                const value = Math.round((i / (labelCount - 1)) * maxLabel);
-                labels.push(value);
+              const labelStep = Math.ceil(maxValue / 5);
+              for (let i = 0; i <= maxValue; i += labelStep) {
+                labels.push(i);
               }
               
               return labels.map((dislikeCount, i) => {
-                const y = 350 - i * (300 / (labelCount - 1));
+                const y = 300 - (dislikeCount / maxValue) * 250; // 업로드 주기 그래프와 동일한 방식
                 
                 return (
                   <g key={i}>
@@ -406,8 +474,13 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
             {/* 막대 그래프 */}
             {data.map((item, idx) => {
               const groupX = 300 + idx * 300;
-              const barWidth = 60;
-              const gap = 20;
+              const barWidth = 35; // 막대 두께를 60에서 35로 줄임
+              const gap = 8; // 간격을 20에서 8로 줄임
+
+              // 애니메이션 값 가져오기
+              const myAnimatedValue = animationValues[`my-${2-idx}`] || 0; // 최신-2, 최신-1, 최신 순서
+              const competitor1AnimatedValue = animationValues[`competitor0-${2-idx}`] || 0;
+              const competitor2AnimatedValue = animationValues[`competitor1-${2-idx}`] || 0;
 
               // Y축의 실제 최대값 계산 (Y축 라벨의 최대값)
               const allIndividualDislikes = [];
@@ -422,7 +495,7 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                 });
               }
               const maxDislikes = allIndividualDislikes.length > 0 ? Math.max(...allIndividualDislikes) : 0;
-              const effectiveMaxDislikes = maxDislikes > 0 ? maxDislikes : 100;
+              const effectiveMaxDislikes = maxDislikes > 0 ? maxDislikes : 20; // 최소값을 20으로 설정
               
               // Y축 간격을 동적으로 계산
               let step = 5;
@@ -438,39 +511,38 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                 step = 500;
               }
               
-              // Y축의 실제 최대값
-              const maxLabel = Math.ceil(effectiveMaxDislikes / step) * step;
-              const labelCount = Math.min(6, Math.ceil(effectiveMaxDislikes / step) + 1);
-              const actualMaxValue = Math.round(((labelCount - 1) / (labelCount - 1)) * maxLabel);
+              // Y축의 실제 최대값 (업로드 주기 그래프와 동일한 방식)
+              const actualMaxValue = Math.ceil(effectiveMaxDislikes * 1.2); // 20% 여유 추가
 
               return (
                 <g key={idx}>
                   {/* 내 채널 막대 */}
                   <rect
                     x={groupX - barWidth - gap}
-                    y={350 - (item.my / actualMaxValue) * 300}
+                    y={300 - (myAnimatedValue / actualMaxValue) * 250}
                     width={barWidth}
-                    height={(item.my / actualMaxValue) * 300}
+                    height={(myAnimatedValue / actualMaxValue) * 250}
                     fill="#ef4444"
+                    rx="4" // 상단을 둥근 사각형으로 만듦
                   />
 
                   {/* 내 채널 싫어요 텍스트 */}
                   <text
                     x={groupX - barWidth - gap + barWidth / 2}
-                    y={350 - (item.my / actualMaxValue) * 300 - 10}
+                    y={300 - (myAnimatedValue / actualMaxValue) * 250 - 10}
                     textAnchor="middle"
                     fill="#ef4444"
                     fontSize="14"
                     fontFamily="sans-serif"
                     fontWeight="bold"
                   >
-                    {formatNumber(item.myDislikes)}
+                    {formatNumber(Math.round(myAnimatedValue))}
                   </text>
                   
                   {/* 내 채널 변화율 텍스트 */}
                   <text
                     x={groupX - barWidth - gap + barWidth / 2}
-                    y={350 - (item.my / actualMaxValue) * 300 - 25}
+                    y={300 - (myAnimatedValue / actualMaxValue) * 250 - 25}
                     textAnchor="middle"
                     fill="#ef4444"
                     fontSize="12"
@@ -481,39 +553,36 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
 
                   {/* 경쟁 채널 막대들 */}
                   {Array.isArray(competitors) && competitors.map((_, channelIdx) => {
-                    const competitorKey = `competitor${channelIdx + 1}` as keyof typeof item;
-                    const competitorValue = item[competitorKey] as number;
+                    const animatedValue = channelIdx === 0 ? competitor1AnimatedValue : competitor2AnimatedValue;
                     
                     return (
                       <g key={channelIdx}>
                   <rect
                           x={groupX + (channelIdx * (barWidth + gap))}
-                          y={350 - (competitorValue / actualMaxValue) * 300}
+                          y={300 - (animatedValue / actualMaxValue) * 250}
                     width={barWidth}
-                          height={(competitorValue / actualMaxValue) * 300}
+                          height={(animatedValue / actualMaxValue) * 250}
                           fill={colors[channelIdx + 1] || colors[0]}
+                          rx="4" // 상단을 둥근 사각형으로 만듦
                   />
 
                         {/* 경쟁 채널 싫어요 텍스트 */}
                         <text
                           x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
-                          y={350 - (competitorValue / actualMaxValue) * 300 - 10}
+                          y={300 - (animatedValue / actualMaxValue) * 250 - 10}
                           textAnchor="middle"
                           fill={colors[channelIdx + 1] || colors[0]}
                           fontSize="14"
                           fontFamily="sans-serif"
                           fontWeight="bold"
                         >
-                          {channelIdx === 0 
-                            ? formatNumber(item.competitor1Dislikes)
-                            : formatNumber(item.competitor2Dislikes)
-                          }
+                          {formatNumber(Math.round(animatedValue))}
                         </text>
                         
                         {/* 경쟁 채널 변화율 텍스트 */}
                         <text
                           x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
-                          y={350 - (competitorValue / actualMaxValue) * 300 - 25}
+                          y={300 - (animatedValue / actualMaxValue) * 250 - 25}
                           textAnchor="middle"
                           fill={colors[channelIdx + 1] || colors[0]}
                           fontSize="12"

@@ -81,7 +81,7 @@ const CommentTable: React.FC<CommentTableProps> = ({
             key={comment.id}
             className="flex flex-col border-b border-[#303235] min-w-0"
           >
-            <div className="flex flex-row items-center py-2 hover:bg-[#232335] transition min-w-0">
+            <div className="flex flex-row items-center py-2 hover:bg-gray-600 transition min-w-0">
               <div className="w-[60px] flex-shrink-0 flex items-center justify-center">
                 <input
                   type="checkbox"
