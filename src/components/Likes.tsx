@@ -295,9 +295,9 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
       }
     });
   }
-  const maxLikes = allIndividualLikes.length > 0 ? Math.max(...allIndividualLikes) : 0;
+//  const maxLikes = allIndividualLikes.length > 0 ? Math.max(...allIndividualLikes) : 0;
   // 실제 최대값에 약간의 여유를 주어 Y축 설정 (최대값의 120%로 설정)
-  const maxValue = maxLikes > 0 ? Math.ceil(maxLikes * 1.2) : 1000;
+//  const maxValue = maxLikes > 0 ? Math.ceil(maxLikes * 1.2) : 1000;
 
   return (
     <div
