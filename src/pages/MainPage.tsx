@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import youtubeLogo from "../assets/youtubelogo.png";
+import youtubeLogo from "../assets/youtool.png";
 import analysisIcon from "../assets/video_analysis.png";
 import categoryIcon from "../assets/category.png";
 import replyIcon from "../assets/reply.png";

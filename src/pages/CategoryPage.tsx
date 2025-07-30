@@ -210,19 +210,21 @@ export default function CategoryPage() {
               return (
                 <div 
                   key={idx} 
-                  className="flex flex-row items-center bg-[#1c2023] rounded-2xl mx-10 px-12 py-8 cursor-pointer hover:bg-[#2a2e31] transition-colors"
+                  className="flex flex-row items-center bg-[#1c2023] rounded-2xl mx-8 px-12 py-8 cursor-pointer hover:bg-[#2a2e31] transition-colors"
                   onClick={() => navigate(`/category_segmentation?rank=${rank}`)}
                 >
                   {/* 순위 뱃지 */}
-                  <div className="flex flex-col items-center mr-10">
+                  <div className="flex flex-col items-center mr-10 flex-shrink-0" style={{ width: '60px', minWidth: '60px', maxWidth: '60px' }}>
                     {medalImg ? (
                       <img
                         src={medalImg}
                         alt={`${rank}st medal`}
                         className="w-[8vw] h-[6vh] -mb-4 z-10"
+                        style={{ width: '60px', height: '60px', minWidth: '60px', maxWidth: '60px', minHeight: '60px', maxHeight: '60px' }}
                       />
                     ) : (
-                      <div className="w-[3vw] h-[5vh] mx-1 rounded-full bg-transparent flex justify-center items-center text-[2rem] font-bold text-white/80">
+                      <div className="w-[3vw] h-[5vh] mx-1 rounded-full bg-transparent flex justify-center items-center text-[2rem] font-bold text-white/80"
+                           style={{ width: '60px', height: '60px', minWidth: '60px', maxWidth: '60px', minHeight: '60px', maxHeight: '60px' }}>
                         {rank}
                       </div>
                     )}
@@ -230,19 +232,39 @@ export default function CategoryPage() {
 
                   {/* 썸네일 */}
                   {topVideo && (
-                    <img 
-                      src={topVideo.thumbnail_url} 
-                      alt="썸네일" 
-                      className="w-[340px] h-[200px] mr-6 object-cover rounded-2xl flex-shrink-0" 
-                      style={{ width: '340px', height: '200px' }}
-                    />
+                    <div 
+                      className="mr-6 flex-shrink-0 rounded-2xl overflow-hidden" 
+                      style={{ 
+                        width: '340px', 
+                        height: '200px',
+                        minWidth: '340px',
+                        maxWidth: '340px',
+                        minHeight: '200px',
+                        maxHeight: '200px',
+                        flexShrink: 0,
+                        flexGrow: 0
+                      }}
+                    >
+                      <img 
+                        src={topVideo.thumbnail_url} 
+                        alt="썸네일" 
+                        className="w-full h-full object-cover" 
+                        style={{ 
+                          width: '100%', 
+                          height: '100%',
+                          objectFit: 'cover',
+                          objectPosition: 'center',
+                          display: 'block'
+                        }}
+                      />
+                    </div>
                   )}
 
                   {/* 텍스트/설명 */}
                   <div className="flex flex-col ml-4">
                     <div className="text-[1.8rem] text-white font-semibold mb-2">{category.name}</div>
                     <div className="text-[1.3rem] text-rgba(255,255,255,0.6) font-thin mb-4">{category.description}</div>
-                    <div className="flex flex-row justify-between text-[#ffffff] text-[1.5rem] font-medium pr-2 mt-8">
+                    <div className="flex flex-row justify-between text-[#ffffff] text-[1.5rem] font-medium pr-2 mt-10">
                         <div>전체 영상 수 : <span>{category.videoCount}개</span></div>
                         <div>평균 조회수 : <span>{formatNumber(category.averageViews)}회</span></div>
                         <div>평균 좋아요 수 : <span>{category.averageLikes}개</span></div>

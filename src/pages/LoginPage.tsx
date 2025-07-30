@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import loginBg from "../assets/login_background.png";
-import youtubeLogo from "../assets/youtubelogo.png";
+import youtubeLogo from "../assets/youtool.png";
 import arrow from "../assets/arrow.png";
 
 export default function LoginPage() {
