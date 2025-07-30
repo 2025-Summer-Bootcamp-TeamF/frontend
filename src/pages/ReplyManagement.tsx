@@ -13,6 +13,7 @@ export interface Comment {
   account: string;
   comment: string;
   date: string;
+  originalDate?: string; // 원본 날짜 시간 정보
   checked: boolean;
 }
 
@@ -112,21 +113,36 @@ export default function ReplyManagement() {
       const responseData = await response.json();
       console.log("API 응답 데이터:", responseData);
 
-      // 댓글이 있으면 표시
-      if (responseData.data && responseData.data.length > 0) {
-        console.log("댓글이 이미 있음:", responseData.data.length, "개");
-        const formattedComments: Comment[] = responseData.data.map(
-          (comment: any, index: number) => ({
-            id: comment.youtube_comment_id || comment.id, // youtube_comment_id 사용
-            account: comment.author_name || `User_${index + 1}`,
-            comment: comment.comment || "댓글 내용 없음",
-            date: comment.comment_date
-              ? new Date(comment.comment_date).toLocaleDateString("ko-KR")
-              : "날짜 없음",
-            checked: false,
-          })
-        );
-        setPositiveComments(formattedComments);
+              // 댓글이 있으면 표시
+        if (responseData.data && responseData.data.length > 0) {
+          console.log("댓글이 이미 있음:", responseData.data.length, "개");
+          const formattedComments: Comment[] = responseData.data.map(
+            (comment: any, index: number) => ({
+              id: comment.youtube_comment_id || comment.id, // youtube_comment_id 사용
+              account: comment.author_name || `User_${index + 1}`,
+              comment: comment.comment || "댓글 내용 없음",
+              date: comment.comment_date
+                ? new Date(comment.comment_date).toLocaleDateString("ko-KR")
+                : "날짜 없음",
+              originalDate: comment.comment_date, // 원본 날짜 시간 정보 저장
+              checked: false,
+            })
+          );
+          
+          // 원본 날짜 시간 기준으로 정렬 (최신순)
+          const sortedComments = formattedComments.sort((a, b) => {
+            if (!a.originalDate || !b.originalDate) {
+              return 0; // 날짜 정보가 없으면 순서 변경 안함
+            }
+            
+            const dateA = new Date(a.originalDate);
+            const dateB = new Date(b.originalDate);
+            
+            return dateB.getTime() - dateA.getTime(); // 최신순
+          });
+        
+        console.log('긍정 댓글 정렬 완료:', sortedComments.length, '개');
+        setPositiveComments(sortedComments);
         setIsLoading(false);
         return;
       }
@@ -280,11 +296,25 @@ export default function ReplyManagement() {
             date: comment.comment_date
               ? new Date(comment.comment_date).toLocaleDateString("ko-KR")
               : "날짜 없음",
+            originalDate: comment.comment_date, // 원본 날짜 시간 정보 저장
             checked: false,
           })
         );
-        console.log("부정 댓글 포맷팅 완료:", formattedComments.length, "개");
-        setNegativeComments(formattedComments);
+        
+        // 원본 날짜 시간 기준으로 정렬 (최신순)
+        const sortedComments = formattedComments.sort((a, b) => {
+          if (!a.originalDate || !b.originalDate) {
+            return 0; // 날짜 정보가 없으면 순서 변경 안함
+          }
+          
+          const dateA = new Date(a.originalDate);
+          const dateB = new Date(b.originalDate);
+          
+          return dateB.getTime() - dateA.getTime(); // 최신순
+        });
+        
+        console.log("부정 댓글 정렬 완료:", sortedComments.length, "개");
+        setNegativeComments(sortedComments);
       } else {
         console.log("부정 댓글 데이터 없음");
         setNegativeComments([]);
@@ -312,11 +342,7 @@ export default function ReplyManagement() {
     }
   }, [videoId]);
 
-  // 탭 변경 시에만 체크된 댓글 초기화
-  useEffect(() => {
-    setCheckedComments(new Set());
-    setCurrentPage(1);
-  }, [activeTab]);
+
 
   // 댓글 분류 변경
   // 댓글 분류 변경 API 연동
@@ -361,27 +387,53 @@ export default function ReplyManagement() {
           setPositiveComments(prev => 
             prev.filter(comment => !selectedIds.includes(comment.id))
           );
-          // 부정 댓글에 추가 (comment_type을 2로 변경)
-          setNegativeComments(prev => [
-            ...selectedComments.map(comment => ({
-              ...comment,
-              comment_type: 2
-            })),
-            ...prev
-          ]);
+          // 부정 댓글에 추가 (comment_type을 2로 변경) 후 날짜순 정렬
+          setNegativeComments(prev => {
+            const updatedComments = [
+              ...selectedComments.map(comment => ({
+                ...comment,
+                comment_type: 2
+              })),
+              ...prev
+            ];
+            // 원본 날짜 시간 기준으로 정렬 (최신순)
+            return updatedComments.sort((a, b) => {
+              if (!a.originalDate || !b.originalDate) {
+                return 0; // 날짜 정보가 없으면 순서 변경 안함
+              }
+              
+              const dateA = new Date(a.originalDate);
+              const dateB = new Date(b.originalDate);
+              
+              return dateB.getTime() - dateA.getTime(); // 최신순
+            });
+          });
         } else {
           // 부정 → 긍정 이동: 부정 댓글에서 제거
           setNegativeComments(prev => 
             prev.filter(comment => !selectedIds.includes(comment.id))
           );
-          // 긍정 댓글에 추가 (comment_type을 1로 변경)
-          setPositiveComments(prev => [
-            ...selectedComments.map(comment => ({
-              ...comment,
-              comment_type: 1
-            })),
-            ...prev
-          ]);
+          // 긍정 댓글에 추가 (comment_type을 1로 변경) 후 날짜순 정렬
+          setPositiveComments(prev => {
+            const updatedComments = [
+              ...selectedComments.map(comment => ({
+                ...comment,
+                comment_type: 1
+              })),
+              ...prev
+            ];
+            // 원본 날짜 시간 기준으로 정렬 (최신순)
+            return updatedComments.sort((a, b) => {
+              if (!a.originalDate || !b.originalDate) {
+                return 0; // 날짜 정보가 없으면 순서 변경 안함
+              }
+              
+              const dateA = new Date(a.originalDate);
+              const dateB = new Date(b.originalDate);
+              
+              return dateB.getTime() - dateA.getTime(); // 최신순
+            });
+          });
         }
 
         setCheckedComments(new Set());
@@ -481,9 +533,27 @@ export default function ReplyManagement() {
 
   // 탭 전환 핸들러
   const handleTabChange = (tab: "positive" | "negative") => {
+    console.log(`탭 변경: ${tab}`);
     setActiveTab(tab);
     setCurrentPage(1);
     setCheckedComments(new Set());
+    
+    // 탭 변경 시 즉시 정렬 적용
+    if (tab === "positive") {
+      const sorted = [...positiveComments].sort((a, b) => {
+        const dateA = new Date(a.date.replace(/\./g, '-'));
+        const dateB = new Date(b.date.replace(/\./g, '-'));
+        return dateB.getTime() - dateA.getTime();
+      });
+      setPositiveComments(sorted);
+    } else {
+      const sorted = [...negativeComments].sort((a, b) => {
+        const dateA = new Date(a.date.replace(/\./g, '-'));
+        const dateB = new Date(b.date.replace(/\./g, '-'));
+        return dateB.getTime() - dateA.getTime();
+      });
+      setNegativeComments(sorted);
+    }
   };
 
   // 페이지 변경 핸들러
@@ -498,13 +568,8 @@ export default function ReplyManagement() {
     }
   };
 
-  // 현재 활성 탭의 댓글 데이터 (최신순 정렬)
-  const currentComments = (activeTab === "positive" ? positiveComments : negativeComments)
-    .sort((a, b) => {
-      const dateA = new Date(a.date).getTime();
-      const dateB = new Date(b.date).getTime();
-      return dateB - dateA; // 최신순 정렬
-    });
+  // 현재 활성 탭의 댓글 데이터 (정렬 없이 원본 데이터 사용)
+  const currentComments = activeTab === "positive" ? positiveComments : negativeComments;
 
   // 현재 페이지의 댓글들 (페이지 범위 계산 수정)
   const startIndex = (currentPage - 1) * COMMENTS_PER_PAGE;
@@ -531,6 +596,13 @@ export default function ReplyManagement() {
       setCurrentPage(1);
     }
   }, [currentComments.length, currentPage, totalPages]);
+
+  // 탭 변경 시 체크된 댓글 초기화
+  useEffect(() => {
+    setCheckedComments(new Set());
+    setCurrentPage(1);
+    console.log(`탭 변경됨: ${activeTab}`);
+  }, [activeTab]);
 
   // 데이터 상태 디버깅
   useEffect(() => {
