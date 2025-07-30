@@ -59,7 +59,6 @@ export default function ReplyManagement() {
 
   // 댓글 데이터 상태
   const [allComments, setAllComments] = useState<Comment[]>([]);
-  const [filteredComments, setFilteredComments] = useState<Comment[]>([]);
   const [positiveComments, setPositiveComments] = useState<Comment[]>([]);
   const [negativeComments, setNegativeComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -67,7 +66,6 @@ export default function ReplyManagement() {
   
   // AI 필터링 상태
   const [isFiltering, setIsFiltering] = useState(false);
-  const [filterJobId, setFilterJobId] = useState<string | null>(null);
   const [filterKeyword, setFilterKeyword] = useState("");
   const [hasFilter, setHasFilter] = useState(false);
   const [videoFilterKeyword, setVideoFilterKeyword] = useState<string>("");
@@ -292,7 +290,7 @@ export default function ReplyManagement() {
 
       if (response.ok) {
         const result = await response.json();
-        setFilterJobId(result.job_id);
+        // setFilterJobId(result.job_id); // 이 부분은 사용하지 않음
         // 상태 확인 시작
         checkFilterStatus(result.job_id);
       } else {
@@ -328,7 +326,7 @@ export default function ReplyManagement() {
         if (statusData.status === "completed") {
           console.log("필터링 작업 완료, 모든 댓글 다시 불러오기");
           setIsFiltering(false);
-          setFilterJobId(null);
+          // setFilterJobId(null); // 이 부분은 사용하지 않음
           
           // 비디오 정보 먼저 가져와서 키워드 저장
           const keyword = await fetchVideoInfo();
@@ -346,7 +344,7 @@ export default function ReplyManagement() {
         } else if (statusData.status === "failed") {
           console.error("필터링 작업 실패");
           setIsFiltering(false);
-          setFilterJobId(null);
+          // setFilterJobId(null); // 이 부분은 사용하지 않음
           setError("필터링 작업이 실패했습니다.");
         } else {
           // waiting, active 상태면 2초 후 다시 확인
@@ -357,13 +355,13 @@ export default function ReplyManagement() {
       } else {
         console.error("상태 확인 실패:", response.status);
         setIsFiltering(false);
-        setFilterJobId(null);
+        // setFilterJobId(null); // 이 부분은 사용하지 않음
         setError("작업 상태 확인 실패");
       }
     } catch (error) {
       console.error("상태 확인 중 오류:", error);
       setIsFiltering(false);
-      setFilterJobId(null);
+      // setFilterJobId(null); // 이 부분은 사용하지 않음
       setError("작업 상태 확인 중 오류 발생");
     }
   };
@@ -446,10 +444,10 @@ export default function ReplyManagement() {
     setHasFilter(false);
     setFilterKeyword("");
     setVideoFilterKeyword("");
-    setFilteredComments([]);
+    // setFilteredComments([]); // 이 부분은 사용하지 않음
     // 필터링 상태도 초기화
     setIsFiltering(false);
-    setFilterJobId(null);
+    // setFilterJobId(null); // 이 부분은 사용하지 않음
     setIsFilterManuallyCleared(true); // 수동 초기화 상태 표시
   };
 
@@ -586,11 +584,6 @@ export default function ReplyManagement() {
           } 댓글로 이동되었습니다.`
         );
 
-        // 선택된 댓글들을 현재 탭에서 제거
-        const selectedComments = currentComments.filter(comment => 
-          selectedIds.includes(comment.id)
-        );
-
         // 댓글 이동 후 모든 댓글 다시 불러오기
         fetchAllComments();
         
@@ -608,6 +601,8 @@ export default function ReplyManagement() {
   // 댓글 삭제 API 연동
   const deleteComments = async () => {
     const selectedIds = Array.from(checkedComments);
+    console.log("삭제할 댓글 ID들:", selectedIds);
+    
     if (selectedIds.length === 0) {
       alert("삭제할 댓글을 선택해주세요.");
       return;
@@ -619,6 +614,7 @@ export default function ReplyManagement() {
 
     try {
       const token = localStorage.getItem("token");
+      console.log("토큰 확인:", token ? "존재" : "없음");
 
       // 토큰이 없으면 로그인 페이지로
       if (!token) {
@@ -640,6 +636,7 @@ export default function ReplyManagement() {
         youtube_access_token: youtubeAccessToken, // YouTube 액세스 토큰 전송
       };
       console.log("삭제 요청 데이터:", requestBody);
+      console.log("삭제 API URL:", `http://localhost:8000/api/videos/${videoId}/comments`);
 
       const response = await fetch(
         `http://localhost:8000/api/videos/${videoId}/comments`,
@@ -653,6 +650,9 @@ export default function ReplyManagement() {
         }
       );
 
+      console.log("삭제 API 응답 상태:", response.status);
+      console.log("삭제 API 응답 헤더:", response.headers);
+
       // 401 에러 처리
       if (response.status === 401) {
         // 토큰 제거
@@ -664,15 +664,20 @@ export default function ReplyManagement() {
 
       if (response.ok) {
         const result = await response.json();
+        console.log("삭제 API 성공 응답:", result);
+        console.log("삭제 API 에러 상세:", result.errors);
         const message = result.message || `${result.dbDeleted || selectedIds.length}개의 댓글이 삭제되었습니다.`;
         alert(message);
 
-        // 댓글 삭제 후 모든 댓글 다시 불러오기
-        fetchAllComments();
+        // 삭제된 댓글들을 UI에서 즉시 제거
+        setAllComments(prev => prev.filter(comment => !selectedIds.includes(comment.id)));
+        setPositiveComments(prev => prev.filter(comment => !selectedIds.includes(comment.id)));
+        setNegativeComments(prev => prev.filter(comment => !selectedIds.includes(comment.id)));
 
         setCheckedComments(new Set());
       } else {
         const errorData = await response.json().catch(() => ({}));
+        console.log("삭제 API 실패 응답:", errorData);
         alert(
           `댓글 삭제 실패: ${
             errorData.error || errorData.detail || "알 수 없는 오류"
@@ -750,7 +755,7 @@ export default function ReplyManagement() {
   // 페이지 변경 핸들러
   const handlePageChange = (page: number) => {
     // 유효한 페이지 범위인지 확인
-    const maxPage = Math.ceil(currentComments.length / COMMENTS_PER_PAGE);
+    const maxPage = Math.ceil(allComments.length / COMMENTS_PER_PAGE);
     if (page >= 1 && page <= maxPage) {
       setCurrentPage(page);
       console.log(`페이지 변경: ${page} (최대: ${maxPage})`);

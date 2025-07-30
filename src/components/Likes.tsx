@@ -174,7 +174,7 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
       
       // 내 채널 데이터
       if (channelLikes.myChannel.individualLikes) {
-        channelLikes.myChannel.individualLikes.forEach((like, index) => {
+        channelLikes.myChannel.individualLikes.forEach((_, index) => {
           animationData[`my-${index}`] = 0;
         });
       }
@@ -183,7 +183,7 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
       if (channelLikes.competitors) {
         channelLikes.competitors.forEach((competitor, compIndex) => {
           if (competitor.individualLikes) {
-            competitor.individualLikes.forEach((like, index) => {
+            competitor.individualLikes.forEach((_, index) => {
               animationData[`competitor${compIndex}-${index}`] = 0;
             });
           }
@@ -422,20 +422,20 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
               const effectiveMaxLikes = maxLikes > 0 ? maxLikes : 20;
               
               // Y축 간격을 동적으로 계산
-              let step = 500;
+              // let step = 500;
               
               // 최대값에 따라 간격 조정
-              if (effectiveMaxLikes <= 100) {
-                step = 20;
-              } else if (effectiveMaxLikes <= 500) {
-                step = 100;
-              } else if (effectiveMaxLikes <= 2000) {
-                step = 500;
-              } else if (effectiveMaxLikes <= 10000) {
-                step = 2000;
-              } else {
-                step = 5000;
-              }
+              // if (effectiveMaxLikes <= 100) {
+              //   step = 20;
+              // } else if (effectiveMaxLikes <= 500) {
+              //   step = 100;
+              // } else if (effectiveMaxLikes <= 2000) {
+              //   step = 500;
+              // } else if (effectiveMaxLikes <= 10000) {
+              //   step = 2000;
+              // } else {
+              //   step = 5000;
+              // }
               
               // Y축 라벨 생성 (업로드 주기 그래프와 동일한 방식)
               const maxValue = Math.ceil(effectiveMaxLikes * 1.2); // 20% 여유 추가
