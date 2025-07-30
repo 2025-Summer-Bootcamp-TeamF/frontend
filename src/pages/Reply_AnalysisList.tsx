@@ -33,6 +33,10 @@ interface VideoInfo {
   views: string;
   commentRate: string;
   likeRate: string;
+  commentCount?: number;
+  likeCount?: number;
+  dislikeCount?: number;
+  dislikeRate?: string;
 }
 
 // Reaction 문구 및 색상 함수
