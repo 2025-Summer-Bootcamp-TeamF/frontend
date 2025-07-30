@@ -136,7 +136,7 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ dailyView, averageView }) =
   };
 
   return (
-    <div className="w-full h-full" style={{ padding: "2.5%" }}>
+    <div className="w-full h-full" style={{ backgroundColor: "#1a1b1c", padding: "2.5%" }}>
       <div className="flex w-full h-full" style={{ gap: "2.5%" }}>
         {/* 왼쪽: 통계 카드 + 차트 - 50% */}
         <div className="flex flex-col" style={{ width: "48%" }}>
@@ -234,13 +234,13 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ dailyView, averageView }) =
                     const padding = range * 0.1;
                     const yRange = 280; // 320 - 40 (위쪽 여백 줄임)
                     
-                    // Y축 값 계산 (5개 구간)
-                    const yAxisValues = [];
-                    for (let i = 0; i <= 4; i++) {
-                      const value = minSubscriber - padding + ((range + padding * 2) * i / 4);
-                      const y = 320 - (i * yRange / 4);
-                      yAxisValues.push({ value: Math.round(value), y });
-                    }
+                                         // Y축 값 계산 (5개 구간)
+                     const yAxisValues = [];
+                     for (let i = 0; i <= 4; i++) {
+                       const value = Math.max(0, minSubscriber - padding) + ((range + padding * 2) * i / 4);
+                       const y = 320 - (i * yRange / 4);
+                       yAxisValues.push({ value: Math.round(value), y });
+                     }
                     
                     return (
                       <>
@@ -278,11 +278,11 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ dailyView, averageView }) =
                     const padding = range * 0.1;
                     const yRange = 280; // 320 - 40 (위쪽 여백 줄임)
                     
-                    const points = subscriberData.map((data, index) => {
-                      const x = 80 + (index * (680 / (subscriberData.length - 1)));
-                      const y = 320 - ((data.subscriber - minSubscriber + padding) / (range + padding * 2)) * yRange;
-                      return { x, y, data };
-                    });
+                                         const points = subscriberData.map((data, index) => {
+                       const x = 80 + (index * (680 / (subscriberData.length - 1)));
+                       const y = 320 - ((data.subscriber - Math.max(0, minSubscriber - padding)) / (range + padding * 2)) * yRange;
+                       return { x, y, data };
+                     });
                     
                     const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
                     

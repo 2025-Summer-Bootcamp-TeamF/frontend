@@ -33,6 +33,10 @@ interface VideoInfo {
   views: string;
   commentRate: string;
   likeRate: string;
+  commentCount?: number;
+  likeCount?: number;
+  dislikeCount?: number;
+  dislikeRate?: string;
 }
 
 // Reaction 문구 및 색상 함수
@@ -57,6 +61,8 @@ export default function ReplyManagement() {
   const [summaryData, setSummaryData] = useState<CommentSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisJobId, setAnalysisJobId] = useState<string | null>(null);
   
   // 현재 페이지의 요약 데이터들
   const pagedSummaries = summaryData.slice(
@@ -120,6 +126,59 @@ export default function ReplyManagement() {
     
     fetchSummaryData();
   }, [location.state?.videoId]);
+
+  // 분석 작업 상태 폴링
+  useEffect(() => {
+    if (!analysisJobId || !location.state?.videoId) return;
+
+    const pollAnalysisStatus = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8000/api/videos/${location.state.videoId}/comments/analysis/status/${analysisJobId}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('분석 상태 확인 실패');
+        }
+
+        const result = await response.json();
+        console.log('[DEBUG] 분석 상태:', result);
+
+        if (result.success) {
+          if (result.status === 'completed') {
+            console.log('[DEBUG] 분석 완료!');
+            setIsAnalyzing(false);
+            setAnalysisJobId(null);
+            // 분석 완료 후 데이터 새로고침
+            window.location.reload();
+          } else if (result.status === 'failed') {
+            console.log('[DEBUG] 분석 실패!');
+            setIsAnalyzing(false);
+            setAnalysisJobId(null);
+            alert('댓글 분석이 실패했습니다.');
+          }
+          // waiting, active 상태는 계속 폴링
+        }
+      } catch (err) {
+        console.error('분석 상태 확인 실패:', err);
+      }
+    };
+
+    // 3초마다 상태 확인
+    const interval = setInterval(pollAnalysisStatus, 3000);
+    
+    // 즉시 첫 번째 확인 실행
+    pollAnalysisStatus();
+
+    return () => clearInterval(interval);
+  }, [analysisJobId, location.state?.videoId]);
 
   // 개별 체크박스 토글
   const handleCheck = (commentId: number) => {
@@ -287,7 +346,7 @@ export default function ReplyManagement() {
         <div
           className="
             flex flex-col flex-3 w-full rounded-2xl
-            bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
+            bg-[rgba(255,255,255,0.15)] border border-white/30
             p-10
             "
         >
@@ -311,6 +370,11 @@ export default function ReplyManagement() {
               views={videoInfo.views}
               commentRate={videoInfo.commentRate}
               likeRate={videoInfo.likeRate}
+              dislikeRate={videoInfo.dislikeRate}
+              commentCount={videoInfo.commentCount}
+              likeCount={videoInfo.likeCount}
+              dislikeCount={videoInfo.dislikeCount}
+              showEngagementRates={true}
               className=""
             />
             {/* 댓글 분석하기 버튼 */}
@@ -326,6 +390,8 @@ export default function ReplyManagement() {
                       alert('영상 정보가 없습니다.');
                       return;
                     }
+                    
+                    setIsAnalyzing(true);
                     
                     const response = await fetch(`http://localhost:8000/api/videos/${videoId}/comments/analysis`, {
                       method: 'POST',
@@ -343,21 +409,33 @@ export default function ReplyManagement() {
                     console.log('[DEBUG] AI 분석 요청 결과:', result);
                     
                     if (result.success) {
-                      alert('댓글 분석이 시작되었습니다. 잠시 후 새로고침하여 결과를 확인하세요.');
-                      // 페이지 새로고침
-                      window.location.reload();
+                      setAnalysisJobId(result.job_id);
+                      console.log('[DEBUG] 분석 작업 ID:', result.job_id);
                     } else {
                       throw new Error('AI 분석 요청 실패');
                     }
                   } catch (err) {
                     console.error('AI 분석 요청 실패:', err);
                     alert('댓글 분석 요청 중 오류가 발생했습니다.');
+                    setIsAnalyzing(false);
                   }
                 }}
-                className="w-full rounded-xl bg-[#ff0000] text-white text-[20px] font-semibold my-5 py-3 transition-colors hover:bg-[#b31217]"
+                disabled={isAnalyzing}
+                className={`w-full rounded-xl text-white text-[20px] font-semibold my-5 py-6 transition-colors ${
+                  isAnalyzing 
+                    ? 'bg-[#8B0000] cursor-not-allowed' 
+                    : 'bg-[#ff0000] hover:bg-[#b31217]'
+                }`}
                 type="button"
               >
-                댓글 분석하기
+                {isAnalyzing ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    분석중...
+                  </div>
+                ) : (
+                  '댓글 분석하기'
+                )}
               </button>
             </div>
           </div>
@@ -367,7 +445,7 @@ export default function ReplyManagement() {
         <div
           className="
             flex flex-col flex-7 w-full rounded-2xl 
-            bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
+            bg-[rgba(255,255,255,0.15)] border border-white/30
             h-full min-h-0
           "
         >

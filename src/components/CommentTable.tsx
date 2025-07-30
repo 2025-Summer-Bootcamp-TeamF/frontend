@@ -31,7 +31,7 @@ const CommentTable: React.FC<CommentTableProps> = ({
   renderRow,
   renderHeader
 }) => (
-  <div className="flex flex-col bg-[#1c2023] w-full h-full pt-4 pb-2 pr-2 pl-2 rounded-[10px] overflow-y-auto">
+  <div className="flex flex-col bg-[#171818] w-full h-full pt-4 pb-2 pr-2 pl-2 rounded-[10px] overflow-y-auto">
     <style dangerouslySetInnerHTML={{
       __html: `
         .comment-text {
@@ -47,7 +47,7 @@ const CommentTable: React.FC<CommentTableProps> = ({
       `
     }} />
     {/* 테이블 헤더 */}
-    <div className="flex flex-row text-[#a3a3a3] text-[17px] font-medium border-b border-[#606265] pb-2 min-w-0">
+    <div className="flex flex-row text-[#a3a3a3] text-[17px] font-medium border-b border-[#303235] pb-2 min-w-0">
       <div className="w-[60px] flex justify-center items-center">
         <input
           type="checkbox"
@@ -79,9 +79,9 @@ const CommentTable: React.FC<CommentTableProps> = ({
         ) : (
           <div
             key={comment.id}
-            className="flex flex-col border-b border-[#606265] min-w-0"
+            className="flex flex-col border-b border-[#303235] min-w-0"
           >
-            <div className="flex flex-row items-center py-2 hover:bg-[#232335] transition min-w-0">
+            <div className="flex flex-row items-center py-2 hover:bg-gray-600 transition min-w-0">
               <div className="w-[60px] flex-shrink-0 flex items-center justify-center">
                 <input
                   type="checkbox"

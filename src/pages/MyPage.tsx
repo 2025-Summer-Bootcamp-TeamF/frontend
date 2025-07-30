@@ -29,6 +29,8 @@ const MyPage: React.FC = () => {
   const [channelData, setChannelData] = useState<ChannelData | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTitle, setSearchTitle] = useState("");
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [showSearchField, setShowSearchField] = useState(false);
 
   const handleSearchTitle = () => {
     console.log("Search title:", searchTitle);
@@ -116,7 +118,7 @@ const MyPage: React.FC = () => {
           className="rounded-2xl overflow-hidden h-full"
           style={{
             backgroundColor: "rgba(255, 255, 255, 0.15)",
-            border: "1px solid rgba(255, 255, 255, 0.6)",
+            border: "1px solid rgba(255, 255, 255, 0.3)",
           }}
         >
           {/* Header */}
@@ -131,7 +133,7 @@ const MyPage: React.FC = () => {
           >
             <div className="flex items-center gap-2 mb-4">
               <img src="/mypagelogo.png" alt="My Page" className="w-6 h-6" />
-              <span className="text-gray-200 text-[1.7rem]">My Account</span>
+              <span className="text-gray-200 text-[1.7rem]">My Channel</span>
             </div>
 
             {/* Profile Section */}
@@ -202,51 +204,94 @@ const MyPage: React.FC = () => {
           </div>
 
           {/* Tabs */}
-          <div
-            style={{ paddingLeft: "89.76px", paddingRight: "89.76px" }}
-            className="flex gap-8 items-center justify-between"
-          >
-            <div className="flex gap-8">
-            <button
-              className={`pb-3 hover:text-white transition-colors text-2xl ${
-                activeTab === "overview"
-                  ? "text-white border-b-2 border-red-500"
-                  : "text-gray-400"
-              }`}
-              onClick={() => setActiveTab("overview")}
-            >
-              Overview
-            </button>
-            <button
-              className={`pb-3 hover:text-white transition-colors text-2xl ${
-                activeTab === "video"
-                  ? "text-white border-b-2 border-red-500"
-                  : "text-gray-400"
-              }`}
-              onClick={() => setActiveTab("video")}
-            >
-              Video
-            </button>
-            </div>
-            {/* 영상 제목 검색창 - Video 탭에서만 표시 */}
-            {activeTab === "video" && (
-              <div className="flex items-center ml-auto">
-                <input
-                  type="text"
-                  placeholder="영상 제목 검색"
-                  className="bg-[#23242A] border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500 transition w-64"
-                  value={searchTitle || ""}
-                  onChange={e => setSearchTitle(e.target.value)}
-                />
-                <button
-                  className="ml-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                  onClick={handleSearchTitle}
-                >
-                  검색
-                </button>
-              </div>
-            )}
-          </div>
+                     <div
+             style={{ paddingLeft: "89.76px", paddingRight: "89.76px" }}
+             className="flex gap-8 items-center"
+           >
+             <div className="flex gap-8 items-center" style={{ marginLeft: "10px" }}>
+             <button
+               className={`pb-3 hover:text-white transition-colors text-2xl ${
+                 activeTab === "overview"
+                   ? "text-white border-b-2 border-red-500"
+                   : "text-gray-400"
+               }`}
+               onClick={() => setActiveTab("overview")}
+             >
+               개요
+             </button>
+             <button
+               className={`pb-3 hover:text-white transition-colors text-2xl ${
+                 activeTab === "video"
+                   ? "text-white border-b-2 border-red-500"
+                   : "text-gray-400"
+               }`}
+               onClick={() => setActiveTab("video")}
+             >
+               동영상
+             </button>
+             
+                           {/* 검색 아이콘 - Video 탭에서만 표시 */}
+              {activeTab === "video" && (
+                <div className="flex items-center gap-4">
+                                     {/* 돋보기 버튼 - 항상 표시 */}
+                   <button
+                     className="w-12 h-12 rounded-full hover:bg-gray-700 transition-colors flex items-center justify-center group"
+                     onClick={() => {
+                       if (!showSearchField) {
+                         setShowSearchField(true);
+                         setTimeout(() => setIsSearchActive(true), 50);
+                       } else {
+                         setSearchTitle("");
+                         setIsSearchActive(false);
+                         setShowSearchField(false);
+                       }
+                     }}
+                   >
+                     <svg className="w-7 h-7 text-gray-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                     </svg>
+                   </button>
+                   
+                   {/* 검색 필드 */}
+                   {showSearchField && (
+                     <div className="relative">
+                       <input
+                         type="text"
+                         placeholder="검색"
+                         className="bg-transparent text-white text-xl focus:outline-none w-64 pr-8 py-2"
+                         value={searchTitle || ""}
+                         onChange={e => setSearchTitle(e.target.value)}
+                         onKeyPress={(e) => {
+                           if (e.key === 'Enter') {
+                             handleSearchTitle();
+                           }
+                         }}
+                         onBlur={() => {
+                           if (!searchTitle) {
+                             setIsSearchActive(false);
+                             setTimeout(() => setShowSearchField(false), 200);
+                           }
+                         }}
+                         autoFocus
+                       />
+                       <div className="absolute bottom-0 left-0 w-full h-0.5">
+                         <div 
+                           className={`h-full bg-red-500 transition-all duration-200 ease-out ${
+                             isSearchActive ? 'w-full' : 'w-0'
+                           }`}
+                           style={{
+                             transformOrigin: 'center'
+                           }}
+                         />
+                       </div>
+                     </div>
+                   )}
+                </div>
+              )}
+             </div>
+           </div>
+
+
 
           {/* Content */}
           <div

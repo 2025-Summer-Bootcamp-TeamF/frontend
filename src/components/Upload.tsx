@@ -36,6 +36,7 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
     x: number;
     y: number;
   }>({ show: false, value: 0, x: 0, y: 0 });
+  const [animationProgress, setAnimationProgress] = useState(0);
 
   const colors = ["#ef4444", "#22c55e", "#3b82f6"];
 
@@ -144,6 +145,32 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
     loadData();
   }, [propCompetitors]);
 
+  // 애니메이션 효과 - 아래에서 위로 올라가는 모션
+  useEffect(() => {
+    if (channelUploads && !loading) {
+      setAnimationProgress(0);
+      
+      const startTime = Date.now();
+      const duration = 1000; // 1초
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // ease out 함수
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        
+        setAnimationProgress(easeOut);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    }
+  }, [channelUploads, loading]);
+
   // propCompetitors가 변경될 때마다 데이터 새로고침
   useEffect(() => {
     if (propCompetitors && propCompetitors.length > 0) {
@@ -230,8 +257,10 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
     <div
       style={{
         padding: "40px",
-        backgroundColor: "#1C2023",
-        minHeight: "600px",
+        backgroundColor: "#1a1b1c",
+        border: "1px solid #000000",
+        borderRadius: "12px",
+        minHeight: "500px",
         width: "100%",
       }}
     >
@@ -240,16 +269,16 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
         className="chart-container"
         style={{
           position: "relative",
-          marginBottom: "80px",
+          marginBottom: "0px",
           width: "100%",
-          paddingTop: "35%",
+          paddingTop: "40%",
         }}
       >
         <div
           style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
         >
           <svg
-            viewBox="0 0 1200 350"
+            viewBox="0 0 1200 400"
             preserveAspectRatio="xMidYMid meet"
             style={{ width: "100%", height: "100%" }}
           >
@@ -276,11 +305,12 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
 
             {/* 데이터 라인 */}
             {chartData.map((channel, idx) => {
-              const points = channel.data
+              const animatedPoints = channel.data
                 .map((value, i) => {
                   const x = 100 + (i * 1000) / (channel.data.length - 1);
-                    // 동적 최대값으로 스케일링
-                    const y = 300 - (value / maxValue) * 250;
+                  // 아래에서 위로 올라가는 애니메이션
+                  const animatedValue = value * animationProgress;
+                  const y = 300 - (animatedValue / maxValue) * 250;
                   return `${x},${y}`;
                 })
                 .join(" ");
@@ -291,7 +321,7 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
                   fill="none"
                   stroke={channel.color}
                   strokeWidth="3"
-                  points={points}
+                  points={animatedPoints}
                 />
               );
             })}
@@ -301,7 +331,10 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
               <g key={`points-${idx}`}>
                 {channel.data.map((value, i) => {
                   const x = 100 + (i * 1000) / (channel.data.length - 1);
-                  const y = 300 - (value / maxValue) * 250;
+                  // 아래에서 위로 올라가는 애니메이션
+                  const animatedValue = value * animationProgress;
+                  const y = 300 - (animatedValue / maxValue) * 250;
+                  
                   return (
                     <g key={i}>
                     <circle
@@ -309,7 +342,7 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
                       cy={y}
                       r="8"
                       fill={channel.color}
-                      stroke="#1C2023"
+                      stroke="#1a1b1c"
                       strokeWidth="3"
                         style={{ cursor: 'pointer' }}
                         onMouseEnter={(e) => {

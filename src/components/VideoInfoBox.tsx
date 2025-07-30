@@ -7,6 +7,12 @@ interface VideoInfoBoxProps {
   views: string;
   commentRate: string;
   likeRate: string;
+  dislikeRate?: string;
+  commentCount?: number; // 댓글 수 추가
+  likeCount?: number;
+  dislikeCount?: number;
+  showEngagementRates?: boolean; // 참여율 표시 여부
+  hideViews?: boolean; // 조회수 숨김 여부
   className?: string;
 }
 
@@ -26,6 +32,12 @@ const VideoInfoBox: React.FC<VideoInfoBoxProps> = ({
   views,
   commentRate,
   likeRate,
+  dislikeRate,
+  commentCount,
+  likeCount,
+  dislikeCount,
+  showEngagementRates = false,
+  hideViews = false,
   className = ""
 }) => (
   <div className={className}>
@@ -38,11 +50,33 @@ const VideoInfoBox: React.FC<VideoInfoBoxProps> = ({
       />
     </div>
     <div className="text-white mt-2 mb-10 pt-3 w-full">
-      <div className="text-[#848485] text-[20px] font-regular">{formatDate(date)}</div>
-      <div className="text-[22px] font-regular mb-2">{title}</div>
-      <div className="text-[#848485] text-[20px] font-regular">조회수 {views}</div>
-      <div className="text-[#848485] text-[20px] font-regular">댓글 참여율 {commentRate}</div>
-      <div className="text-[#848485] text-[20px] font-regular">좋아요 참여율 {likeRate}</div>
+      <div className="text-[#848485] text-[20px] font-regular">
+        <span className="font-bold">{formatDate(date)}</span>
+      </div>
+      <div className="text-[26px] font-bold mb-2">{title}</div>
+      {!hideViews && (
+        <div className="text-[#848485] text-[20px] font-regular">
+          조회수 {views}
+        </div>
+      )}
+      {commentCount !== undefined && (
+        <div className="text-[#848485] text-[20px] font-regular flex justify-between">
+          <span>댓글 {commentCount.toLocaleString()}개</span>
+          {showEngagementRates && <span>댓글 참여율 {commentRate}</span>}
+        </div>
+      )}
+      {likeCount !== undefined && (
+        <div className="text-[#848485] text-[20px] font-regular flex justify-between">
+          <span>좋아요 {likeCount.toLocaleString()}개</span>
+          {showEngagementRates && <span>좋아요 참여율 {likeRate}</span>}
+        </div>
+      )}
+      {dislikeCount !== undefined && (
+        <div className="text-[#848485] text-[20px] font-regular flex justify-between">
+          <span>싫어요 {dislikeCount.toLocaleString()}개</span>
+          {showEngagementRates && dislikeRate && <span>싫어요 참여율 {dislikeRate}</span>}
+        </div>
+      )}
     </div>
   </div>
 );

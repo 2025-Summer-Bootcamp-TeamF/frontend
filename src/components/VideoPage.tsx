@@ -7,9 +7,14 @@ interface VideoData {
   title: string;
   thumbnail: string;
   upload_date: string; // ← 추가
+  video_link?: string; // 유튜브 링크 추가
   viewCount: number;
   commentRate: string;
   likeRate: string;
+  commentCount: number;
+  likeCount: number;
+  dislikeCount: number;
+  dislikeRate: string;
 }
 
 interface VideoPageProps {
@@ -139,7 +144,19 @@ const VideoPage: React.FC<VideoPageProps> = ({
     >
       {/* Thumbnail */}
       <div className="flex-shrink-0 p-3">
-        <div className="aspect-video rounded-xl overflow-hidden">
+        <div 
+          className="aspect-video rounded-xl overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => {
+            if (video.video_link) {
+              window.open(video.video_link, '_blank');
+            } else {
+              // video_link가 없는 경우 YouTube video ID로 링크 생성
+              const youtubeUrl = `https://www.youtube.com/watch?v=${video.video_id}`;
+              window.open(youtubeUrl, '_blank');
+            }
+          }}
+          title="클릭하여 유튜브에서 보기"
+        >
           {video.thumbnail ? (
             <img
               src={video.thumbnail}
@@ -214,7 +231,11 @@ const VideoPage: React.FC<VideoPageProps> = ({
                     title: video.title,
                     views: formatNumber(video.viewCount) + "회",
                     commentRate: video.commentRate,
-                    likeRate: video.likeRate
+                    likeRate: video.likeRate,
+                    commentCount: video.commentCount,
+                    likeCount: video.likeCount,
+                    dislikeCount: video.dislikeCount,
+                    dislikeRate: video.dislikeRate
                   }
                 }
               })}
@@ -278,7 +299,7 @@ const VideoPage: React.FC<VideoPageProps> = ({
                   });
                 }
               }}
-              className="flex-1 bg-white hover:bg-red-50 text-red-500 py-2 rounded-lg font-medium transition-colors border border-red-500 hover:border-red-600"
+                             className="flex-1 bg-white hover:bg-gray-300 text-red-500 py-2 rounded-lg font-medium transition-colors border border-red-500 hover:border-red-500 hover:text-red-600"
               style={{ fontSize: "16px" }}
             >
               댓글 관리
@@ -319,8 +340,8 @@ const VideoPage: React.FC<VideoPageProps> = ({
     );
   }
 
-  return (
-    <div className="p-6">
+     return (
+     <div className="p-6" style={{ backgroundColor: "#151617" }}>
       {/* 검색 결과 표시 */}
       {searchTitle && (
         <div className="mb-4 text-center">

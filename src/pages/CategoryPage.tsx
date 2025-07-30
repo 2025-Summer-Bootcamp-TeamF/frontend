@@ -112,15 +112,47 @@ export default function CategoryPage() {
       <div className="min-h-screen overflow-x-hidden bg-black text-white flex">
         <Sidebar />
         <div className="ml-[6vw] pr-8 py-8 flex gap-4 w-full">
-          <div
-            className="rounded-2xl w-full h-full px-8"
-            style={{
-              backgroundColor: "rgba(255, 255, 255, 0.15)",
-              border: "1px solid rgba(255, 255, 255, 0.6)",
-            }}
-          >
+                     <div
+             className="rounded-2xl w-full h-full px-8"
+             style={{
+               backgroundColor: "rgba(255, 255, 255, 0.15)",
+               border: "1px solid rgba(255, 255, 255, 0.3)",
+             }}
+           >
             <div className="flex items-center justify-center h-full">
-              <div className="text-white text-xl">AI가 썸네일을 분류하고 있습니다...</div>
+              <div className="flex flex-col items-center gap-4">
+                {/* 도넛형식 로딩 애니메이션 */}
+                <div className="w-[100px] h-[100px] relative donut-container">
+                  <svg
+                    className="w-full h-full"
+                    viewBox="0 0 100 100"
+                  >
+                    {/* 배경 원 */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="45"
+                      fill="none"
+                      stroke="#303235"
+                      strokeWidth="8"
+                    />
+                    {/* 애니메이션 원 */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="45"
+                      fill="none"
+                      stroke="#f0f0f0"
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      className="donut-loading"
+                      strokeDasharray="283"
+                      strokeDashoffset="0"
+                    />
+                  </svg>
+                </div>
+                <div className="text-white text-2xl">AI가 썸네일을 분류하고 있습니다...</div>
+              </div>
             </div>
           </div>
         </div>
@@ -162,6 +194,39 @@ export default function CategoryPage() {
             scrollbar-width: none;
             -ms-overflow-style: none;
           }
+          
+          @keyframes donut-loading {
+            0% {
+              stroke-dasharray: 0 283 !important;
+              stroke-dashoffset: 0 !important;
+            }
+            50% {
+              stroke-dasharray: 283 0 !important;
+              stroke-dashoffset: 0 !important;
+            }
+            100% {
+              stroke-dasharray: 0 283 !important;
+              stroke-dashoffset: 0 !important;
+            }
+          }
+          
+          .donut-loading {
+            animation: donut-loading 2s ease-out infinite !important;
+            transform-origin: center !important;
+          }
+          
+          .donut-container {
+            animation: spin-reverse 3s linear infinite !important;
+          }
+          
+          @keyframes spin-reverse {
+            from {
+              transform: rotate(0deg) !important;
+            }
+            to {
+              transform: rotate(-360deg) !important;
+            }
+          }
         `,
         }}
       />
@@ -175,7 +240,7 @@ export default function CategoryPage() {
           className="rounded-2xl overflow-hidden h-full px-8"
           style={{
             backgroundColor: "rgba(255, 255, 255, 0.15)",
-            border: "1px solid rgba(255, 255, 255, 0.6)",
+            border: "1px solid rgba(255, 255, 255, 0.3)",
           }}
         >
           

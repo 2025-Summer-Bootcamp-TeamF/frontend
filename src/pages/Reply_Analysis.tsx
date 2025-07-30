@@ -32,6 +32,10 @@ export default function ReplyAnalysis() {
   const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [animatedPercentage, setAnimatedPercentage] = useState(0);
+  const [showHeader, setShowHeader] = useState(false);
+  const [showPositive, setShowPositive] = useState(false);
+  const [showNegative, setShowNegative] = useState(false);
 
   // 비디오 정보
   const videoInfo: VideoInfo = location.state?.videoInfo || {
@@ -93,16 +97,55 @@ export default function ReplyAnalysis() {
     getSentimentPercentages();
   const isPositiveDominant = positivePercentage > negativePercentage;
 
+  // 애니메이션 효과 (ease-out)
+  useEffect(() => {
+    if (!loading && analysisData) {
+      const duration = 600; // 2초
+      const startTime = performance.now();
+      const startValue = 0;
+      const endValue = positivePercentage;
+      
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // 더 부드러운 ease-out 함수: 처음에 빠르게 시작해서 점점 느려짐
+        const easeOut = 1 - Math.pow(1 - progress, 1.6);
+        const currentValue = startValue + (endValue - startValue) * easeOut;
+        
+        setAnimatedPercentage(currentValue);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    }
+  }, [loading, analysisData, positivePercentage]);
+
+  // 오른쪽 컨텐츠 페이드 인 애니메이션
+  useEffect(() => {
+    if (!loading && analysisData) {
+      // 헤더 먼저 나타남
+      setTimeout(() => setShowHeader(true), 10);
+      // 긍정 섹션
+      setTimeout(() => setShowPositive(true), 110);
+      // 부정 섹션
+      setTimeout(() => setShowNegative(true), 220);
+    }
+  }, [loading, analysisData]);
+
   // 도넛 차트 렌더링
   const renderDonutChart = () => {
     const radius = 80;
     const strokeWidth = 20;
     const circumference = 2 * Math.PI * radius;
     const positiveOffset =
-      circumference - (positivePercentage / 100) * circumference;
+      circumference - (animatedPercentage / 100) * circumference;
     return (
-      <div className="flex flex-col justify-center items-center w-full h-[370px]">
-        <div className="z-0 w-full h-full rounded-2xl bg-[#1c2023] p-8 flex flex-col items-center justify-center">
+             <div className="flex flex-col justify-center items-center w-full h-[330px]">
+                 <div className="z-0 w-full h-full rounded-2xl bg-[#1a1b1c] p-8 flex flex-col items-center justify-center">
           <div className="relative">
             <svg width="200" height="200" className="transform -rotate-90">
               {/* 부정(배경) */}
@@ -127,25 +170,25 @@ export default function ReplyAnalysis() {
                 strokeLinecap="round"
               />
             </svg>
-            {/* 퍼센트 */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="text-[32px] font-bold text-white">
-                {positivePercentage}%
-              </div>
-              <div className="text-[16px] text-gray-400">긍정</div>
-            </div>
+                         {/* 퍼센트 */}
+             <div className="absolute inset-0 flex flex-col items-center justify-center">
+               <div className="text-[32px] font-bold text-white">
+                 {Math.round(animatedPercentage)}%
+               </div>
+               <div className="text-[16px] text-gray-400">긍정</div>
+             </div>
           </div>
-          {/* 범례 */}
-          <div className="flex gap-6 mt-6">
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-[#278eff] rounded-full mr-1"></div>
-              <span className="text-white">긍정 ({Math.round(positivePercentage * 100) / 100}%)</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-[#ff0000] rounded-full mr-1"></div>
-              <span className="text-white">부정 ({Math.round(negativePercentage * 100) / 100}%)</span>
-            </div>
-          </div>
+                     {/* 범례 */}
+           <div className="flex gap-6 mt-6">
+             <div className="flex items-center">
+               <div className="w-4 h-4 bg-[#278eff] rounded-full mr-1"></div>
+               <span className="text-white">긍정 ({Math.round(animatedPercentage * 100) / 100}%)</span>
+             </div>
+             <div className="flex items-center">
+               <div className="w-4 h-4 bg-[#ff0000] rounded-full mr-1"></div>
+               <span className="text-white">부정 ({Math.round((100 - animatedPercentage) * 100) / 100}%)</span>
+             </div>
+           </div>
         </div>
       </div>
     );
@@ -203,7 +246,7 @@ export default function ReplyAnalysis() {
         <div
           className="
             flex flex-col flex-3 w-full rounded-2xl
-            bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)]
+            bg-[rgba(255,255,255,0.15)] border border-white/30
             p-10
             "
         >
@@ -233,51 +276,64 @@ export default function ReplyAnalysis() {
                 </button>
               </div>
             </div>
-            <VideoInfoBox
-              thumbnail={videoInfo.thumbnail}
-              date={videoInfo.date}
-              title={videoInfo.title}
-              views={videoInfo.views}
-              commentRate={videoInfo.commentRate}
-              likeRate={videoInfo.likeRate}
-              className=""
-            />
+                         <VideoInfoBox
+               thumbnail={videoInfo.thumbnail}
+               date={videoInfo.date}
+               title={videoInfo.title}
+               views={videoInfo.views}
+               commentRate={videoInfo.commentRate}
+               likeRate={videoInfo.likeRate}
+               hideViews={true}
+               className=""
+             />
           </div>
           {renderDonutChart()}
         </div>
 
-        {/* 오른쪽 (댓글 분석) */}
-        <div className="flex flex-col flex-7 w-full rounded-2xl bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.6)] h-full min-h-0">
-          <div className="p-8 flex flex-col">
-            {/* 헤더 */}
-            <div>
-              <div className="mt-14 text-[24px] font-bold text-[#ffffff]">
-                해당 영상 댓글에 대한 분석
-              </div>
-              <div
-                className={`text-[20px] px-3 py-3 font-semibold ${
-                  isPositiveDominant ? "text-[#278eff]" : "text-[#ff0000]"
+                 {/* 오른쪽 (댓글 분석) */}
+         <div className="flex flex-col flex-7 w-full rounded-2xl bg-[rgba(255,255,255,0.15)] border border-white/30 h-full min-h-0">
+           <div className="p-8 flex flex-col">
+             {/* 헤더 */}
+             <div 
+               className={`transition-all duration-1000 ease-out transform ${
+                 showHeader 
+                   ? 'opacity-100 translate-y-0' 
+                   : 'opacity-0 translate-y-8'
+               }`}
+             >
+               <div className="mt-14 text-[24px] font-bold text-[#ffffff]">
+                 해당 영상 댓글에 대한 분석
+               </div>
+               <div
+                 className={`text-[20px] px-3 py-3 font-semibold ${
+                   isPositiveDominant ? "text-[#278eff]" : "text-[#ff0000]"
+                 }`}
+               >
+                 →{" "}
+                 {analysisData?.overall_summary_one_line ||
+                   "분석 데이터가 없습니다."}
+               </div>
+             </div>
+                          {/* 긍정 파트 */}
+              <div 
+                className={`bg-[#1a1b1c] rounded-2xl p-8 pt-4 pb-8 border-l-8 border-blue-500 mt-6 w-full transition-all duration-1000 ease-out transform ${
+                  showPositive 
+                    ? 'opacity-100 translate-y-0' 
+                    : 'opacity-0 translate-y-8'
                 }`}
               >
-                →{" "}
-                {analysisData?.overall_summary_one_line ||
-                  "분석 데이터가 없습니다."}
-              </div>
-            </div>
-            {/* 긍정 파트 */}
-            <div className="bg-[#23242A] rounded-2xl p-8 pt-4 pb-6 border-l-8 border-blue-500 mt-6 w-full">
-              <div className="flex items-center text-[28px] font-thin text-[#d9d9d9] mb-6">
-                <span className="w-[15px] h-[15px] rounded-full bg-[#278eff] mr-4"></span>
-                긍정적인 반응
-              </div>
-              {/* 키워드 첫 줄 */}
-              {positiveKeywords.length > 0 && (
-                <div className="flex justify-center mb-6">
+                             <div className="flex items-center text-[28px]  text-[#d9d9d9] mb-6">
+                 <span className="w-[15px] h-[15px] rounded-full bg-[#278eff] mr-4"></span>
+                 긍정적인 반응
+               </div>
+                             {/* 키워드 첫 줄 */}
+               {positiveKeywords.length > 0 && (
+                 <div className="flex justify-center mb-8">
                   <div className="flex items-center gap-4">
-                    {/* 왼쪽 설명 */}
-                    <span className="text-[#d9d9d9] text-[12px] font-thin">
-                      {positiveKeywords[0]?.description || ""}
-                    </span>
+                                         {/* 왼쪽 설명 */}
+                     <span className="text-[#d9d9d9] text-[15px]">
+                       {positiveKeywords[0]?.description || ""}
+                     </span>
                     <div className="relative flex items-center w-[60px] h-[2px]">
                       <span className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#278eff] rounded-full shadow-lg"></span>
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#60a5fa] rounded-full opacity-80"></span>
@@ -301,19 +357,19 @@ export default function ReplyAnalysis() {
                           <span className="absolute left-7 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#93c5fd] rounded-full opacity-60"></span>
                           <span className="absolute left-10 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#bae6fd] rounded-full opacity-40"></span>
                         </div>
-                        <span className="text-[#d9d9d9] text-[12px] font-thin">
-                          {positiveKeywords[1]?.description || ""}
-                        </span>
+                                                 <span className="text-[#d9d9d9] text-[15px]">
+                           {positiveKeywords[1]?.description || ""}
+                         </span>
                       </>
                     )}
                   </div>
                 </div>
               )}
-              {/* 키워드 둘째줄 */}
-              {positiveKeywords.length > 2 && (
-                <div className="flex justify-center mb-6">
+                             {/* 키워드 둘째줄 */}
+               {positiveKeywords.length > 2 && (
+                 <div className="flex justify-center mb-8">
                   <div className="flex items-center gap-4">
-                    <span className="text-[#d9d9d9] text-[12px] font-thin">
+                    <span className="text-[#d9d9d9] text-[15px] ">
                       {positiveKeywords[2]?.description || ""}
                     </span>
                     <div className="relative flex items-center w-[60px] h-[2px]">
@@ -339,33 +395,39 @@ export default function ReplyAnalysis() {
                           <span className="absolute left-7 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#93c5fd] rounded-full opacity-60"></span>
                           <span className="absolute left-10 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#bae6fd] rounded-full opacity-40"></span>
                         </div>
-                        <span className="text-[#d9d9d9] text-[12px] font-thin">
-                          {positiveKeywords[3]?.description || ""}
-                        </span>
+                                                 <span className="text-[#d9d9d9] text-[15px]">
+                           {positiveKeywords[3]?.description || ""}
+                         </span>
                       </>
                     )}
                   </div>
                 </div>
               )}
-              {/* 긍정 요약 */}
-              <div className="text-[#d9d9d9] text-[23px] font-medium mt-8 text-right">
-                {analysisData?.positive_summary_one_line ||
-                  "긍정적 반응에 대한 요약이 없습니다."}
-              </div>
-            </div>
-            {/* 부정 파트 */}
-            <div className="bg-[#23242A] rounded-2xl p-8 pt-4 border-l-8 border-red-500 mt-6 w-full">
-              <div className="flex items-center text-[28px] font-thin text-[#d9d9d9] mb-6">
-                <span className="w-[15px] h-[15px] rounded-full bg-[#ff0000] mr-4"></span>
-                부정적인 반응
-              </div>
-              {/* 키워드 첫 줄 */}
-              {negativeKeywords.length > 0 && (
-                <div className="flex justify-center mb-6">
+                             {/* 긍정 요약 */}
+               <div className="text-[#d9d9d9] text-[20px] font-medium mt-8 text-right">
+                 {analysisData?.positive_summary_one_line ||
+                   "긍정적 반응에 대한 요약이 없습니다."}
+               </div>
+                         </div>
+                          {/* 부정 파트 */}
+              <div 
+                className={`bg-[#1a1b1c] rounded-2xl p-8 pt-4 pb-8 border-l-8 border-red-500 mt-6 w-full transition-all duration-1000 ease-out transform ${
+                  showNegative 
+                    ? 'opacity-100 translate-y-0' 
+                    : 'opacity-0 translate-y-8'
+                }`}
+              >
+                             <div className="flex items-center text-[28px] text-[#d9d9d9] mb-6">
+                 <span className="w-[15px] h-[15px] rounded-full bg-[#ff0000] mr-4"></span>
+                 부정적인 반응
+               </div>
+                             {/* 키워드 첫 줄 */}
+               {negativeKeywords.length > 0 && (
+                 <div className="flex justify-center mb-8">
                   <div className="flex items-center gap-4">
-                    <span className="text-[#d9d9d9] text-[12px] font-thin">
-                      {negativeKeywords[0]?.description || ""}
-                    </span>
+                                         <span className="text-[#d9d9d9] text-[15px]">
+                       {negativeKeywords[0]?.description || ""}
+                     </span>
                     <div className="relative flex items-center w-[60px] h-[2px]">
                       <span className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ff0000] rounded-full shadow-lg"></span>
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ff4d4d] rounded-full opacity-80"></span>
@@ -389,21 +451,21 @@ export default function ReplyAnalysis() {
                           <span className="absolute left-7 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ff9999] rounded-full opacity-60"></span>
                           <span className="absolute left-10 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ffcfcf] rounded-full opacity-40"></span>
                         </div>
-                        <span className="text-[#d9d9d9] text-[12px] font-thin">
-                          {negativeKeywords[1]?.description || ""}
-                        </span>
+                                                 <span className="text-[#d9d9d9] text-[15px]">
+                           {negativeKeywords[1]?.description || ""}
+                         </span>
                       </>
                     )}
                   </div>
                 </div>
               )}
-              {/* 키워드 둘째줄 */}
-              {negativeKeywords.length > 2 && (
-                <div className="flex justify-center mb-6">
+                             {/* 키워드 둘째줄 */}
+               {negativeKeywords.length > 2 && (
+                 <div className="flex justify-center mb-8">
                   <div className="flex items-center gap-4">
-                    <span className="text-[#d9d9d9] text-[12px] font-thin">
-                      {negativeKeywords[2]?.description || ""}
-                    </span>
+                                         <span className="text-[#d9d9d9] text-[15px]">
+                       {negativeKeywords[2]?.description || ""}
+                     </span>
                     <div className="relative flex items-center w-[60px] h-[2px]">
                       <span className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ff0000] rounded-full shadow-lg"></span>
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ff4d4d] rounded-full opacity-80"></span>
@@ -427,19 +489,19 @@ export default function ReplyAnalysis() {
                           <span className="absolute left-7 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ff9999] rounded-full opacity-60"></span>
                           <span className="absolute left-10 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ffcfcf] rounded-full opacity-40"></span>
                         </div>
-                        <span className="text-[#d9d9d9] text-[12px] font-thin">
-                          {negativeKeywords[3]?.description || ""}
-                        </span>
+                                                 <span className="text-[#d9d9d9] text-[15px]">
+                           {negativeKeywords[3]?.description || ""}
+                         </span>
                       </>
                     )}
                   </div>
                 </div>
               )}
-              {/* 부정 요약 */}
-              <div className="text-[#d9d9d9] text-[23px] font-medium mt-8 text-right">
-                {analysisData?.negative_summary_one_line ||
-                  "부정적 반응에 대한 요약이 없습니다."}
-              </div>
+                             {/* 부정 요약 */}
+               <div className="text-[#d9d9d9] text-[20px] font-medium mt-8 text-right">
+                 {analysisData?.negative_summary_one_line ||
+                   "부정적 반응에 대한 요약이 없습니다."}
+               </div>
             </div>
           </div>
         </div>

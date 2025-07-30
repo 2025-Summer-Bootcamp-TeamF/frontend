@@ -119,6 +119,7 @@ export default function MainPage() {
           <div
             className="flex items-center cursor-pointer select-none"
             onClick={() => navigate("/login")}
+            style={{ width: "10rem" }}
           >
             <img src={loginIcon} alt="로그인" className="h-[2rem] w-[6rem]" />
           </div>

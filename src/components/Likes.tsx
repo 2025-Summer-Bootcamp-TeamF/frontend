@@ -38,10 +38,13 @@ interface LikesPageProps {
 }
 
 const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propCompetitors }) => {
+  console.log("=== LikesPage 컴포넌트 로드됨 ===");
+  
   const [competitors, setCompetitors] = useState<CompetitorChannel[]>([]);
   const [channelLikes, setChannelLikes] = useState<{ myChannel: ChannelLikes; competitors: ChannelLikes[]; } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [animationValues, setAnimationValues] = useState<{ [key: string]: number }>({});
 
   const fetchCompetitors = async () => {
     try {
@@ -164,6 +167,73 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
     }
   }, [propCompetitors]);
 
+  // 애니메이션 효과
+  useEffect(() => {
+    if (channelLikes) {
+      const animationData: { [key: string]: number } = {};
+      
+      // 내 채널 데이터
+      if (channelLikes.myChannel.individualLikes) {
+        channelLikes.myChannel.individualLikes.forEach((like, index) => {
+          animationData[`my-${index}`] = 0;
+        });
+      }
+      
+      // 경쟁 채널 데이터
+      if (channelLikes.competitors) {
+        channelLikes.competitors.forEach((competitor, compIndex) => {
+          if (competitor.individualLikes) {
+            competitor.individualLikes.forEach((like, index) => {
+              animationData[`competitor${compIndex}-${index}`] = 0;
+            });
+          }
+        });
+      }
+      
+      setAnimationValues(animationData);
+      
+      // 애니메이션 시작
+      const startTime = Date.now();
+      const duration = 1000; // 1초
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // ease out 함수
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        
+        const newAnimationValues: { [key: string]: number } = {};
+        
+        // 내 채널 애니메이션
+        if (channelLikes.myChannel.individualLikes) {
+          channelLikes.myChannel.individualLikes.forEach((like, index) => {
+            newAnimationValues[`my-${index}`] = like.likes * easeOut;
+          });
+        }
+        
+        // 경쟁 채널 애니메이션
+        if (channelLikes.competitors) {
+          channelLikes.competitors.forEach((competitor, compIndex) => {
+            if (competitor.individualLikes) {
+              competitor.individualLikes.forEach((like, index) => {
+                newAnimationValues[`competitor${compIndex}-${index}`] = like.likes * easeOut;
+              });
+            }
+          });
+        }
+        
+        setAnimationValues(newAnimationValues);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    }
+  }, [channelLikes]);
+
   // 차트 데이터 (개별 영상 좋아요 기반)
   const getChartData = (): ChartDataItem[] => {
     if (!channelLikes) {
@@ -237,6 +307,7 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
   const colors = ["#ef4444", "#22c55e", "#3b82f6", "#f59e0b", "#8b5cf6", "#ec4899"];
 
   // 디버깅용 로그
+  console.log("=== 좋아요 컴포넌트 디버깅 ===");
   console.log("Chart data:", data);
   console.log("Channel likes:", channelLikes);
   console.log("Competitors:", competitors);
@@ -299,15 +370,17 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
   // 실제 최대값에 약간의 여유를 주어 Y축 설정 (최대값의 120%로 설정)
 //  const maxValue = maxLikes > 0 ? Math.ceil(maxLikes * 1.2) : 1000;
 
-  return (
-    <div
-      style={{
-        padding: "40px",
-        backgroundColor: "#1C2023",
-        minHeight: "600px",
-        width: "100%",
-      }}
-    >
+     return (
+     <div
+       style={{
+         padding: "40px",
+         backgroundColor: "#1a1b1c",
+         border: "1px solid #000000",
+         borderRadius: "12px",
+         minHeight: "600px",
+         width: "100%",
+       }}
+     >
       <h2 className="text-gray-400 mb-8" style={{ fontSize: "20px" }}>
         최신 영상 3개 기준
       </h2>
@@ -345,8 +418,8 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
               }
               const maxLikes = allIndividualLikes.length > 0 ? Math.max(...allIndividualLikes) : 0;
               
-              // 최대값이 0이면 기본값 설정
-              const effectiveMaxLikes = maxLikes > 0 ? maxLikes : 1000;
+              // 최대값이 0이면 기본값 설정 (업로드 주기 그래프와 동일한 방식)
+              const effectiveMaxLikes = maxLikes > 0 ? maxLikes : 20;
               
               // Y축 간격을 동적으로 계산
               let step = 500;
@@ -364,18 +437,18 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
                 step = 5000;
               }
               
-              // Y축 레이블 개수 계산 (최대 6개)
-              const maxLabel = Math.ceil(effectiveMaxLikes / step) * step;
-              const labelCount = Math.min(6, Math.ceil(effectiveMaxLikes / step) + 1);
+              // Y축 라벨 생성 (업로드 주기 그래프와 동일한 방식)
+              const maxValue = Math.ceil(effectiveMaxLikes * 1.2); // 20% 여유 추가
               const labels = [];
-              
-              for (let i = 0; i < labelCount; i++) {
-                const value = Math.round((i / (labelCount - 1)) * maxLabel);
-                labels.push(value);
+              const labelStep = Math.ceil(maxValue / 5);
+              for (let i = 0; i <= maxValue; i += labelStep) {
+                labels.push(i);
               }
               
+              console.log('Y축 계산:', { effectiveMaxLikes, labels });
+              
               return labels.map((likeCount, i) => {
-                const y = 350 - i * (300 / (labelCount - 1));
+                const y = 300 - (likeCount / maxValue) * 250; // 업로드 주기 그래프와 동일한 방식
               
                 return (
                   <g key={i}>
@@ -406,8 +479,13 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
             {/* 막대 그래프 */}
             {data.map((item, idx) => {
               const groupX = 300 + idx * 300;
-              const barWidth = 60;
-              const gap = 20;
+              const barWidth = 35; // 막대 두께를 60에서 35로 줄임
+              const gap = 8; // 간격을 20에서 8로 줄임
+
+              // 애니메이션 값 가져오기
+              const myAnimatedValue = animationValues[`my-${2-idx}`] || 0; // 최신-2, 최신-1, 최신 순서
+              const competitor1AnimatedValue = animationValues[`competitor0-${2-idx}`] || 0;
+              const competitor2AnimatedValue = animationValues[`competitor1-${2-idx}`] || 0;
 
               // Y축의 실제 최대값 계산 (Y축 라벨의 최대값)
               const allIndividualLikes = [];
@@ -424,53 +502,40 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
               const maxLikes = allIndividualLikes.length > 0 ? Math.max(...allIndividualLikes) : 0;
               const effectiveMaxLikes = maxLikes > 0 ? maxLikes : 1000;
               
-              // Y축 간격을 동적으로 계산
-              let step = 500;
-              if (effectiveMaxLikes <= 100) {
-                step = 20;
-              } else if (effectiveMaxLikes <= 500) {
-                step = 100;
-              } else if (effectiveMaxLikes <= 2000) {
-                step = 500;
-              } else if (effectiveMaxLikes <= 10000) {
-                step = 2000;
-              } else {
-                step = 5000;
-              }
+              console.log('좋아요 데이터:', { allIndividualLikes, maxLikes, effectiveMaxLikes });
               
-              // Y축의 실제 최대값
-              const maxLabel = Math.ceil(effectiveMaxLikes / step) * step;
-              const labelCount = Math.min(6, Math.ceil(effectiveMaxLikes / step) + 1);
-              const actualMaxValue = Math.round(((labelCount - 1) / (labelCount - 1)) * maxLabel);
+              // Y축의 실제 최대값 (업로드 주기 그래프와 동일한 방식)
+              const actualMaxValue = Math.ceil(effectiveMaxLikes * 1.2); // 20% 여유 추가
 
               return (
                 <g key={idx}>
                   {/* 내 채널 막대 */}
                   <rect
                     x={groupX - barWidth - gap}
-                    y={350 - (item.my / actualMaxValue) * 300}
+                    y={300 - (myAnimatedValue / actualMaxValue) * 250}
                     width={barWidth}
-                    height={(item.my / actualMaxValue) * 300}
+                    height={(myAnimatedValue / actualMaxValue) * 250}
                     fill="#ef4444"
+                    rx="4" // 상단을 둥근 사각형으로 만듦
                   />
 
                   {/* 내 채널 좋아요 텍스트 */}
                   <text
                     x={groupX - barWidth - gap + barWidth / 2}
-                    y={350 - (item.my / actualMaxValue) * 300 - 10}
+                    y={300 - (myAnimatedValue / actualMaxValue) * 250 - 10}
                     textAnchor="middle"
                     fill="#ef4444"
                     fontSize="14"
                     fontFamily="sans-serif"
                     fontWeight="bold"
                   >
-                    {formatNumber(item.myLikes)}
+                    {formatNumber(Math.round(myAnimatedValue))}
                   </text>
                   
                   {/* 내 채널 변화율 텍스트 */}
                   <text
                     x={groupX - barWidth - gap + barWidth / 2}
-                    y={350 - (item.my / actualMaxValue) * 300 - 25}
+                    y={300 - (myAnimatedValue / actualMaxValue) * 250 - 25}
                     textAnchor="middle"
                     fill="#ef4444"
                     fontSize="12"
@@ -481,39 +546,36 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
 
                   {/* 경쟁 채널 막대들 */}
                   {Array.isArray(competitors) && competitors.map((_, channelIdx) => {
-                    const competitorKey = `competitor${channelIdx + 1}` as keyof typeof item;
-                    const competitorValue = item[competitorKey] as number;
+                    const animatedValue = channelIdx === 0 ? competitor1AnimatedValue : competitor2AnimatedValue;
                     
                     return (
                       <g key={channelIdx}>
                   <rect
                           x={groupX + (channelIdx * (barWidth + gap))}
-                          y={350 - (competitorValue / actualMaxValue) * 300}
+                          y={300 - (animatedValue / actualMaxValue) * 250}
                     width={barWidth}
-                          height={(competitorValue / actualMaxValue) * 300}
+                          height={(animatedValue / actualMaxValue) * 250}
                           fill={colors[channelIdx + 1] || colors[0]}
+                          rx="4" // 상단을 둥근 사각형으로 만듦
                   />
 
                         {/* 경쟁 채널 좋아요 텍스트 */}
                         <text
                           x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
-                          y={350 - (competitorValue / actualMaxValue) * 300 - 10}
+                          y={300 - (animatedValue / actualMaxValue) * 250 - 10}
                           textAnchor="middle"
                           fill={colors[channelIdx + 1] || colors[0]}
                           fontSize="14"
                           fontFamily="sans-serif"
                           fontWeight="bold"
                         >
-                          {channelIdx === 0 
-                            ? formatNumber(item.competitor1Likes)
-                            : formatNumber(item.competitor2Likes)
-                          }
+                          {formatNumber(Math.round(animatedValue))}
                         </text>
                         
                         {/* 경쟁 채널 변화율 텍스트 */}
                         <text
                           x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
-                          y={350 - (competitorValue / actualMaxValue) * 300 - 25}
+                          y={300 - (animatedValue / actualMaxValue) * 250 - 25}
                           textAnchor="middle"
                           fill={colors[channelIdx + 1] || colors[0]}
                           fontSize="12"
