@@ -562,14 +562,6 @@ const UploadPage: React.FC<UploadPageProps> = ({ onDataRefresh, competitors: pro
             </div>
           );
         })}
-
-        {/* 경쟁 채널이 없을 때 메시지 */}
-        {competitors.length === 0 && (
-          <div className="text-gray-400 text-center flex-1">
-            등록된 경쟁 채널이 없습니다. <br />
-            <span className="text-sm">Insight 페이지에서 경쟁 채널을 등록해보세요.</span>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -473,6 +473,14 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
               const competitor1AnimatedValue = animationValues[`competitor0-${2-idx}`] || 0;
               const competitor2AnimatedValue = animationValues[`competitor1-${2-idx}`] || 0;
 
+              // 경쟁 채널 개수에 따라 내 채널 막대 위치 조정
+              const totalBars = competitors.length + 1; // 내 채널 + 경쟁 채널들
+              const totalWidth = totalBars * barWidth + (totalBars - 1) * gap;
+              const startX = groupX - totalWidth / 2;
+              
+              // 내 채널 막대 위치 계산
+              const myBarX = startX;
+
               return (
                 <g key={idx}>
                   {/* Y축 최대값 계산 */}
@@ -489,7 +497,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
                       <>
                         {/* 내 채널 막대 */}
                         <rect
-                          x={groupX - barWidth - gap}
+                          x={myBarX}
                           y={350 - (myAnimatedValue / actualMaxValue) * 300}
                           width={barWidth}
                           height={(myAnimatedValue / actualMaxValue) * 300}
@@ -499,7 +507,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
 
                         {/* 내 채널 조회수 텍스트 */}
                         <text
-                          x={groupX - barWidth - gap + barWidth / 2}
+                          x={myBarX + barWidth / 2}
                           y={350 - (myAnimatedValue / actualMaxValue) * 300 - 10}
                           textAnchor="middle"
                           fill="#ef4444"
@@ -512,7 +520,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
                         
                         {/* 내 채널 변화율 텍스트 */}
                         <text
-                          x={groupX - barWidth - gap + barWidth / 2}
+                          x={myBarX + barWidth / 2}
                           y={350 - (myAnimatedValue / actualMaxValue) * 300 - 25}
                           textAnchor="middle"
                           fill="#ef4444"
@@ -540,10 +548,13 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
                           const maxLabel = Math.ceil(maxValue / yStep) * yStep;
                           const actualMaxValue = maxLabel;
                           
+                          // 경쟁 채널 막대 위치 계산
+                          const competitorBarX = startX + (channelIdx + 1) * (barWidth + gap);
+                          
                           return (
                             <>
                               <rect
-                                x={groupX + (channelIdx * (barWidth + gap))}
+                                x={competitorBarX}
                                 y={350 - (animatedValue / actualMaxValue) * 300}
                                 width={barWidth}
                                 height={(animatedValue / actualMaxValue) * 300}
@@ -553,7 +564,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
 
                               {/* 경쟁 채널 조회수 텍스트 */}
                               <text
-                                x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
+                                x={competitorBarX + barWidth / 2}
                                 y={350 - (animatedValue / actualMaxValue) * 300 - 10}
                                 textAnchor="middle"
                                 fill={colors[channelIdx + 1] || colors[0]}
@@ -566,7 +577,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
                               
                               {/* 경쟁 채널 변화율 텍스트 */}
                               <text
-                                x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
+                                x={competitorBarX + barWidth / 2}
                                 y={350 - (animatedValue / actualMaxValue) * 300 - 25}
                                 textAnchor="middle"
                                 fill={colors[channelIdx + 1] || colors[0]}
@@ -587,7 +598,7 @@ const ViewsPage: React.FC<ViewsPageProps> = ({ onDataRefresh, competitors: propC
 
                   {/* X축 레이블 */}
                   <text
-                    x={groupX + barWidth / 2}
+                    x={groupX}
                     y={380}
                     textAnchor="middle"
                     fill="#666"

@@ -55,7 +55,7 @@ export default function ReplyManagement() {
 
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
-  const COMMENTS_PER_PAGE = 13;
+  const COMMENTS_PER_PAGE = 15;
 
   // 댓글 데이터 상태
   const [allComments, setAllComments] = useState<Comment[]>([]);

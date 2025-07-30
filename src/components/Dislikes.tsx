@@ -482,6 +482,14 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
               const competitor1AnimatedValue = animationValues[`competitor0-${2-idx}`] || 0;
               const competitor2AnimatedValue = animationValues[`competitor1-${2-idx}`] || 0;
 
+              // 경쟁 채널 개수에 따라 내 채널 막대 위치 조정
+              const totalBars = competitors.length + 1; // 내 채널 + 경쟁 채널들
+              const totalWidth = totalBars * barWidth + (totalBars - 1) * gap;
+              const startX = groupX - totalWidth / 2;
+              
+              // 내 채널 막대 위치 계산
+              const myBarX = startX;
+
               // Y축의 실제 최대값 계산 (Y축 라벨의 최대값)
               const allIndividualDislikes = [];
               if (channelDislikes && channelDislikes.myChannel && channelDislikes.myChannel.individualDislikes) {
@@ -518,7 +526,7 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                 <g key={idx}>
                   {/* 내 채널 막대 */}
                   <rect
-                    x={groupX - barWidth - gap}
+                    x={myBarX}
                     y={300 - (myAnimatedValue / actualMaxValue) * 250}
                     width={barWidth}
                     height={(myAnimatedValue / actualMaxValue) * 250}
@@ -528,7 +536,7 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
 
                   {/* 내 채널 싫어요 텍스트 */}
                   <text
-                    x={groupX - barWidth - gap + barWidth / 2}
+                    x={myBarX + barWidth / 2}
                     y={300 - (myAnimatedValue / actualMaxValue) * 250 - 10}
                     textAnchor="middle"
                     fill="#ef4444"
@@ -541,7 +549,7 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                   
                   {/* 내 채널 변화율 텍스트 */}
                   <text
-                    x={groupX - barWidth - gap + barWidth / 2}
+                    x={myBarX + barWidth / 2}
                     y={300 - (myAnimatedValue / actualMaxValue) * 250 - 25}
                     textAnchor="middle"
                     fill="#ef4444"
@@ -555,20 +563,23 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                   {Array.isArray(competitors) && competitors.map((_, channelIdx) => {
                     const animatedValue = channelIdx === 0 ? competitor1AnimatedValue : competitor2AnimatedValue;
                     
+                    // 경쟁 채널 막대 위치 계산
+                    const competitorBarX = startX + (channelIdx + 1) * (barWidth + gap);
+                    
                     return (
                       <g key={channelIdx}>
-                  <rect
-                          x={groupX + (channelIdx * (barWidth + gap))}
+                        <rect
+                          x={competitorBarX}
                           y={300 - (animatedValue / actualMaxValue) * 250}
-                    width={barWidth}
+                          width={barWidth}
                           height={(animatedValue / actualMaxValue) * 250}
                           fill={colors[channelIdx + 1] || colors[0]}
                           rx="4" // 상단을 둥근 사각형으로 만듦
-                  />
+                        />
 
                         {/* 경쟁 채널 싫어요 텍스트 */}
                         <text
-                          x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
+                          x={competitorBarX + barWidth / 2}
                           y={300 - (animatedValue / actualMaxValue) * 250 - 10}
                           textAnchor="middle"
                           fill={colors[channelIdx + 1] || colors[0]}
@@ -581,7 +592,7 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
                         
                         {/* 경쟁 채널 변화율 텍스트 */}
                         <text
-                          x={groupX + (channelIdx * (barWidth + gap)) + barWidth / 2}
+                          x={competitorBarX + barWidth / 2}
                           y={300 - (animatedValue / actualMaxValue) * 250 - 25}
                           textAnchor="middle"
                           fill={colors[channelIdx + 1] || colors[0]}
@@ -599,7 +610,7 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
 
                   {/* X축 레이블 */}
                   <text
-                    x={groupX + barWidth / 2}
+                    x={groupX}
                     y={380}
                     textAnchor="middle"
                     fill="#666"
@@ -728,14 +739,6 @@ const DislikesPage: React.FC<DislikesPageProps> = ({ onDataRefresh, competitors:
             </div>
           );
         })}
-
-        {/* 경쟁 채널이 없을 때 메시지 */}
-        {competitors.length === 0 && (
-          <div className="text-gray-400 text-center flex-1">
-            등록된 경쟁 채널이 없습니다. <br />
-            <span className="text-sm">Insight 페이지에서 경쟁 채널을 등록해보세요.</span>
-          </div>
-        )}
       </div>
     </div>
   );
