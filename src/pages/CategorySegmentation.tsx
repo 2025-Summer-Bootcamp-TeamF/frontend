@@ -53,7 +53,7 @@ export default function CategorySegmentation() {
         return;
       }
 
-      const response = await fetch('http://34.47.88.56/api/videos/thumbnail-categories', {
+      const response = await fetch('https://api.cloudsession.cloud/api/videos/thumbnail-categories', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

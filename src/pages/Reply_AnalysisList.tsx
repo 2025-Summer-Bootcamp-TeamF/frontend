@@ -96,7 +96,7 @@ export default function ReplyManagement() {
           return;
         }
         
-        const response = await fetch(`http://34.47.88.56/api/videos/${videoId}/comments/summary`, {
+        const response = await fetch(`https://api.cloudsession.cloud/api/videos/${videoId}/comments/summary`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -134,7 +134,7 @@ export default function ReplyManagement() {
     const pollAnalysisStatus = async () => {
       try {
         const response = await fetch(
-          `http://34.47.88.56/api/videos/${location.state.videoId}/comments/analysis/status/${analysisJobId}`,
+          `https://api.cloudsession.cloud/api/videos/${location.state.videoId}/comments/analysis/status/${analysisJobId}`,
           {
             method: 'GET',
             headers: {
@@ -233,7 +233,7 @@ export default function ReplyManagement() {
   //     }
 
   //     const response = await fetch(
-  //       `http://34.47.88.56/api/videos/${videoId}/comments/summary/${summaryId}`,
+  //       `https://api.cloudsession.cloud/api/videos/${videoId}/comments/summary/${summaryId}`,
   //       {
   //         method: "DELETE",
   //         headers: {
@@ -284,7 +284,7 @@ export default function ReplyManagement() {
       for (const summaryId of selectedIds) {
         try {
           const response = await fetch(
-            `http://34.47.88.56/api/videos/${videoId}/comments/summary/${summaryId}`,
+            `https://api.cloudsession.cloud/api/videos/${videoId}/comments/summary/${summaryId}`,
             {
               method: "DELETE",
               headers: {
@@ -393,7 +393,7 @@ export default function ReplyManagement() {
                     
                     setIsAnalyzing(true);
                     
-                    const response = await fetch(`http://34.47.88.56/api/videos/${videoId}/comments/analysis`, {
+                    const response = await fetch(`https://api.cloudsession.cloud/api/videos/${videoId}/comments/analysis`, {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',

@@ -48,10 +48,10 @@ const MyPage: React.FC = () => {
           return;
         }
 
-        console.log("Fetching channel data from:", "http://34.47.88.56/api/channel/my");
+        console.log("Fetching channel data from:", "https://api.cloudsession.cloud/api/channel/my");
         console.log("Token:", token.substring(0, 20) + "...");
 
-        const response = await fetch("http://34.47.88.56/api/channel/my", {
+        const response = await fetch("https://api.cloudsession.cloud/api/channel/my", {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
