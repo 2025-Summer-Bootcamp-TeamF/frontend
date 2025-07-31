@@ -48,11 +48,11 @@ const VideoPage: React.FC<VideoPageProps> = ({
 
         console.log(
           "Fetching videos from:",
-          "http://34.47.88.56/api/channel/videos"
+          "https://api.cloudsession.cloud/api/channel/videos"
         );
 
         const response = await fetch(
-          "http://34.47.88.56/api/channel/videos",
+          "https://api.cloudsession.cloud/api/channel/videos",
           {
             method: "GET",
             headers: {
@@ -250,7 +250,7 @@ const VideoPage: React.FC<VideoPageProps> = ({
                   // 1. 먼저 classify API 호출
                   const token = localStorage.getItem("token");
                   const classifyResponse = await fetch(
-                    `http://34.47.88.56/api/videos/${video.videoId}/comments/classify`,
+                    `https://api.cloudsession.cloud/api/videos/${video.videoId}/comments/classify`,
                     {
                       method: "POST",
                       headers: {

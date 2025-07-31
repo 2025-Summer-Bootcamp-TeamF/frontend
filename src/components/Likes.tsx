@@ -54,7 +54,7 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
         return;
       }
 
-      const response = await fetch("http://34.47.88.56/api/others", {
+      const response = await fetch("https://api.cloudsession.cloud/api/others", {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -84,7 +84,7 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
         return;
       }
 
-      const response = await fetch("http://34.47.88.56/api/others/videos/likes", {
+      const response = await fetch("https://api.cloudsession.cloud/api/others/videos/likes", {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -111,7 +111,7 @@ const LikesPage: React.FC<LikesPageProps> = ({ onDataRefresh, competitors: propC
         return;
       }
 
-      const response = await fetch(`http://34.47.88.56/api/others/${otherChannelId}`, {
+      const response = await fetch(`https://api.cloudsession.cloud/api/others/${otherChannelId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
